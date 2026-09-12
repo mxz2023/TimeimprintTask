@@ -1,23 +1,28 @@
 # 02 · 通用任务平台架构与编码约束
 
-> 人工审核与阶段准入以[00审核台账](00-READING-ORDER.md)为准。本文2.0已于2026-09-10 20:23通过人工审核；当前不包含cache模块，这只批准架构契约，不代表放行工程实施。
+> 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是架构、模块依赖、扩展接口和Java编码规则的正式来源；当前不包含cache模块。
 
-版本 2.0；先读[平台业务契约](01-MVP-SPEC.md)，下一份为[环境契约](03-INTEGRATION-CONTRACTS.md)。本文定义稳定底座、扩展边界和目标工程结构；01 定义平台语义与首期业务切片，09 记录未来场景和能力规划。
+版本 2.2；先读[平台公共业务契约](01-MVP-SPEC.md)，下一份为[环境契约](03-INTEGRATION-CONTRACTS.md)。本文定义稳定底座、扩展边界和目标工程结构；01定义公共语义与首期范围，[场景目录](scenarios/README.md)定义场景，[能力目录](capabilities/README.md)定义可复用能力，09记录演进顺序。
 
 ## 1. 架构目标
 
-JoyTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单体。所有 Maven 模块由一个 Spring Boot 应用装配和部署，不把模块拆分等同于微服务。
+TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单体。所有 Maven 模块由一个 Spring Boot 应用装配和部署，不把模块拆分等同于微服务。
 
-架构必须保证：
+首期不是丢弃可靠性和扩展性的本地原型。运行身份暂时固定在本地适配器，但首期结束前必须完成下述稳定内核、扩展契约、公共存储和多进程运行机制。身份接入的简化不得渗入 kernel、TransitionPlan、持久化或 Worker；未来接入生产认证时只替换 ActorContext 接入实现和具体 Policy。
 
-1. 已规划的新场景只增加场景模块、能力实现、场景专有表和装配声明，不修改 `joytask-service-kernel` 的业务语义和公共表结构。
-2. 内核只保存跨场景长期稳定的事实：任务身份、定义版本、实例生命周期类别、参与主体、迁移版本和审计关联。
-3. 提醒、审批、缴费、会议等业务状态由场景定义，内核不得维护场景状态枚举或按 `scenarioKey` 编写分支。
-4. 时间、事件、条件和依赖统一转换为持久化 Signal；通知、Webhook、同步和自动执行统一转换为 Action Job。
-5. 扩展只返回声明式 `TransitionPlan`，不能直接更新公共任务表、提交事务或在状态事务中执行外部网络调用。
-6. 模块数量按“稳定边界和独立变化原因”控制。通知渠道、日历算法和相近小场景先在所属模块内按包隔离，不默认一个实现一个 Maven 模块。
+以下编号是跨阶段稳定不变量。后续阶段可以增加兼容不变量；修改或删除既有不变量属于核心模型变化，必须按08重新评审：
 
-“新增场景不改底层”特指不修改内核语义、公共表和既有扩展契约。根 POM、`joytask-boot-loader` 装配清单、新模块迁移目录以及新增兼容契约可以变化，但必须通过架构检查与文档审核。
+1. **INV-01 场景隔离**：已规划的新场景只增加场景模块、能力实现、场景专有表和装配声明，不修改`timeimprint-task-service-kernel`的业务语义和公共表结构。
+2. **INV-02 通用事实**：内核只保存跨场景长期稳定的事实，包括任务身份、定义版本、实例生命周期类别、参与主体、迁移版本和审计关联。
+3. **INV-03 内核无场景分支**：提醒、审批、缴费、会议等业务状态由场景定义，内核不得维护场景状态枚举或按`scenarioKey`编写分支。
+4. **INV-04 统一输入输出**：时间、事件、条件和依赖统一转换为定位到单个任务定义的持久化Signal；通知、Webhook、同步和自动执行统一转换为Action Job。首期不接受无目标或广播Signal。
+5. **INV-05 声明式迁移**：扩展只返回声明式`TransitionPlan`，不能直接更新公共任务表、提交事务或在状态事务中执行外部网络调用。
+6. **INV-06 原子事实**：一次已应用迁移的资源状态、Transition、Action意图、Audit及场景/能力专有数据必须在同一事务全部提交或全部回滚。
+7. **INV-07 并发屏障**：同步命令依靠持久化requestId与revision，异步队列依靠稳定业务键、父资源版本/代次及executionToken阻止重复效果和旧执行者回写。
+8. **INV-08 接入不污染内核**：本地固定身份、HTTP、数据库和具体渠道都是外层适配；不得把环境身份、传输对象、Mapper或渠道SDK引入kernel。
+9. **INV-09 模块克制**：模块数量按稳定边界和独立变化原因控制。通知渠道、日历算法和相近小场景先在所属模块内按包隔离，不默认一个实现一个Maven模块。
+
+“新增场景不改底层”特指不修改内核语义、公共表、既有扩展契约和INV-01—INV-09。根POM、`timeimprint-task-boot-loader`装配清单、新模块迁移目录以及新增兼容契约可以变化，但必须通过架构检查与文档审核。
 
 ## 2. 当前一期模块
 
@@ -25,67 +30,69 @@ JoyTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单体。所
 
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
-| `joytask-common` | 无业务含义的工具、基础技术类型 | 无 |
-| `joytask-api` | 对外接口、请求/响应 DTO、响应信封 | common |
-| `joytask-service-kernel` | 任务定义、实例、参与人、稳定生命周期和迁移计划值对象；纯 Java | common |
-| `joytask-service-extension-api` | Scenario、Trigger、Command、Action、Policy 扩展契约和注册描述 | kernel、common |
-| `joytask-service-application` | 用例编排、权限、幂等、事务、迁移计划校验和原子提交 | kernel、extension-api、common |
-| `joytask-service-runtime` | Signal、触发规划、Action Job 领取、租约、重试和恢复 | kernel、extension-api、application、common |
-| `joytask-service-storage-mysql` | Repository 实现、MyBatis Mapper/XML、查询、锁协议和平台迁移 | kernel、application、runtime、common |
-| `joytask-service-capability-calendar` | 一次性、日/周/月/N 日规则和时间计算能力 | extension-api、kernel、common |
-| `joytask-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道实现 | extension-api、kernel、common |
-| `joytask-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
-| `joytask-api-gateway` | 实现对外 API、构造 ActorContext、DTO 转换和错误映射 | api、application、kernel、common |
-| `joytask-web` | HTTP Controller、过滤器、请求限制和统一异常处理 | api、gateway、common |
-| `joytask-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
+| `timeimprint-task-common` | 无业务含义的工具、基础技术类型 | 无 |
+| `timeimprint-task-api` | 对外接口、请求/响应 DTO、响应信封 | common |
+| `timeimprint-task-service-kernel` | 任务定义、实例、参与人、稳定生命周期和迁移计划值对象；纯 Java | common |
+| `timeimprint-task-service-extension-api` | Scenario、Trigger、Command、Action、Policy 扩展契约和注册描述 | kernel、common |
+| `timeimprint-task-service-application` | 用例编排、权限、幂等、事务、迁移计划校验和原子提交 | kernel、extension-api、common |
+| `timeimprint-task-service-runtime` | Signal、触发规划、Action Job 领取、租约、重试和恢复 | kernel、extension-api、application、common |
+| `timeimprint-task-service-storage-mysql` | Repository 实现、MyBatis Mapper/XML、查询、锁协议和平台迁移 | kernel、application、runtime、common |
+| `timeimprint-task-service-capability-calendar` | 一次性、日/周/月/N 日规则和时间计算能力 | extension-api、kernel、common |
+| `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道实现 | extension-api、kernel、common |
+| `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
+| `timeimprint-task-api-gateway` | 实现对外 API、构造 ActorContext、DTO 转换和错误映射 | api、application、kernel、common |
+| `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理 | api、gateway、common |
+| `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 
-一期不创建cache、AI、工作流、外部IM或未来场景模块。缓存能力及其工程形态暂不确定，后续根据真实性能需求单独设计和审批；不能用空接口、空Bean、空表或固定假数据声称完成了扩展能力。
+一期不创建cache、独立AI能力、工作流、外部IM或未来场景模块。Spring AI只作为已批准的技术版本基线，不表示首期已实现AI业务能力。缓存能力及其工程形态暂不确定，后续根据真实性能需求单独设计和审批；不能用空接口、空Bean、空表或固定假数据声称完成了扩展能力。
 
 ## 3. 未来目标模块
 
 未来模块按能力域和场景族扩展，而不是按每个渠道或单个场景扩展：
 
 ```text
-joytask
-├── joytask-common
-├── joytask-api
-├── joytask-service-kernel
-├── joytask-service-extension-api
-├── joytask-service-application
-├── joytask-service-runtime
-├── joytask-service-storage-mysql
-├── joytask-service-capability-calendar
-├── joytask-service-capability-trigger
-├── joytask-service-capability-notification
-├── joytask-service-capability-collaboration
-├── joytask-service-capability-workflow
-├── joytask-service-capability-aggregation
-├── joytask-service-capability-integration
-├── joytask-service-capability-intelligence
-├── joytask-service-scenario-basic
-├── joytask-service-scenario-deadline
-├── joytask-service-scenario-collaboration
-├── joytask-service-scenario-workflow
-├── joytask-service-scenario-automation
-├── joytask-api-gateway
-├── joytask-web
-└── joytask-boot-loader
+timeimprint-task
+├── timeimprint-task-common
+├── timeimprint-task-api
+├── timeimprint-task-service-kernel
+├── timeimprint-task-service-extension-api
+├── timeimprint-task-service-application
+├── timeimprint-task-service-runtime
+├── timeimprint-task-service-storage-mysql
+├── timeimprint-task-service-capability-calendar
+├── timeimprint-task-service-capability-trigger
+├── timeimprint-task-service-capability-notification
+├── timeimprint-task-service-capability-collaboration
+├── timeimprint-task-service-capability-workflow
+├── timeimprint-task-service-capability-aggregation
+├── timeimprint-task-service-capability-integration
+├── timeimprint-task-service-capability-intelligence
+├── timeimprint-task-service-scenario-basic
+├── timeimprint-task-service-scenario-deadline
+├── timeimprint-task-service-scenario-collaboration
+├── timeimprint-task-service-scenario-workflow
+├── timeimprint-task-service-scenario-automation
+├── timeimprint-task-api-gateway
+├── timeimprint-task-web
+└── timeimprint-task-boot-loader
 ```
 
 当前目标结构为23个模块，不包含cache模块。缓存仍是未来能力候选，但在实际需求和技术方案确定前不预设模块名称、依赖位置或产品实现。未来结构是边界规划，不是要求一期创建全部目录。
 
 ### 3.1 能力模块边界
 
+本表只定义目标模块所有权；当前批准范围、未来能力项和真实实现状态以[能力域索引](capabilities/README.md)为准。
+
 | 模块 | 聚合的能力 |
 | --- | --- |
-| `capability-calendar` | 公历、周期、工作日、节假日、农历、相对时间 |
-| `capability-trigger` | 外部事件、条件和任务依赖触发；一期时间触发由calendar与runtime完成 |
-| `capability-notification` | 站内信、飞书、京ME、邮件、静默、频控、降级 |
-| `capability-collaboration` | 人员解析、参与人、协作者、转交、轮值 |
-| `capability-workflow` | 串行、并行、会签、分支、汇合、退回、补偿 |
-| `capability-aggregation` | 多任务汇总、进度、窗口统计和摘要 |
-| `capability-integration` | Webhook、外部事件、回调和第三方日历同步 |
-| `capability-intelligence` | 自然语言解析、日期理解、配置建议和解释 |
+| `capability-calendar` | [calendar日历与时间](capabilities/CAP01-calendar.md) |
+| `capability-trigger` | [trigger外部、条件与依赖触发](capabilities/CAP02-trigger.md) |
+| `capability-notification` | [notification通知与收件](capabilities/CAP03-notification.md) |
+| `capability-collaboration` | [collaboration协作与主体](capabilities/CAP04-collaboration.md) |
+| `capability-workflow` | [workflow流程编排](capabilities/CAP05-workflow.md) |
+| `capability-aggregation` | [aggregation聚合与统计](capabilities/CAP06-aggregation.md) |
+| `capability-integration` | [integration外部系统集成](capabilities/CAP07-integration.md) |
+| `capability-intelligence` | [intelligence智能理解与建议](capabilities/CAP08-intelligence.md) |
 
 站内信、飞书、京ME、邮件首先是 `capability-notification` 内部渠道包。只有出现独立发布、重大 SDK 冲突、单独安全隔离或独立团队所有权时，才把某个渠道提取为新的适配器模块；提取前后保持同一个 `NotificationChannel` 契约。
 
@@ -99,7 +106,7 @@ joytask
 | `scenario-workflow` | 审批、会签、复核、退回和升级 |
 | `scenario-automation` | 外部事件、条件监控、依赖联动和自动完成 |
 
-同一场景族先按包隔离。只有独立业务数据、生命周期、所有权或发布节奏已经形成，才拆出新的平级 `joytask-service-scenario-*` 模块。
+同一场景族先按包隔离。只有独立业务数据、生命周期、所有权或发布节奏已经形成，才拆出新的平级 `timeimprint-task-service-scenario-*` 模块。
 
 ## 4. 依赖规则
 
@@ -131,13 +138,49 @@ boot-loader ────────────→ 选择并装配全部运行�
 
 | 契约 | 责任 | 明确禁止 |
 | --- | --- | --- |
-| `ScenarioExtension` | 配置版本、初始状态、允许命令、状态迁移、投影和专有数据声明 | 更新公共表、调用外部网络 |
+| `ScenarioExtension` | 场景描述、配置解码/校验、初始实例、Signal迁移、状态校验和读模型投影 | 处理HTTP命令、更新公共表、调用外部网络 |
 | `TriggerProvider` | 把时间、事件、条件或依赖转换成去重 Signal | 直接改变任务业务状态 |
 | `TaskCommandHandler` | 处理 complete、skip、approve、reject、assign 等强类型命令并返回 TransitionPlan | 接受未经校验的任意 Map、直接提交事务 |
 | `ActionHandler` | 执行 notification、webhook、sync 等外部或内部动作 | 自行无限重试、绕过 Action Job 状态机 |
 | `Policy` | 权限、频控、静默、执行资格和合规约束 | 隐式修改场景状态或伪造成功 |
 
 扩展注册使用稳定 key、契约版本和配置 schemaVersion。重复 key、处理器缺失或版本不兼容时启动失败。扩展配置在接入边界完成强类型转换；版本升级必须提供兼容读取或显式迁移，不能让任意 JSON/Map 进入业务深处。
+
+五类契约必须共享以下最小语义，具体Java签名在[P01实施任务](phases/P01/IMPLEMENTATION.md)的G01门槛中先以契约测试固定，再进入S01纵向实现：
+
+- 输入是不可变、已鉴权、已完成schema解码的强类型上下文；不得把HTTP DTO、MyBatis对象或任意Map传入场景决策。
+- 业务处理只返回Applied、NoChange或Rejected及声明式计划；可预期业务拒绝不得伪装成技术异常，技术异常不得伪装成业务结果。
+- 决策实现默认无状态且线程安全；需要状态的数据必须来自显式输入或专有数据读取端口，不能依赖进程内可变缓存。
+- 每个处理器声明支持的schema版本、所需能力和执行约束；仍被ACTIVE/WAITING/RUNNING数据引用的旧版本必须可读，否则应用不得进入就绪状态。
+- ActionHandler额外声明执行模式和最大执行时间；外部客户端必须配置连接、读取和总调用超时，不能只依赖线程中断。
+
+### 5.1 注册键与唯一数量
+
+注册表不得靠Spring Bean名称或“找到第一个实现”路由，唯一键和数量固定如下：
+
+| 类型 | 唯一注册键 | 数量规则 |
+| --- | --- | --- |
+| ScenarioExtension | `(scenarioKey, contractVersion)` | 每个已启用scenarioKey在当前contractVersion恰好1个 |
+| TriggerProvider | `(providerKey, contractVersion)` | 每个已启用providerKey在当前contractVersion恰好1个；实现自行声明可读的config/payload schemaVersion集合 |
+| TaskCommandHandler | `(scenarioKey, scope, commandKey, commandSchemaVersion)` | 每个声明支持的命令恰好1个；scope仅为DEFINITION或INSTANCE |
+| ActionHandler | `(handlerKey, actionSchemaVersion)` | 每个仍有未终结Action引用的版本恰好1个 |
+| Policy | `(policyKey, phase)` | 每键每阶段至多1个；同阶段允许多个不同key组合 |
+| ScenarioDataMaterializer | `(scenarioKey, mutationKey, schemaVersion)` | 每个声明的Mutation版本恰好1个 |
+
+`contractVersion`是Java扩展契约的大版本，一期固定为1；`schemaVersion`是持久化配置或载荷版本，两者不能混用。注册描述必须列出公开状态、命令、支持版本和所需能力；声明与实际注册不一致、重复键、缺少依赖或未终结数据版本不可读时启动失败。
+
+### 5.2 场景与命令的责任分界
+
+- `ScenarioExtension`不再声明可执行命令逻辑，只提供场景元数据、定义配置校验、初始实例/Signal迁移、状态合法性和投影。它必须声明公开的commandKey清单，该清单只作描述，并与注册的TaskCommandHandler逐项一致。
+- `TaskCommandHandler`只处理一个明确的场景、资源层级、commandKey和commandSchemaVersion，输入是已解码命令及锁内快照，输出Applied/NoChange/Rejected。它不能处理Signal。
+- `update/pause/resume/retire`是平台定义级命令，由application实现通用控制语义；其中update必须调用ScenarioExtension重新校验完整配置，不能路由到场景命令处理器。`complete/skip/snooze/approve/reject`等业务命令才路由TaskCommandHandler。
+- Signal只路由当前definition的ScenarioExtension；commandKey只路由TaskCommandHandler。两条入口不互相回退，缺失处理器即确定性错误，不能尝试另一种处理方式。
+
+### 5.3 Policy组合与结果映射
+
+Policy阶段固定为`DEFINITION_READ`、`INSTANCE_READ`、`COMMAND_EXECUTE`、`SIGNAL_PROCESS`和`ACTION_EXECUTE`。同阶段策略按`order`升序、再按policyKey字典序执行；所有适用策略都ALLOW才可继续。首个DENY或RETRY_LATER立即停止，Policy不得修改状态或TransitionPlan。相同`order`允许存在，稳定key次序保证结果可重现。
+
+扩展结果只允许：`Applied(plan)`、`NoChange(result)`、`Rejected(reasonCode, safeMessage)`。NoChange以HTTP 200返回既有快照且不增加revision、Transition或Action；Rejected的reasonCode必须在注册描述中声明，并由application映射到`INVALID_REQUEST`、`FORBIDDEN`、`STATE_CONFLICT`、`COMMAND_NOT_SUPPORTED`或`POLICY_REJECTED`，扩展不能直接选择HTTP状态。未声明reasonCode、空plan、非法plan、解码错误和普通运行时异常都是技术错误；同步入口映射INTERNAL_ERROR/RETRY_LATER，Signal/Action入口按06的可重试分类处理，不能伪装成业务拒绝。
 
 ## 6. 状态与事务边界
 
@@ -148,30 +191,38 @@ boot-loader ────────────→ 选择并装配全部运行�
 3. 场景业务状态：由场景声明，例如 `WAITING_APPROVAL / APPROVED / REJECTED`；内核只保存代码和值，不解释枚举。
 4. 动作技术状态：`READY / RUNNING / RETRY_WAIT / SUCCEEDED / DEAD / CANCELLED / EXPIRED / UNKNOWN`。
 
-命令或 Signal 的状态事务固定为：去重检查 → 锁定并重验 → 调用场景纯计算 → 得到 TransitionPlan → 校验平台不变量 → 原子写入状态、参与人、动作意图、迁移记录、审计和幂等结果 → 提交。
+Command与Signal有不同入口：同步Command先取得requestId对应的command dedup锁，再锁业务资源；异步Signal先持久化，Worker领取提交后普通读取父标识，再按definition、trigger binding、instance、Signal顺序进入业务事务。两者只从“调用场景纯计算 → 得到TransitionPlan → 校验平台不变量 → 原子写入状态、参与人、动作意图、迁移记录和审计 → 提交”开始共享实现；平台不得先把Command转换成Signal。
 
-TransitionPlan 至少可声明：实例新生命周期类别、场景新状态、参与人变更、待创建 Action Job、后续 Signal/触发绑定变化和安全审计摘要。平台有权拒绝非法计划；扩展不能绕过 revision、权限、终态和所有权检查。
+TransitionPlan一期只允许声明七类内容：目标资源及fromRevision、实例新生命周期/场景状态、参与人增删、待创建Action Job、后续Signal或触发绑定变化、强类型ScenarioDataMutation、安全审计摘要。缺少目标/fromRevision的Applied计划非法；不需要任何变化必须返回NoChange而不是空Applied。新增第八类内容属于扩展契约变更，必须先升级contractVersion并复审。平台有权拒绝非法计划；扩展不能绕过revision、权限、终态和所有权检查。
 
-任何 HTTP、IM、文件、模型调用或其他不可回滚副作用都不得出现在状态事务中。ActionHandler必须声明`LOCAL_TRANSACTIONAL`或`EXTERNAL`执行模式：本地模式只在Action结果事务中写能力自有表；外部模式先持久化副作用开始证据，再在事务外调用。Action Worker以MySQL租约领取，用executionToken和revision提交结果；外部调用超时或崩溃后无法判断结果时记录`UNKNOWN`，不能直接当作失败重复发送。
+ScenarioDataMutation 只描述场景专有数据的业务变更，不包含任意 SQL、Mapper 名、Java 类名、脚本、URL 或事务传播方式。application 按 scenarioKey、mutationKey 和 schemaVersion 查找显式注册的 ScenarioDataMaterializer，并在同一迁移事务中调用；物化器只能写本场景拥有的表，并返回实际受影响行数供统一事务预算累计。物化失败、影响行数与声明预期不符或累计超限，必须使公共状态、Transition、Action、审计和专有数据整笔回滚。场景决策处理器保持纯计算，不能直接调用物化器或 Mapper。
+
+application在进入事务写入前校验03规定的参与人、接收人、触发绑定、发生、Action、专有数据变更、预计变更行数、单值与TransitionPlan总载荷及事务时间上限。任何一项超限都拒绝整个请求或缩小尚未开始的后台候选批次，不能截断TransitionPlan、只提交前N项或让扩展自行拆分后绕过上限。
+
+controlGeneration是定义暂停、恢复和退役的持久屏障。定义每次真实控制状态迁移都递增；Instance、Signal和Action保存创建时的代次，Worker最终提交必须与当前定义代次一致。历史实例命令可由场景明确放行，但旧代次异步工作不能因恢复ACTIVE而重新获得执行资格。
+
+窗口规划只创建WAITING Instance和计划Signal；正常Action必须由实际发生的Signal或同步Command所提交的TransitionPlan创建。受控人工重驱是唯一技术派生例外：它引用原Action及原Transition，创建新Action行但不伪造业务Transition。实例TERMINAL时，仅允许其终态Transition自身声明的Action及其合法重驱继续执行，更早Transition遗留的Action统一取消。
+
+任何 HTTP、IM、文件、模型调用或其他不可回滚副作用都不得出现在状态事务中。ActionHandler必须声明`LOCAL_TRANSACTIONAL`或`EXTERNAL`执行模式：本地模式只在Action结果事务中写能力自有表；外部模式先持久化副作用开始证据，再在事务外调用。Action Worker以MySQL租约领取，用status + executionToken条件提交结果；涉及业务迁移时另校验definition/instance revision。外部调用超时或崩溃后无法判断结果时记录`UNKNOWN`，不能直接当作失败重复发送。
 
 ## 7. 数据所有权
 
-公共表只保存平台事实，建议包括：
+公共平台表固定为以下10张：
 
 ```text
-jt_task_definition
-jt_task_instance
-jt_task_participant
-jt_trigger_binding
-jt_task_signal
-jt_action_job
-jt_action_attempt
-jt_task_transition
-jt_command_dedup
-jt_audit_log
+tt_task_definition
+tt_task_instance
+tt_task_participant
+tt_trigger_binding
+tt_task_signal
+tt_action_job
+tt_action_attempt
+tt_task_transition
+tt_command_dedup
+tt_audit_log
 ```
 
-通知投递、收件箱等由通知能力拥有；审批、缴费等专有事实由对应场景模块拥有，例如 `jt_approval_instance`、`jt_payment_subject`。专有表通过 definitionId/instanceId 关联公共身份，不向公共表增加 `approvalLevel`、`paymentAmount`、`meetingRoom` 等字段。
+通知投递、收件箱等由通知能力拥有；审批、缴费等专有事实由对应场景模块拥有，例如 `tt_approval_instance`、`tt_payment_subject`。专有表通过 definitionId/instanceId 关联公共身份，不向公共表增加 `approvalLevel`、`paymentAmount`、`meetingRoom` 等字段。
 
 公共平台迁移归 `storage-mysql`；场景和能力专有迁移随所属模块提供，由 boot-loader 显式加载，版本号在整个应用内唯一。迁移一旦在共享环境执行不得原地重写。
 
@@ -179,16 +230,29 @@ jt_audit_log
 
 通用 API 以任务定义、任务实例、命令、Signal 和 Action Job 为资源；提醒、待办等易用接口可作为通用命令的友好包装，但不得形成第二套状态模型。
 
-网关从可信接入信息构造 `ActorContext`，包含调用主体、租户、来源、授权范围和 traceId。请求体中的 userId 不能作为长期可信身份依据。资源归属、办理权限和管理权限由 Policy 决定；“收到通知”不自动等于“有权完成任务”。
+网关通过 ActorContextProvider 从可信接入信息构造 `ActorContext`，包含调用主体、租户、来源、授权范围和 traceId。首期 local profile 使用配置提供的固定 tenantId 和 actorId；请求不得覆盖它们。test profile 可以提供受控测试身份切换；非 local/test 环境没有正式 ActorContextProvider 时，公开API不得进入就绪状态。请求体中的 userId 不能作为长期可信身份依据。资源归属、办理权限和管理权限由 Policy 决定；“收到通知”不自动等于“有权完成任务”。
 
 所有写操作包含 requestId；修改已有资源时包含 expectedRevision。幂等记录绑定调用方、操作、请求摘要和首次确定结果；相同 requestId 不同内容必须冲突。
 
 ## 9. Spring、Java与交付纪律
 
-- 编译 release=17，依赖版本仍以03当前基线为候选；03完成2.0修订和实测前不得宣称环境已确认。
+- 使用Java 21 LTS并编译release=21；Spring AI、Spring Boot、MyBatis和MySQL版本以03当前基线为准，完成T01实测前不得宣称环境已确认。
+- 所有项目自定义 Java `class` 定义的类名必须以 `Mxz` 开头；该前缀不适用于接口、枚举、Record 或注解定义。
 - 自有应用对象使用构造器注入；第三方对象和组合装配使用 `@Bean`。事务必须经过 Spring 代理边界。
 - 时间使用可注入 Clock；数据库租约使用数据库 UTC 时间。业务时间精确到秒。
 - Mapper 使用 XML 参数化 SQL；动态排序使用白名单；禁止用内存仓储替代 MySQL。
-- 日志关联 traceId、definitionId、instanceId、signalId、transitionId、actionJobId 和 executionToken，但不输出正文、密码、凭据或令牌值。
+- 日志关联 traceId、definitionId、instanceId、signalId、transitionId、actionJobId；租约诊断只记录`executionTokenFingerprint`，其值固定为executionToken做SHA-256后的前12位小写十六进制，不记录原始executionToken。日志不得输出正文、密码、凭据或任何原始令牌值。
 - 新场景验收必须证明 kernel 源码和公共平台 DDL 零修改；若做不到，必须说明缺失的跨场景稳定语义并重新审核契约，不能静默修改底层。
-- 首次进入项目读00—10；当前2.0文档未全部通过前，不得使用旧1.2接口、DDL或任务计划开始编码。
+- 首次进入项目读00—10；未得到用户明确实施授权前不得开始编码，也不得引入当前文档未定义的旧接口、DDL或任务计划。
+
+## 10. 编码前原则与明确延期
+
+首期完整核心采用“真实场景驱动稳定、发布前允许回正、发布后兼容演进”的原则：
+
+1. 先让S01 ONCE以最终MySQL表、HTTP、Signal、TransitionPlan、Action和inbox跑通最小纵向链路，再完成全部通用能力；不得用内存仓储或一次性旁路代码制造假闭环。
+2. T02—T06期间，S01/S02真实链路发现契约不合理时可以回到前序任务修正，并同步文档和回归测试。首期发布门槛通过后，既有扩展契约和公共表才视为稳定基线。
+3. 对已经出现的业务变化建立最小稳定接口；对只存在于路线图、没有实际输入输出和失败样例的能力，不提前建立空SPI、万能配置或占位表。
+4. 场景schemaVersion用于持久化配置/载荷兼容；同一构建制品内的Java接口不额外模拟远程插件协商。只有独立部署或动态加载获得批准后，才设计更复杂的契约协商。
+5. 先保证正确性、幂等、可恢复和可诊断，再以真实执行计划及性能证据决定缓存、MQ或拆服务；不得以未来可能需要为理由增加当前写路径。
+
+首期明确不设计或实现：MQ、cache/JimDB、工作流引擎、动态加载插件、AI模型运行、多时区、农历、企业工作日历、通用补偿框架、跨系统事务、任意广播Signal、生产级归档冷热分层以及未来23模块的内部接口。09只保留其需求与重新评审入口；上述延期项不得出现在首期生产依赖、Bean、表、配置或“暂未使用”的代码中。

@@ -1,0 +1,16 @@
+# T01 Environment Evidence
+recordedAtUtc: 2026-09-12T09:40:00Z
+java: openjdk version "21.0.12" 2026-07-21 LTS Amazon Corretto-21.0.12.8.1
+mavenWrapper: 3.3.2
+apacheMaven: 3.9.9
+springBoot: 4.0.8
+springAiBom: 2.0.1
+mybatisStarter: 4.0.1
+mysqlImageTag: mysql:9.7.2
+mysqlImageDigest: sha256:29abb0a179982e4a8928138bfc7f918af9eda64e7eeb1b1d084c1720a20159e6
+mysqlSelectVersion: 9.7.2
+mysqlVersionComment: MySQL Community Server - GPL
+mysqlTransactionIsolation: READ-COMMITTED
+mysqlImageArchitecture: arm64
+unitTestPackage: PASS (./mvnw -q test && ./mvnw -q package exit 0)
+note: Docker Hub library/mysql had no 9.7.3 tag at T01 time; docs/03 locked to official 9.7.2 and recorded digest. Session time_zone defaults SYSTEM until application sets +00:00 on connect.

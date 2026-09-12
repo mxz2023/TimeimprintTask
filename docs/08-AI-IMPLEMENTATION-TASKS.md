@@ -1,135 +1,106 @@
-# 08 · AI实施任务与阶段门槛
+# 08 · AI实施治理与阶段规则
 
-> 审批与实施准入以[00审核台账](00-READING-ORDER.md)为准。本文通过只表示实施路径可行；当前仍未获得创建Java工程、执行SQL迁移或发送外部通知的授权。
+> 阅读入口与当前状态见[00开发导航](00-READING-ORDER.md)，当前阶段见[阶段索引](phases/README.md)。本文定义所有阶段共同遵守的实施和文档维护规则，不保存某一期的具体业务任务。
 
-版本2.0；前：[验收](07-ACCEPTANCE.md)，后：[场景路线](09-SCENARIO-ROADMAP.md)。任务按可运行纵向切片递增，不以“创建了模块或接口”作为完成证据。
+版本2.2；前：[验收](07-ACCEPTANCE.md)，后：[演进路线](09-SCENARIO-ROADMAP.md)。每一期的范围、任务和证据放在独立阶段目录中，避免历史计划与当前工作混用。
 
-## 1. 总体顺序与状态
+## 1. 文档分层
+
+| 层级 | 内容 | 维护方式 |
+| --- | --- | --- |
+| 当前入口 | 00与`phases/README.md` | 只指向当前有效基线、当前阶段和下一动作 |
+| 核心契约 | 01—07 | 保存所有已发布阶段仍然有效的平台规则；不得复制到阶段文档形成第二套定义 |
+| 实施治理 | 08 | 保存跨阶段通用的状态、变更和AI执行规则 |
+| 演进路线 | 09 | 保存当前、下一评审、长期规划及跨项关系，不复制详细规则 |
+| 设计复盘 | 10 | 保存重要设计理由、已处理问题和需要实施验证的风险；不覆盖01—08 |
+| 场景目录 | `scenarios/` | 保存S01—S17规划/契约、三维状态和永久入口；OUTLINE不能编码 |
+| 能力目录 | `capabilities/` | 保存八个能力域、能力项、C编号归属、三维状态和永久入口 |
+| 核心决策 | `decisions/` | 只记录会改变核心模型或兼容边界的重要决定；接受后仍须回写正式契约 |
+| 阶段包 | `phases/Pxx/` | 保存某一期范围、任务和交付证据；发布后只读 |
+| 术语 | HUMAN-GLOSSARY | 保存全项目英文标识的中文解释，不新增业务规则 |
+
+所有Markdown表格的表头统一使用中文。协议字段、状态枚举和代码标识应写在表格内容或正文中；需要对应关系时，由中文表头表达语义，不以英文标识代替表头。能力域永久文件使用稳定`CAP01—CAP08`编号和`CAPxx-capabilityKey.md`文件名，`capabilities/README.md`不编号；编号一经分配不得复用，也不得随阶段或排期调整。
+
+## 2. 阶段目录标准
+
+每一期固定使用三份文件：
 
 ```text
-T00 文档收敛
-  → T01 13模块与环境基线
-  → T02 稳定内核与扩展契约
-  → T03 MySQL存储与事务基础
-  → T04 应用编排、Signal和通用API
-  → T05 日历规划与运行时
-  → T06 通知与S01纵向闭环
-  → T07 S02、恢复与双进程
-  → T08 全量验收与交付
+docs/phases/Pxx/
+  README.md          # 本期范围、基线、状态、允许与禁止事项
+  IMPLEMENTATION.md  # 本期任务顺序、阶段门槛和验证要求
+  DELIVERY.md        # 实施后真实证据；开始实施前不得创建或预填通过结果
 ```
 
-| 任务 | 当前状态 | 转PASS的必要条件 |
+`README.md`是该阶段范围和总体状态的唯一来源；`IMPLEMENTATION.md`是该阶段任务状态的唯一来源；`DELIVERY.md`是实际完成证据的唯一来源。00和阶段索引只做摘要与链接，不复制详细状态。
+
+阶段编号按P01、P02、P03递增且不复用。任何时刻最多一个阶段为CURRENT。未来阶段只有在用户从场景/能力索引及09路线中选择范围、规则细化完成并建立阶段包后，才能成为CURRENT。
+
+阶段README必须记录基础发布标签或“初始实现”、核心文档版本和下一任务。开始实施后的第一个任务必须在写代码前记录不可变`baselineGitRef`；仓库尚不能形成提交时，改为保存核心文档、kernel生产源码和公共Flyway目录的SHA-256清单。发布时记录新的Git标签，保证以后可以重现该期开始前与交付后的准确状态。
+
+## 3. 阶段状态
+
+阶段总体状态只允许：
+
+- DRAFT：正在明确范围和契约，禁止编码。
+- READY：范围、影响和验收已明确，但仍需用户授权才能实施。
+- IMPLEMENTING：已获得授权，正在执行本期任务。
+- BLOCKED：存在阻止继续的环境、契约或外部条件。
+- VERIFYING：实现已完成，正在执行全量验收。
+- RELEASED：交付证据通过人工验收并形成不可变发布基线。
+
+任务状态只允许NOT_STARTED、IN_PROGRESS、PASS或BLOCKED；测试证据可以使用PASS、FAIL、BLOCKED或NOT_RUN。不得把文档READY写成实现PASS，也不得用空实现、跳过测试或固定假数据转PASS。
+
+## 4. 每期标准流程
+
+1. 新场景或能力先在对应永久目录建立有目标、例子、边界和待决问题的OUTLINE；09只登记排期位置和关系，不自动形成实施范围。
+2. 用户从NEXT_REVIEW或BACKLOG选择范围后，将相关场景和能力项转为DRAFT并完成规则细化。
+3. 场景及全部依赖能力达到READY_FOR_IMPLEMENTATION后，创建下一期目录，README初始为DRAFT并记录选中范围。
+4. 完成核心影响分析；需要改变场景、能力或01—07时先修订对应正式来源，不能只在阶段文档覆盖。
+5. README转为READY，00和阶段索引指向该阶段；仍须用户明确授权才能开始。
+6. 获得授权后转IMPLEMENTING，严格按IMPLEMENTATION任务顺序推进。
+7. 实现完成后转VERIFYING，创建DELIVERY并记录真实命令、环境、结果和证据。
+8. 全部验收通过且用户确认后转RELEASED，创建Git发布标签；DELIVERY和阶段任务不再改写。
+9. 把仍然有效的平台规则合并到01—07、场景和能力规则合并到对应永久文档，更新实现状态和09排期；随后才能创建下一阶段。
+
+## 5. 变化分类与审批
+
+| 变化类型 | 默认允许范围 | 必须动作 |
 | --- | --- | --- |
-| T00 | PASS | 01—10的2.0当前内容全部APPROVED，一致性检查已通过 |
-| T01—T08 | NOT_STARTED | 必须获得实施授权、上一阶段PASS、本阶段产物和验证全部PASS |
+| 场景内变化 | 场景模块、场景专有表、场景契约和本期验收 | 证明kernel语义和公共DDL没有变化 |
+| 兼容能力扩展 | 新能力实现、专有表、显式装配或兼容契约版本 | 补充跨场景夹具和旧场景回归，不破坏已有版本 |
+| 核心模型变化 | 01—07、kernel、公共表或稳定SPI | 先创建PROPOSED ADR，说明现有抽象为何不足、兼容/迁移影响和替代方案；用户接受并回写正式契约后实施 |
 
-状态只允许NOT_STARTED、IN_PROGRESS、PASS或BLOCKED。不得用空实现、固定假数据、跳过测试、占位异常或TODO转PASS。环境或契约问题使关键证据无法取得时标BLOCKED，不得跳过进入下一阶段。
+只要新增需求要求修改kernel业务语义、公共表、公共API语义或既有SPI，就不能伪装成普通场景开发。实现者必须停止受影响工作并提出核心变更评审。
 
-获得实施授权后，T01—T07在技术门槛PASS时可自动衔接；T08只能依据真实证据判定完成。生产部署、真实飞书/京ME/邮件发送和允许名单外数据库操作仍需另行授权。
+## 6. AI开始工作前必须报告
 
-## 2. 各阶段实施契约
+任何智能体开始文档或编码任务前，必须从00和阶段索引确定唯一CURRENT阶段，并在行动前明确：
 
-### T00 · 文档收敛
+- 当前阶段、总体状态和下一任务。
+- 使用的核心文档基线及当前阶段README/IMPLEMENTATION。
+- 目标场景与全部依赖能力的planningPosition、contractStatus和implementationStatus。
+- 本次允许修改的文件或模块。
+- 明确禁止修改的kernel、公共DDL、API或其他范围。
+- 对应业务规则、核心不变量和验收编号。
+- 准备执行的验证命令或文档一致性检查。
 
-输入00—10。产物为全部2.0契约、审核台账和与实际工程一致的WORKLOG。
+如果找不到唯一CURRENT阶段、状态不允许实施、00与阶段README冲突、场景/能力未达到READY或任务缺少验收编号，智能体必须停止实现并先修正文档，不能依靠猜测继续。
 
-门槛：模块名、场景/能力归属、API编号、数据表、状态、时间、幂等、锁序、用例编号和实施依赖无冲突；待决事项不得偷换成已批准实施项。
+## 7. 防偏离机制
 
-### T01 · 13模块与环境基线
+关键约束必须同时存在于正式文档和自动化验证中：
 
-允许范围：父POM、Maven Wrapper、13个子模块的最小可编译结构、boot-loader配置、测试基础和README。
+- Maven Enforcer和ArchUnit验证模块依赖、kernel纯Java、场景/能力边界及`Mxz`类名前缀。
+- 契约测试固定API字段、错误、schemaVersion、SPI注册键和结果语义。
+- information_schema测试固定公共表、字段、索引、FK、CHECK和唯一键。
+- 真MySQL及双进程测试验证幂等、锁序、租约、恢复和并发结果。
+- 新场景加入前后比较kernel生产源码和公共Flyway DDL；声明不变却产生差异时直接失败。
+- DELIVERY必须记录实际命令、退出码、测试数和证据路径，不能只写“已完成”。
+- 只有DELIVERY证据通过后，场景或能力的implementationStatus才能改为VERIFIED；代码存在但未验收仍是IN_PROGRESS。
 
-- 生成02确定的13个平级模块，无cache模块；设置Java 17、Spring Boot 3.4.11、MyBatis Starter 3.0.5和统一revision。
-- 配置Maven Enforcer、ArchUnit和依赖规则。空模块只是基线产物，不代表业务能力完成。
-- 分离无库单元测试与mysql-it/dual-process-it；校验测试库允许名单、UTC、MySQL版本和隔离级别。
-- 环境不可用时保留可编译产物并标BLOCKED，不用H2代替锁和迁移证据。
+文档不能保证智能体永不犯错；本规则的目标是让偏离变成可见差异或失败验证，阻止其进入交付基线。
 
-门槛：`./mvnw -q test`、`./mvnw -q package`通过；有实际JDK/Maven/MySQL证据；13个模块与02一致。
+## 8. 当前阶段
 
-### T02 · 稳定内核与扩展契约
-
-主要模块：`joytask-common`、`joytask-api`、`joytask-service-kernel`、`joytask-service-extension-api`、`joytask-service-application`。
-
-- 测试先行实现TaskDefinition、TaskInstance、Participant、Signal、Action、TransitionPlan、revision与终态不变量。
-- 实现ScenarioExtension、TriggerProvider、TaskCommandHandler、ActionHandler、Policy五类契约、强类型schema解码、显式注册表和重复key启动失败。
-- 先为五类契约建立不含业务的一致性测试；三个扩展夹具在平台与DDL基线完成后由T04加入。
-- 用ArchUnit阻止Mapper、实现类和反射越界。
-
-门槛：kernel不依赖Spring、MyBatis、web、storage、scenario或capability；五类契约一致性测试通过；无scenarioKey硬编码分支。
-
-### T03 · MySQL存储与事务基础
-
-主要模块：`joytask-service-storage-mysql`、`joytask-service-application`、`joytask-boot-loader`，以及`joytask-service-capability-notification`的迁移资源（本阶段不实现通知业务）。
-
-- 将05的12张表落入按所有权拆分的Flyway迁移，实现Mapper/XML、存储端口和关键索引查询。
-- 实现command dedup、Signal/Action唯一键、Transition revision CAS、租约/token基础与完整事务重试边界。
-- 在MySQL 8.4执行空库迁移、重复启动、坏迁移、information_schema、CHECK/FK/唯一键、JSON、UTC整秒和EXPLAIN验证。
-- 数据访问不向场景暴露公共Mapper，不建立空的未来场景表。
-
-门槛：真MySQL迁移和结构检查PASS；故意违反约束会失败；不得只凭DDL文本评审转PASS。
-
-### T04 · 应用编排、Signal和通用API
-
-主要模块：`joytask-service-application`、`joytask-api-gateway`、`joytask-web`、`joytask-boot-loader`；使用T02契约与T03存储。
-
-- 实现ActorContext、Policy、TransitionPlan校验/提交器、定义/实例命令管道、Signal接收/领取/处理和审计。
-- 落地E01—E09、I01—I05以及统一响应、分页、错误、64KiB、schemaVersion、幂等、归属和防泄露契约。
-- 暂无实际场景处理器的路径返回正确EXTENSION_NOT_FOUND或COMMAND_NOT_SUPPORTED，不返回假成功。
-- 在平台生产源码和公共DDL已完成的基线上，仅向测试源集加入ApprovalFixture、EventTriggerFixture和WebhookActionFixture，不创建生产模块。
-- 加入前后以版本库diff，或在无版本库时以SHA-256清单，证明kernel生产源码和公共Flyway DDL零变更；用ApprovalFixture穿过HTTP命令与Signal管道。
-
-门槛：同步命令和Signal共享一个提交器；三类夹具只经稳定契约装配且零kernel/公共DDL变更；幂等与revision并发用例PASS；HTTP不泄露内部token或敏感payload。
-
-### T05 · 日历规划与运行时
-
-主要模块：`joytask-service-capability-calendar`、`joytask-service-runtime`、`joytask-service-application`、`joytask-service-storage-mysql`。
-
-- 实现ONCE、DAILY、WEEKLY、MONTHLY、EVERY_N_DAYS的强类型配置、预览、7天窗口、每绑定每轮100条、游标和scheduleGeneration。
-- 实现Planner、Signal Worker、Action Worker的有界领取、固定排序、连接池/线程池反压、租约回收和公平性。
-- 预览与规划共用纯日历算法；覆盖月末、闰年、锚点、时区、严格after和规则耗尽。
-- 使用EventTriggerFixture证明runtime不限于时间触发。
-
-门槛：M01—M10的日历预期由纯算法验证；A01、A03、A04、A11、A12、A20的底层机制通过真库/双进程证明。本阶段不宣称S01/S02已经交付。
-
-### T06 · 通知与S01纵向闭环
-
-主要模块：`joytask-service-capability-notification`、`joytask-service-scenario-basic`、`joytask-api-gateway`、`joytask-web`、`joytask-boot-loader`。
-
-- 实现reminder场景、通知意图、LOCAL_TRANSACTIONAL站内信处理器、jt_notification/jt_inbox物化和E10—E13。
-- 打通E02预览→E03创建→窗口实例→时间Signal→Transition→Action→inbox→已读的真HTTP/真库闭环。
-- “提醒已触发”与送达/已读分离；渠道失败不回退S01业务终态。
-- 用WebhookActionFixture验证EXTERNAL的effectStartedAt、UNKNOWN和不自动重发；不连接真实外部渠道。
-
-门槛：M01—M05和S01相关A用例PASS；同一Action最终只有一条站内信；不得把测试Webhook写成真实外部渠道已验证。
-
-### T07 · S02、恢复与双进程
-
-主要模块：`joytask-service-scenario-basic`，并补齐application/runtime/notification已定义的通用机制；不得为S02在平台写特例分支。
-
-- 实现recurring_todo、PENDING/COMPLETED/SKIPPED、complete/skip/snooze、0—3个额外催办、历史快照和实例独立。
-- 实现update/pause/resume/retire、恢复水位、旧批次取消、终态屏障、退避/DEAD/EXPIRED、Policy阻断计数返还和审计原因优先级。
-- 完成M06—M10、A01—A20、E01—E13、I01—I05整体回归；技术重试不得增加业务槽位。
-- 双进程验证规划竞争、完成与通知、pause与Signal/Action、租约接管、旧token和公平性。
-
-门槛：`./mvnw -Pmysql-it,dual-process-it verify`真实执行并PASS；S01/S02共用平台机制；不得用手工删除RUNNING、改计数或单进程模拟冒充恢复。
-
-### T08 · 全量验收与交付
-
-本阶段不新增业务范围。产物为可运行包、README、环境变量与启动说明、迁移/升级说明、API示例、恢复手册和`docs/11-DELIVERY-REPORT.md`。
-
-- 执行07的六层验收、三次正式性能测试、积压公平性和双进程中断接管。
-- 保留命令、退出码、测试数、环境、证据路径和所有重试；自动核对全部M/A/E/I编号。
-- 核对09的未实施场景、能力和C14 cache待决需求，不将其误标完成或删除。
-- 任一项为FAIL、BLOCKED、NOT_RUN或证据路径缺失，整体不得宣称完成。
-
-门槛：07第7章全部命令真实通过；报告可复现；结论只覆盖本地后端，不冒充生产容量、生产身份或真实外部渠道验证。
-
-## 3. 实施期执行规则
-
-每个子任务启动前必须写明任务ID、允许修改的模块/文件、对应契约、用例编号和验证命令。先写失败测试或约束检查，再写最小实现，最后运行本阶段全部回归。
-
-同一业务规则只保留一个权威实现。发现已批准文档冲突、扩展契约无法表达需求，或必须修改kernel/公共DDL才能增加测试夹具时，立即标BLOCKED并记录冲突、影响和修正方案，不得静默选择。
-
-不得覆盖用户已有修改；不得在未授权时部署、发送外部消息、写真实凭据、升降03锁定的版本或扩大数据库范围。新发现的一期外场景写入09，不自动变成当前实施范围。
-
-完成记录必须包含：任务ID、契约/用例ID、修改文件、命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际环境、剩余问题和已解锁依赖。
+当前阶段为[P01第一期](phases/P01/README.md)；总体状态、工程状态和下一动作只在P01 README维护。具体T01—T08见[P01实施任务](phases/P01/IMPLEMENTATION.md)。规划详情保存在场景/能力目录，09只维护排序关系；当前不得提前创建P02/P03空目录或虚构范围。

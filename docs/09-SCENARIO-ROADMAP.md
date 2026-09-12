@@ -1,219 +1,138 @@
-# 09 · 场景清单与后续路线
+# 09 · 场景、能力与技术演进路线
 
-> 人工审核与阶段准入以[00审核台账](00-READING-ORDER.md)为准。本文2.0已于2026-09-10 20:25通过人工审核；路线图批准不等于批准实现后续候选场景。
+> 阅读入口与当前状态见[00开发导航](00-READING-ORDER.md)。本文只维护规划排序、跨项关系和技术候选；场景详细内容见[场景索引](scenarios/README.md)，能力详细内容见[能力索引](capabilities/README.md)。
 
-版本 2.0；前：[实施任务](08-AI-IMPLEMENTATION-TASKS.md)，后：[评审关闭记录](10-TECHNICAL-REVIEW.md)。首期业务以[01](01-MVP-SPEC.md)为准，架构边界以[02](02-AI-CODING-GUIDE.md)为准。本文记录场景、共享能力、目标模块归属和技术候选；它不声称已经穷尽未来需求，首期完成后继续维护并允许增加稳定编号。
+版本2.2；前：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，后：[技术评审](10-TECHNICAL-REVIEW.md)。本文中的`NEXT_REVIEW`和建议顺序都不是实施授权，也不表示已经创建下一阶段。
 
-## 范围说明
+## 1. 当前、接下来评审与长期规划
 
-本文记录已讨论的场景，防止后续遗忘。仅 S01、S02 为首期业务切片；其他条目是后续候选，不代表已批准实施或确定上线顺序。当前 2.0 总契约仍待整体复审，任何条目都不能据此启动编码。启动候选前必须明确规则、接口、数据及验收，再加入 08-AI-IMPLEMENTATION-TASKS.md。
-
-场景扩展表达业务规则，能力扩展提供可复用机制。一个场景可以组合多个能力，一个能力可以服务多个场景。相近场景先进入同一个场景族模块并按包隔离；确有独立业务数据、生命周期、所有权或发布节奏时再拆模块。通知渠道、日历算法等实现不默认成为独立 Maven 模块。
-
-“不在首期”只表示“长期保留、尚未进入本期实施”，不表示删除、拒绝或已完成，也不表示必须立即实施全部功能或采用列出的每种技术组件。首期外条目及其例子必须持续保留，直到用户明确决定取消或合并并留下去向。
-
-## 首期：必须交付
-
-| 编号 | 场景扩展 | 业务行为 | 时间规则 |
+| 层级 | 场景 | 能力 | 含义 |
 | --- | --- | --- | --- |
-| S01 | 通用提醒 | 创建、修改、查询、暂停、恢复；到时生成站内通知，无需用户完成确认 | 一次性、每天、每周、每月、每 N 天全部支持 |
-| S02 | 周期待办 | 创建待办，完成、跳过本次、稍后提醒、有限催办；实例状态相互独立 | 一次性、每天、每周、每月、每 N 天全部支持 |
+| 当前阶段P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | 契约READY，但工程全部NOT_STARTED；等待用户授权T01 |
+| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13及被选场景需要的trigger/integration能力 | 下一批优先细化池；没有确定P02范围，不得编码 |
+| BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-两者遵循北京时间、缺失日期取月末、未完成仍独立生成下次、稍后提醒不改截止、暂停恢复不补历史积压。实现贯穿T03—T06，T07-A、T07-B、T07-C负责最终全量核验。
+P01必须先完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证。NEXT_REVIEW只决定下一次先讨论哪些需求；用户仍需从中明确选择范围、完成契约并创建阶段包。
 
-## 后续业务场景候选
+## 2. S01—S17总览
 
-| 编号 | 场景 | 示例与目标 | 主要新增能力 / 待明确规则 |
-| --- | --- | --- | --- |
-| S03 | 生日与纪念日 | 公历/农历生日、周年提醒 | 农历转换、闰月、闰日、周年计算；不是首期每年循环的隐含交付 |
-| S04 | 到期管理 | 合同、证件、订阅、保修到期 | 提前多阶段提醒、续期、业务对象改期与取消 |
-| S05 | 缴费管理 | 房租、水电、宽带、物业费 | 账期、金额、支付状态、缴费后停止催办；部分支付等按需明确 |
-| S06 | 会议管理 | 多人会议、改期、取消、会前提醒 | 参会人、会议生命周期与批量变更；简单个人会前提醒可用 S01 |
-| S07 | 团队共享任务 | 负责人、协作者、关注人 | 团队与权限、任一人/全部完成、分派、转交、人员离开后的处理 |
-| S08 | 轮值与交接 | 值班、巡检、白夜班交接 | 排班、动态责任人、换班、跨日班次、未完成事项交接 |
-| S09 | 审批与升级 | 申请审批、退回、超时通知上级 | 审批状态、办理人、升级层级、工作时长；流程引擎另评估 |
-| S10 | 目标与打卡 | 每周运动三次、学习目标 | 周期计数、达标与未达标、补打卡、周期结算；不同于固定日程 |
-| S11 | 事件跟进 | 订单创建后处理、交付后回访 | 外部事件接入、去重、业务关联、取消及自动完成 |
-| S12 | 条件监控 | 库存不足、连续三天没有更新 | 数据源、阈值、持续时间、去抖、冷却期、恢复事件 |
-| S13 | 汇总提醒 | 每日未完成摘要、团队逾期汇总 | 聚合窗口、接收人、去重、摘要与单条提醒冲突规则 |
-| S14 | 保养与复查 | 换滤芯完成后 90 天再提醒 | 基于实际完成时间生成下一次，区别固定时间基准；可先扩展 S02 |
-| S15 | 资源预约 | 会议室预约开始前提醒 | 预约变更、取消、资源与参与人；是否负责资源冲突另行决定 |
-| S16 | 外部日历同步 | 外部会议或日程变更同步 | 外部 ID、增量同步、冲突、循环例外、删除同步、来源优先级 |
-| S17 | 智能创建 | 自然语言创建计划、解释规则 | 解析后生成可校验配置和时间预览；是否引入 AI 模块单独授权 |
-
-## 跨场景共享能力候选
-
-这些能力可被多个场景使用，不默认建立独立场景扩展或独立 Maven 模块。
-
-| 编号 | 能力 | 已讨论例子及边界 |
-| --- | --- | --- |
-| C01 | 扩展周期 | 每年、每 N 个时间单位、每月最后一天、季度；保留原始周期基准 |
-| C02 | 工作日历 | 工作日、每季度首个工作日、法定节假日前；区分周一至周五、调休和企业日历 |
-| C03 | 业务时间计时 | 4 个工作小时、营业时段内催办；明确午休与跨日 |
-| C04 | 相对时间与多阶段提醒 | 到期前 30/7/1 天、到期当天、逾期阶段；计划窗口覆盖最早提醒 |
-| C05 | 时间与条件组合 | 每天检查但仅未缴费时提醒；状态查询失败不能等同条件成立 |
-| C06 | 串行与并行协作 | A 完成触发 B，B/C 完成触发 D；幂等、汇合与取消规则 |
-| C07 | 自动完成 | 缴费成功事件结束任务并停止后续提醒 |
-| C08 | 时区扩展 | 固定时区、旅行跟随当地时间、夏令时重复或缺失；首期仅接受Asia/Shanghai |
-| C09 | 提醒节制 | 免打扰、每日允许时段、频率限制、汇总、渠道降级；不与技术重试混淆 |
-| C10 | 发生例外 | 排除日期、额外日期、仅改本次、修改本次及以后 |
-| C11 | 有效区间与结束条件 | 首期已有startAt；后续考虑endAt、指定月份内每天、最多N次与倒计时展示，倒计时本身不是调度类型 |
-| C12 | 多 IM 渠道 | 各渠道独立投递、接收人映射、回执、重试；外部拉取按协议另行开放 |
-| C13 | 身份与权限 | 用户查询、可信身份、管理员来源、团队隔离；首期明确不实现 |
-| C14 | 缓存接入 | 保留为未来能力候选；当前不创建cache模块，不预设模块名称或JimDB接入结构，出现真实性能需求后重新设计并审核 |
-| C15 | 前端与用户操作界面 | 创建/预览/管理计划、待办操作、收件与未读；端类型、交互与登录接入在实施前明确 |
-| C16 | 通知委托与多接收人 | 我的任务通知助理、同时通知本人和主管；区分所有者/办理人/接收人，明确授权、阅读与完成关系 |
-| C17 | 全天日期任务 | “9月10日交材料”不指定时刻；保留日期语义，另定提醒时刻、跨时区展示与何时逾期，不默认为当天00:00 |
-| C18 | 通知数据保留与删除 | 定义保留期限、用户删除、合规清理、审计留痕及删除后未读计数；首期仅规定业务操作不自动删除已有收件 |
-| C19 | 幂等与审计数据生命周期 | 定义幂等保证期限、过期请求重放行为、审计保留期限、归档或清理批次、并发安全及首次响应数据中的敏感内容处理；首期不清理不表示永久保留 |
-
-## 场景族与能力域规划
-
-下面的模块归属是未来扩展边界，不是上线排期。模块只在存在真实实现时创建；同一模块内部的子能力和渠道先用包隔离。
-
-### 能力域模块
-
-| 目标模块 | 负责的能力 | 对应条目 |
-| --- | --- | --- |
-| `joytask-service-capability-calendar` | 公历周期、工作日、业务时间、农历、相对时间、时区、发生例外、有效区间和全天日期 | S03、C01—C04、C08、C10、C11、C17 |
-| `joytask-service-capability-trigger` | 外部事件、条件和依赖信号的标准化、去重和触发；一期时间信号由calendar与runtime完成 | S05、S11、S12、C05—C07 |
-| `joytask-service-capability-notification` | 站内信、飞书、京ME、邮件、静默、频控、汇总降级、收件人与渠道投递 | C09、C12、C16、C18 |
-| `joytask-service-capability-collaboration` | 主体解析、参与人、负责人、办理人、协作者、转交和轮值 | S06—S09、S15、C13、C16 |
-| `joytask-service-capability-workflow` | 串行、并行、会签、分支、汇合、退回和补偿 | S08、S09、C06、C07 |
-| `joytask-service-capability-aggregation` | 目标计数、窗口统计、进度、逾期汇总和摘要 | S10、S12、S13 |
-| `joytask-service-capability-integration` | Webhook、外部事件、回调、第三方日历和外部身份映射 | S11、S15、S16、C12、C13 |
-| `joytask-service-capability-intelligence` | 自然语言解析、日期理解、配置生成、规则解释和校验建议 | S17 |
-
-飞书、京ME、邮件和站内信属于 notification 模块内部渠道，不分别创建 Maven 模块。工作日、农历和相对时间属于 calendar 模块内部算法。某个实现只有在独立发布、重大 SDK 冲突、单独安全隔离或独立团队所有权出现时才允许提取；提取不改变稳定能力契约。
-
-### 场景族模块
-
-| 目标模块 | 聚合场景 | 对应条目 |
-| --- | --- | --- |
-| `joytask-service-scenario-basic` | 通用提醒、周期待办、个人目标和打卡 | S01、S02、S10 |
-| `joytask-service-scenario-deadline` | 生日纪念、到期、缴费、续约、保养和复查 | S03—S05、S14 |
-| `joytask-service-scenario-collaboration` | 会议、团队任务、轮值交接和资源预约 | S06—S08、S15 |
-| `joytask-service-scenario-workflow` | 审批、会签、退回和升级 | S09 |
-| `joytask-service-scenario-automation` | 外部事件跟进、条件监控、汇总和外部日历联动 | S11—S13、S16 |
-
-S17 智能创建不是独立业务状态机；它通过 intelligence 能力生成目标场景的强类型配置，经目标场景校验和用户确认后再创建任务定义。
-
-### 场景与能力组合
-
-| 场景 | 场景模块 | 主要能力模块 |
-| --- | --- | --- |
-| S01 通用提醒 | scenario-basic | calendar、notification；时间触发由一期runtime执行 |
-| S02 周期待办 | scenario-basic | calendar、notification；时间触发由一期runtime执行 |
-| S03 生日纪念 | scenario-deadline | calendar、notification |
-| S04 到期管理 | scenario-deadline | calendar、notification |
-| S05 缴费管理 | scenario-deadline | calendar、trigger、notification、integration |
-| S06 会议管理 | scenario-collaboration | calendar、collaboration、notification、integration |
-| S07 团队共享任务 | scenario-collaboration | collaboration、notification |
-| S08 轮值与交接 | scenario-collaboration | calendar、collaboration、workflow、notification |
-| S09 审批与升级 | scenario-workflow | collaboration、workflow、notification |
-| S10 目标与打卡 | scenario-basic | calendar、aggregation、notification |
-| S11 事件跟进 | scenario-automation | trigger、integration、notification |
-| S12 条件监控 | scenario-automation | trigger、aggregation、notification、integration |
-| S13 汇总提醒 | scenario-automation | aggregation、notification |
-| S14 保养与复查 | scenario-deadline | calendar、notification；若由完成事件生成下一次则增加trigger |
-| S15 资源预约 | scenario-collaboration | calendar、collaboration、integration、notification |
-| S16 外部日历同步 | scenario-automation | integration、trigger、calendar |
-| S17 智能创建 | 不新增场景模块 | intelligence + 被创建的目标场景能力 |
-
-### 分阶段模块建设
-
-| 阶段 | 新建模块 | 说明 |
-| --- | --- | --- |
-| 一期 | kernel、extension-api、application、runtime、storage-mysql、capability-calendar、capability-notification、scenario-basic 及接入模块 | 形成13模块的提醒/待办纵向闭环；不创建cache模块 |
-| 第二阶段 | capability-trigger、capability-collaboration、scenario-deadline | 验证期限业务、事件入口和多参与人 |
-| 第三阶段 | capability-workflow、capability-aggregation、scenario-collaboration、scenario-workflow | 验证团队协作、串并行和汇合 |
-| 第四阶段 | capability-integration、capability-intelligence、scenario-automation | 接入外部系统、条件监控和智能输入 |
-| 性能需要出现时 | 先评审C14，再决定是否增加模块 | 当前不预设cache模块名称、所在层级和JimDB实现方式 |
-
-以上阶段是依赖演进建议，不是自动排期。实际每一期仍由用户从未实施条目中明确选择。
-
-## 技术候选（不自动等同业务需求）
-
-| 编号 | 技术候选 | 保留目的与实施前的问题 |
-| --- | --- | --- |
-| X01 | MQ消息队列 | 未来跨服务事件分发、解耦、吞吐或积压需求；先验证MySQL队列瓶颈与外部接入需要，再比较MQ、Outbox及运维成本 |
-| X02 | 工作流引擎 | 支撑S09/C06的审批、条件分支、汇合、退回与流程升级；先明确流程复杂度，再判断自有有限状态机还是引擎 |
-| X03 | 动态加载插件 | 运行时增加/升级场景代码；需独立评估依赖冲突、代码信任、隔离、数据迁移、卸载和回滚；现有运行时启停不等于动态加载 |
-
-## 本轮讨论的22项范围说明：逐项保留
-
-这张表保留通俗例子和限制，不能只保留术语后删除其含义。编号复用上方目录；这是同一需求的说明，不另建一份独立状态。
-
-| 讨论项 | 关联编号 | 已讨论例子、区别与后续需明确内容 |
-| --- | --- | --- |
-| 前端 | C15 | 有页面填写任务、查看列表、点击完成；首期API不代表已有页面。未来明确Web/移动端范围与交互。 |
-| 团队任务 | S07/C13 | 给小组分配任务、指定负责人/协作者；明确任一人或全部完成、转交、成员离开和访问权限。 |
-| 替别人接收通知 | C16/C13 | 本人任务发给助理或同时发主管；不能把收到通知直接等同有权完成任务。 |
-| 提前提醒 | C04/S06 | 会议10:00开始、提前10分钟→09:50通知；改到11:00后应重新计算为10:50，旧提醒如何取消需定义。可先扩展个人计划，不必先做完整会议系统。 |
-| 全天任务 | C17 | “9月10日交材料”只填日期；明确当天何时提醒和过期，不强迫用户填一个假时刻。 |
-| 每年 | C01/S03 | 每年6月1日续费，或公历生日；每365天不能替代每年，需闰年/2月29日规则。 |
-| 工作日历 | C02 | 每个法定工作日提醒，包括周末调休上班；明确周一至周五、法定日历、企业日历及来源年份。 |
-| 农历 | S03 | 农历八月十五或农历生日；明确公历转换、闰月与无对应日期策略。 |
-| 多时区 | C08 | 北京和纽约分别当地09:00提醒；明确固定时区/随用户旅行、夏令时缺失和重复。 |
-| 完成后间隔N天 | S14 | 9月2日完成后3天→9月5日；区别固定9月1/4/7日循环。换滤芯完成后90天也属此类。 |
-| 只修改某次发生 | C10 | 每周五周报，这周改周六，下周恢复周五；独立改期与仅稍后提醒不同，后者不改截止时间。 |
-| 重复结束日期 | C11 | 每天运动提醒，只持续至9月30日；明确结束边界与已生成实例、未完成待办如何处理。 |
-| 重复总次数 | C11 | 每周一次共6周后结束；这是发生次数，不是同一待办的催办次数，需明确跳过是否计数。 |
-| 外部事件 | S11/C07 | 订单创建生成待办、付款成功自动完成；明确来源、事件ID、乱序、重复和取消。 |
-| IM消息 | C12 | 发到京ME、企微或钉钉；明确用户映射、独立渠道、受理/送达、失败与未知结果。首期inbox不等于已发IM。 |
-| MQ | X01 | 消息中间件传递待处理事件；本系统持久化队列并不代表已经接入MQ。保留技术评估，不先锁定产品。 |
-| 缓存 | C14 | 当前不创建cache模块。出现真实性能需求后，先明确缓存对象、缓存键、故障回退和多副本失效，再决定原框架cache边界如何进入2.0结构以及是否接入Redis/JimDB。 |
-| 工作流引擎 | X02/S09/C06 | 员工申请→主管审批→财务确认，并按条件分支；业务流程能力与是否选引擎分别审核。 |
-| AI模型 | S17 | 自然语言“每周五提醒交周报”转结构化计划、校验和预览；AI帮助开发不等于运行系统已经接入模型。 |
-| 动态加载插件 | X03 | 运行中上传新场景代码直接使用；区别于已部署插件的启停，需评估隔离、迁移与回滚。 |
-| 通知数据保留与删除 | C18 | 已有收件不因任务完成、跳过、计划暂停或取消而自动删除；首期无删除接口。后续明确保留期限、用户主动删除、合规清理和审计要求，不使用“永久保留”限制未来设计。 |
-| 幂等与审计数据生命周期 | C19 | 首期为保证创建等操作可稳定重放，不清理成功幂等记录和审计记录；后续定义保证期限、过期重放结果、归档/清理批次、并发安全，以及首次响应副本中的敏感内容处理。 |
-
-## 状态、保留与实施追踪规则
-
-所有目录条目使用稳定编号，不删除、不重编号、不因重新排期丢失例子。S01/S02仍是首期范围，但因2.0平台契约重构，当前状态为“待人工复审，代码未开始”；S03—S17、C01—C19、X01—X03均为“已记录，未排期，未批准实施”。本轮确认的是能力域、场景族和目标模块规划，不等于批准实现任一后续场景。C11的startAt、C18的“不随业务操作自动删除”、C19的首期保留原则等局部基础进入首期设计，不表示整个后续能力已经完成；C14只保留需求记录，当前不创建模块。
-
-状态流转：已记录→待细化→待人工审核→已批准待排期→实施中→待验收→已完成。无法继续时标“阻塞”并记录具体原因，解除后回到原阶段；明确延期可标“暂缓”。只有用户明确决定才可标“已批准待排期”“取消”“合并”或“已完成”；取消或合并须记录原因及去向，原编号仍保留。当前不存在已完成、已取消或已批准的后续条目。
-
-目录表和本节是初始基线；任何条目的状态发生变化，都必须在下表新增逐项记录。没有单项记录的条目严格使用上述初始状态，不由AI推断为完成。新增或实质修改的候选条目统一进入“待人工审核”，通过前不能加入08实施任务或由编码AI实现。只实现其中一部分时列出已实现部分与剩余部分，整项不得标完成。
-
-| 编号 | 变更日期 | 变更前→变更后 | 规则/例子变化与剩余内容 | 人工结论 | 正式契约/任务/验收证据 |
+| 编号 | 场景 | 排期位置 | 契约状态 | 实现状态 | 详细规划或契约 |
 | --- | --- | --- | --- | --- | --- |
+| S01 | 通用提醒 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | [S01](scenarios/S01-reminder.md) |
+| S02 | 周期待办 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | [S02](scenarios/S02-recurring-todo.md) |
+| S03 | 生日与纪念日 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S03](scenarios/S03-anniversary.md) |
+| S04 | 到期管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S04](scenarios/S04-deadline-management.md) |
+| S05 | 缴费管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S05](scenarios/S05-payment-management.md) |
+| S06 | 会议管理 | BACKLOG | OUTLINE | NOT_STARTED | [S06](scenarios/S06-meeting-management.md) |
+| S07 | 团队共享任务 | BACKLOG | OUTLINE | NOT_STARTED | [S07](scenarios/S07-shared-team-task.md) |
+| S08 | 轮值与交接 | BACKLOG | OUTLINE | NOT_STARTED | [S08](scenarios/S08-duty-handover.md) |
+| S09 | 审批与升级 | BACKLOG | OUTLINE | NOT_STARTED | [S09](scenarios/S09-approval-escalation.md) |
+| S10 | 目标与打卡 | BACKLOG | OUTLINE | NOT_STARTED | [S10](scenarios/S10-goal-checkin.md) |
+| S11 | 事件跟进 | BACKLOG | OUTLINE | NOT_STARTED | [S11](scenarios/S11-event-follow-up.md) |
+| S12 | 条件监控 | BACKLOG | OUTLINE | NOT_STARTED | [S12](scenarios/S12-condition-monitoring.md) |
+| S13 | 汇总提醒 | BACKLOG | OUTLINE | NOT_STARTED | [S13](scenarios/S13-digest-reminder.md) |
+| S14 | 保养与复查 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S14](scenarios/S14-maintenance-follow-up.md) |
+| S15 | 资源预约 | BACKLOG | OUTLINE | NOT_STARTED | [S15](scenarios/S15-resource-reservation.md) |
+| S16 | 外部日历同步 | BACKLOG | OUTLINE | NOT_STARTED | [S16](scenarios/S16-external-calendar-sync.md) |
+| S17 | 智能创建入口 | BACKLOG | OUTLINE | NOT_STARTED | [S17](scenarios/S17-intelligent-creation.md) |
 
-| S01、S02 | 2026-09-10 | 已通过→待人工复审 | 首期业务行为保留，底层对象由计划/提醒模型调整为通用定义、实例、Signal、Action模型 | 待审 | 01、02、09版本2.0 |
+S17保留S编号用于需求追踪，但默认不是独立业务状态机，不注册普通ScenarioExtension。
 
-2026-09-08新增C15/C16/C17、X01/X02/X03以补齐已讨论信息；它们均保持“已记录”，不自动进入首期。2026-09-10新增模块归属是架构分类，不改变S/C/X候选的实施状态。
+## 3. C01—C19总览
 
-进入细化时，每项建立需求卡，字段必须包含：稳定编号、原始讨论/新增来源、用户目标、正常例子、失败和变更例子、已明确边界、未知问题、相关S/C/X编号、依赖、状态、人工审核结论、正式契约位置、实施任务、验收证据、剩余内容。尚未决定的内容记为未知，不编造接口或优先级；需求卡可以放在本文对应章节下，不必须提前创建大量空文件。
+详细边界和状态见[能力域索引](capabilities/README.md)。C14、C15、C19属于跨域平台或产品候选，不伪装成业务能力模块。
 
-## 每个阶段结束与下一期开始的核对
+| 编号 | 能力或候选 | 主要归属 | 排期位置 | 实现状态 |
+| --- | --- | --- | --- | --- |
+| C01 | 扩展周期 | calendar | BACKLOG | NOT_STARTED |
+| C02 | 工作日历 | calendar | BACKLOG | NOT_STARTED |
+| C03 | 业务时间计时 | calendar | BACKLOG | NOT_STARTED |
+| C04 | 相对时间与多阶段提醒 | calendar | NEXT_REVIEW | NOT_STARTED |
+| C05 | 时间与条件组合 | trigger | BACKLOG | NOT_STARTED |
+| C06 | 串行与并行协作 | workflow | BACKLOG | NOT_STARTED |
+| C07 | 自动完成 | trigger | BACKLOG | NOT_STARTED |
+| C08 | 时区扩展 | calendar | BACKLOG | NOT_STARTED |
+| C09 | 提醒节制 | notification | BACKLOG | NOT_STARTED |
+| C10 | 发生例外 | calendar | BACKLOG | NOT_STARTED |
+| C11 | 有效区间与结束条件 | calendar | NEXT_REVIEW | NOT_STARTED |
+| C12 | 多IM渠道 | notification | BACKLOG | NOT_STARTED |
+| C13 | 身份与权限 | collaboration | BACKLOG | NOT_STARTED |
+| C14 | 缓存接入 | 跨域平台候选 | BACKLOG | NOT_STARTED |
+| C15 | 前端与用户操作界面 | 产品接入候选 | BACKLOG | NOT_STARTED |
+| C16 | 通知委托与多接收人 | collaboration | BACKLOG | NOT_STARTED |
+| C17 | 全天日期任务 | calendar | BACKLOG | NOT_STARTED |
+| C18 | 通知数据保留与删除 | notification | BACKLOG | NOT_STARTED |
+| C19 | 幂等与审计数据生命周期 | 跨域平台候选 | BACKLOG | NOT_STARTED |
 
-1. 新会话/新阶段接手时，先读00台账、01当前范围、08任务和本文件；不能只读取首期需求就假设项目没有后续需求。
-2. 本阶段出现的新场景、限制、例子和决策在结束前写回本文件；确认原S/C/X编号完整保留，合并/取消有用户依据。
-3. 阶段报告列出新增/变更编号、已完成与未完成部分、与下一阶段有关的依赖；其他未变化项可引用本文完整清单，不能只留下“后续按需扩展”。
-4. 首期完成时，交付报告必须附“后续需求交接”章节，记录本文件版本、审核状态、全部未实施编号、未知问题和下一次评审入口。首期验收通过只结束本期任务，不将未来候选整体关闭或归档删除。
-5. 下一期从全部未实施条目中由人工选范围，重新细化→审核→任务拆分→编码；没选中的继续留在台账。不得用当前建议演进顺序代替人工排期。
+### 3.1 跨域候选的已知边界
 
-交接检查必须自动核对S01—S17、C01—C19、X01—X03编号连续且唯一，并确认上述22项讨论说明仍然存在。新增编号后同步更新编号范围、讨论数量和检查基线；检查只证明信息未缺失，不代表候选已批准。
+- C14缓存：当前不创建cache模块，不预设模块名称或JimDB/Redis实现。出现真实性能问题后先确定缓存对象、键、故障回退和多副本失效，再审核是否需要缓存。
+- C15前端：未来提供创建/预览/管理、待办操作、收件与未读界面；端类型、交互、登录和权限必须在实施前确定。P01 API不表示已有页面。
+- C19数据生命周期：未来定义幂等保证期限、过期请求重放、审计保留、归档/清理批次、并发安全及首次响应副本中的敏感内容。P01不清理不等于永久保留。
 
-这是持续维护机制，不承诺提前穷尽所有未来场景。需求保留依靠项目文件与交接检查，不依靠AI跨会话记忆；编码接手者必须遵守以上阅读和更新要求。
+## 4. 八个能力域与场景组合
 
-## 建议演进顺序
+| 场景 | 场景族 | 主要能力域 |
+| --- | --- | --- |
+| S01、S02 | basic | calendar、notification |
+| S03、S04 | deadline | calendar、notification |
+| S05 | deadline | calendar、trigger、notification、integration |
+| S06 | collaboration | calendar、collaboration、notification、integration |
+| S07 | collaboration | collaboration、notification |
+| S08 | collaboration | calendar、collaboration、workflow、notification |
+| S09 | workflow | collaboration、workflow、calendar、notification |
+| S10 | basic | calendar、aggregation、notification |
+| S11 | automation | trigger、integration、notification |
+| S12 | automation | trigger、aggregation、integration、notification |
+| S13 | automation | aggregation、notification |
+| S14 | deadline | calendar、notification；完成事件驱动时增加trigger |
+| S15 | collaboration | calendar、collaboration、integration、notification |
+| S16 | automation | integration、trigger、calendar |
+| S17 | 不新增场景模块 | intelligence及目标场景的全部能力 |
 
-1. 完成 S01、S02、通用内核、时间 Signal 与通知 Action Job，验证两个本地副本。
-2. 按真实需求选择 S03/S04/S05/S14；它们能验证日期计算、专有数据和相对时间扩展。
-3. 团队需求明确后再推进 S07/S08/S09，并先补足身份权限。
-4. 外部系统协议明确后推进 S11/S12/S15/S16 与多 IM。
-5. 有明确价值时增加目标、汇总、智能输入和复杂组合。
+目标模块边界见[02](02-AI-CODING-GUIDE.md)，每个能力域当前和未来范围见[能力索引](capabilities/README.md)。模块名称是所有权规划，不表示模块已经创建；同一场景族先在模块内按包隔离，只有独立数据、生命周期、所有权或发布节奏形成后才拆模块。
 
-以上顺序是建议，不是排期。不要为了预留后续场景创建空 Maven 模块、空 Controller、空表、空 Bean 或虚构第三方集成。
+## 5. 技术候选X01—X03
 
-## 新场景进入实施计划的检查项
+| 编号 | 技术候选 | 保留目的与实施前问题 | 状态 |
+| --- | --- | --- | --- |
+| X01 | MQ消息队列 | 未来跨服务事件、吞吐或积压需要；先验证MySQL队列瓶颈和外部接入，再比较MQ、Outbox及运维成本 | BACKLOG / OUTLINE / NOT_STARTED |
+| X02 | 工作流引擎 | 支撑S09/C06的分支、汇合、退回和升级；先明确流程复杂度，再选择自有有限状态机或引擎 | BACKLOG / OUTLINE / NOT_STARTED |
+| X03 | 动态加载插件 | 运行中增加/升级场景代码；需评估代码信任、依赖隔离、迁移、卸载和回滚 | BACKLOG / OUTLINE / NOT_STARTED |
 
-- 明确场景编号、用户操作、开始和结束条件。
-- 确定进入哪个场景族模块，是新增场景扩展还是现有场景配置扩展。
-- 定义公共能力与专有数据边界，以及真实业务依赖。
-- 定义暂停、停用、改期、重复执行和恢复行为。
-- 列明外部接口与环境需求；无接口说明不得虚构实现。
-- 写入验收用例及交付文件，获得范围确认后创建实施任务。
-- 完成后更新任务证据与本文状态，保留未实施项，不将候选描述当已支持功能。
+现有MySQL持久化队列不等于MQ；稳定扩展注册不等于动态加载；存在workflow能力域不等于已经选择流程引擎。
+
+## 6. 建议演进顺序
+
+1. 完成P01的S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证。
+2. 从NEXT_REVIEW的S03/S04/S05/S14中由用户选择真实需求；先补齐相关calendar、trigger或integration能力契约。
+3. 团队身份和权限明确后再评审S07/S08/S09；S06和S15根据会议/资源系统边界决定。
+4. 外部协议明确后推进S11/S12/S16和多IM渠道。
+5. 有明确价值和数据样例后评审S10、S13、S17及复杂组合。
+
+顺序只用于减少依赖跳跃，不是自动排期。没有用户选择、完整READY契约、CURRENT阶段和实施授权时，不得创建代码、空模块、空表、空Bean或假集成。
+
+## 7. 状态与保留规则
+
+S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取消、合并或废止必须保留原因和替代链接。新增规划先建立有内容的OUTLINE文档或跨域候选条目；尚未决定的内容明确写入“编码前必须决定”，不得由AI补造。
+
+状态变更时同步更新场景/能力索引、对应文档、本路线图和受影响阶段。部分实现只能在条目内逐项记录，整体不得提前标VERIFIED。每个阶段DELIVERY必须列出新增/变更编号、已验证范围、剩余范围及下一次评审入口。
+
+### 7.1 历史决策
+
+| 日期 | 编号 | 决策 | 结果 |
+| --- | --- | --- | --- |
+| 2026-09-10 | S01、S02 | 底层对象调整为通用定义、实例、Signal、TransitionPlan和Action | 2026-09-12复审纳入2.0契约 |
+| 2026-09-12 | S01、S02 | 本地固定身份但首期交付完整稳定核心；确认S02首版默认与控制规则 | 契约READY，工程NOT_STARTED，未授权编码 |
+| 2026-09-12 | S01—S17、C01—C19、X01—X03 | 规划迁入场景/能力永久目录并采用三维状态 | 文档基线2.2；没有新增实现或P02范围 |
+
+## 8. 下一场景进入实施的检查
+
+1. 用户从NEXT_REVIEW或BACKLOG明确选择范围。
+2. 场景文档从OUTLINE进入DRAFT，确定scenarioKey、配置、状态、命令、参与人、触发、Action、专有数据和异常行为。
+3. 所依赖能力项达到READY_FOR_IMPLEMENTATION；能力域存在但能力项仍OUTLINE时不能编码。
+4. 完成INV-01—INV-09、公共API、公共表、稳定SPI和兼容性影响分析。
+5. 建立阶段README、IMPLEMENTATION及验收编号；只有该阶段成为唯一CURRENT且获得用户授权后开始编码。
+6. 完成后以DELIVERY真实证据更新implementationStatus；没选中的规划继续保留。
+
+自动交接检查必须核对S01—S17、C01—C19、X01—X03连续且每个编号具有唯一主要入口。检查只证明规划未丢失，不代表候选已经批准或实现。

@@ -1,0 +1,28 @@
+# S03 · 生日与纪念日规划
+
+> 本文是S03的长期规划入口，不是可编码契约。当前`OUTLINE + NOT_STARTED`，不得据此创建接口、表或场景实现。
+
+| 项目 | 值 |
+| --- | --- |
+| scenarioKey | 未确定 |
+| 目标模块 | `timeimprint-task-service-scenario-deadline` |
+| planningPosition | NEXT_REVIEW |
+| contractStatus | OUTLINE |
+| implementationStatus | NOT_STARTED |
+| 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
+
+## 已规划内容
+
+支持公历或农历生日、纪念日和周年提醒。每年规则不能用每365天替代；农历八月十五、农历生日、闰月、闰日和无对应日期都需要明确转换规则。P01五种基础日历不隐含本场景能力。
+
+与S01的区别是保留生日/纪念日业务对象和周年语义，而不是只有一个普通提醒时间。纯公历且不需要专有信息的简单提醒可继续使用S01。
+
+## 编码前必须决定
+
+- 公历2月29日在非闰年的处理。
+- 农历数据源、转换版本、闰月和无对应日期策略。
+- 提前提醒、当天提醒、年龄/周年数展示和修改历史。
+- 专有数据字段、隐私权限、暂停恢复和删除规则。
+- 最终scenarioKey、schemaVersion、状态、命令、API和验收。
+
+进入实施前必须将所需calendar能力项升级为READY，完成核心影响分析并由用户选入阶段。默认目标是不修改kernel和公共DDL，专有数据进入本场景自有表。

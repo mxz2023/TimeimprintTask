@@ -1,0 +1,21 @@
+# P01 baseline SHA-256 (pre-code)
+recordedAtUtc: 2026-09-12T09:32:29Z
+gitHead: 2d1a68eda9201bddcd721c252e10d6f84edf9af4
+note: repository has no committed code baseline; hashing core docs. Kernel/Flyway hashes will be appended when those paths exist before T07 comparison.
+
+## Core docs
+a235638003d2c29ef179d918a1d357258300f3ab34c48a68cb2fd632195c7686  docs/00-READING-ORDER.md
+fbcaedcb8bcde5af1fccfa9f5e5ec0942478924bc430408441e115f5e0675319  docs/01-MVP-SPEC.md
+106857d4dce4dcba317dfc1fa749dab481a634c688ec37b7d4a373293fbbc5da  docs/02-AI-CODING-GUIDE.md
+ed62b1b9846eb41e7299ef69c76b5db67fa772545231de1dd8a0e83cc8bc346d  docs/03-INTEGRATION-CONTRACTS.md
+539220ae5d0382ccab88312b45c04bf342cc47cf5f5f4638b6b58572fd7053ea  docs/04-API.md
+2985b4e476e0dcc24faf599dcc1388c8819cf613096c7c74b2e21bf76abe899a  docs/05-DATABASE.md
+7bbf8252655c1f1b283f416d7d208037ca80d72fb0b3b261c2105b5f8e7d1834  docs/06-SCHEDULING.md
+8a75e2638ae377d041c3f7934dcf36fd952f124775f48371007bebdc067eaf26  docs/07-ACCEPTANCE.md
+cb5168d133e34e073b1de56d4b888055222c1e5194df69c3dfa2cd99462f9270  docs/08-AI-IMPLEMENTATION-TASKS.md
+7aea5fe4771904868e6a5713dc1de012db95ce06bd31f4293c81d6cf5f3534ca  docs/phases/P01/README.md
+1efb026783178f4fc6bf98438c339c75b98ff84fef08895522766cedbb5b4aa6  docs/phases/P01/IMPLEMENTATION.md
+dc1885c4dfbd4b9970b27b2d3b9898a632b4364f650c5d0b9764e5958f3607d7  docs/scenarios/S01-reminder.md
+9205861286f263914d1933d22d54f94e036336778dbbd014732141fb7f2cf3ae  docs/scenarios/S02-recurring-todo.md
+8f76d7329a282b8790b41e8326fb88610cd78d02bc1454b1258878b08c5fcd52  docs/capabilities/CAP01-calendar.md
+c43549bf6ee07011a62492cef2e4ff93dd9cb73d45f332e550f887c1d6b3ee3f  docs/capabilities/CAP03-notification.md

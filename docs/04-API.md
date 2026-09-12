@@ -6,7 +6,7 @@
 
 ## 1. API边界与身份
 
-公开路径前缀为`/api/v1`，内部可信路径前缀为`/internal/v1`。公开API只通过`timeimprint-task-web → timeimprint-task-api-gateway → timeimprint-task-service-application`进入平台，不直接暴露Mapper、Action领取、租约、执行令牌或场景内部表。
+公开路径前缀为`/api/v1`，内部可信路径前缀为`/internal/v1`。公开HTTP只通过`timeimprint-task-web → timeimprint-task-gateway → timeimprint-task-service-application`进入平台，不直接暴露Mapper、Action领取、租约、执行令牌或场景内部表。
 
 网关必须通过ActorContextProvider生成ActorContext。首期local profile只使用配置中的固定tenantId和actorId，请求头及请求体都不得覆盖；test profile可以启用`X-Debug-Actor-Id`及受控测试租户切换以验证权限隔离。其他profile必须接入正式可信身份提供器，缺失时公开API不得就绪；任何生产请求体都不接受userId、ownerId或tenantId来声明当前身份。资源查询和命令授权始终使用ActorContext独立判断。
 
@@ -173,7 +173,7 @@ E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 
-当前没有已发布客户端或历史实现，因此首期只实现本章E01—E13，不提供额外兼容路径。未来若增加提醒友好API，只能在api-gateway转换成上述通用命令，不能建立第二套状态和事务。
+当前没有已发布客户端或历史实现，因此首期只实现本章E01—E13，不提供额外兼容路径。未来若增加提醒友好入口，只能在gateway转换成上述通用命令，不能建立第二套状态和事务。
 
 ## 5. 内部端点
 

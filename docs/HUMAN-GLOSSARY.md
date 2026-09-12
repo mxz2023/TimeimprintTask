@@ -194,7 +194,7 @@
 | 模块 | 中文职责 |
 | --- | --- |
 | timeimprint-task-common | 无业务状态的通用工具 |
-| timeimprint-task-api | 稳定对外接口和DTO |
+| timeimprint-task-domain | HTTP请求/响应DTO、统一信封与错误码；不含Controller |
 | timeimprint-task-service-kernel | 纯Java任务领域内核 |
 | timeimprint-task-service-extension-api | 场景、触发、命令、动作和策略扩展契约 |
 | timeimprint-task-service-application | 用例、权限、幂等、事务和迁移提交编排 |
@@ -203,7 +203,7 @@
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
 | timeimprint-task-service-capability-notification | 通知意图、站内信及未来渠道适配 |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
-| timeimprint-task-api-gateway | 对外API实现与DTO/错误转换 |
+| timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |
 | timeimprint-task-boot-loader | 启动、配置、装配、迁移加载和集成测试入口 |
 | timeimprint-task-service-capability-trigger/collaboration/workflow/aggregation/integration/intelligence | 未来触发、协作、流程、汇总、集成、智能能力模块 |

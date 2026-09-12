@@ -1,0 +1,45 @@
+package cn.net.mxz.timeimprint.task.service.storage.mysql.mapper;
+
+import cn.net.mxz.timeimprint.task.service.storage.mysql.row.TaskInstanceRow;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+@Mapper
+public interface TaskInstanceMapper {
+
+    void insert(TaskInstanceRow row);
+
+    TaskInstanceRow selectById(@Param("instanceId") long instanceId);
+
+    TaskInstanceRow selectByIdForUpdate(@Param("instanceId") long instanceId);
+
+    int updateRevision(@Param("instanceId") long instanceId,
+                       @Param("expectedRevision") long expectedRevision,
+                       @Param("newRevision") long newRevision,
+                       @Param("lifecycleCategory") String lifecycleCategory,
+                       @Param("scenarioState") String scenarioState,
+                       @Param("scenarioSnapshotJson") String scenarioSnapshotJson,
+                       @Param("snapshotHash") byte[] snapshotHash,
+                       @Param("terminalAt") LocalDateTime terminalAt,
+                       @Param("updatedAt") LocalDateTime updatedAt);
+
+    List<TaskInstanceRow> selectByDefinitionId(@Param("definitionId") long definitionId,
+                                               @Param("lifecycleCategory") String lifecycleCategory,
+                                               @Param("scenarioState") String scenarioState,
+                                               @Param("cursor") String cursor,
+                                               @Param("limit") int limit);
+
+    List<TaskInstanceRow> selectByDefinitionIdAll(@Param("definitionId") long definitionId);
+
+    /** Cancel waiting instances for a given binding/scheduleGeneration (pause/retire/update). */
+    int cancelWaitingInstances(@Param("definitionId") long definitionId,
+                               @Param("triggerBindingId") long triggerBindingId,
+                               @Param("scheduleGeneration") long scheduleGeneration,
+                               @Param("scenarioState") String cancelledScenarioState,
+                               @Param("snapshotJson") String snapshotJson,
+                               @Param("snapshotHash") byte[] snapshotHash,
+                               @Param("terminalAt") LocalDateTime terminalAt,
+                               @Param("updatedAt") LocalDateTime updatedAt);
+}

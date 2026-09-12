@@ -6,16 +6,17 @@
 | --- | --- |
 | 阶段编号 | P01 |
 | 阶段角色 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 核心文档基线 | 2.2（2026-09-12） |
 | 基础发布 | 无；P01是初始实现 |
 | baselineGitRef | 无可用不可变提交基线；见[BASELINE-SHA256.txt](BASELINE-SHA256.txt)（写代码前核心文档清单） |
-| 工程状态 | T01_IN_PROGRESS |
-| 下一任务 | T01 13模块与环境基线 |
+| 工程状态 | VERIFYING |
+| 下一任务 | 补齐A01—A42全矩阵与性能门槛后提交人工验收；见[DELIVERY](DELIVERY.md) |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 尚未创建；T08验证阶段才创建`DELIVERY.md` |
+| 交付证据 | [DELIVERY.md](DELIVERY.md) |
+| 手动HTTP联调 | [MANUAL-HTTP.md](MANUAL-HTTP.md)（curl；以04为准，本文不替代契约） |
 
-READY只表示当前没有已知的阻塞性文档分歧并具备实施条件，不表示设计绝对无误、环境可用、代码完成或测试通过。
+READY只表示当前没有已知的阻塞性文档分歧并具备实施条件，不表示设计绝对无误、环境可用、代码完成或测试通过。当前总体状态为VERIFYING：核心闭环与mysql-it证据已写入DELIVERY，全量验收矩阵与性能门槛仍待补齐。
 
 ## 2. 此前已经完成
 

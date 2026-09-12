@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.AuditLogMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.storage.mysql.row.AuditLogRow">
+        <id property="auditId" column="audit_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="definitionId" column="definition_id"/>
+        <result property="instanceId" column="instance_id"/>
+        <result property="transitionId" column="transition_id"/>
+        <result property="eventType" column="event_type"/>
+        <result property="actorType" column="actor_type"/>
+        <result property="actorId" column="actor_id"/>
+        <result property="traceId" column="trace_id"/>
+        <result property="detailJson" column="detail_json"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="auditId">
+        INSERT INTO tt_audit_log (tenant_id, resource_type, resource_id, definition_id, instance_id,
+            transition_id, event_type, actor_type, actor_id, trace_id, detail_json, created_at)
+        VALUES (#{tenantId}, #{resourceType}, #{resourceId}, #{definitionId}, #{instanceId},
+            #{transitionId}, #{eventType}, #{actorType}, #{actorId}, #{traceId}, #{detailJson}, #{createdAt})
+    </insert>
+
+</mapper>

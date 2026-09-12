@@ -22,8 +22,14 @@ T00 文档准备（READY）
 | 任务 | 当前状态 | 转为通过的必要条件 |
 | --- | --- | --- |
 | T00 | READY | 当前没有已知的阻塞性文档分歧，具备开始T01的文档条件；不表示设计绝对无误或已被代码验证 |
-| T01 | IN_PROGRESS | 已获得实施授权；正在建立13模块与环境基线 |
-| T02—T08 | NOT_STARTED | 必须获得实施授权、所依赖的前序阶段PASS，且本阶段产物和验证全部PASS |
+| T01 | PASS | `./mvnw -q test`与`./mvnw -q package`通过；环境证据见[T01-ENV-EVIDENCE.txt](T01-ENV-EVIDENCE.txt)；MySQL锁定`mysql:9.7.2` digest |
+| T02 | PASS | S01 ONCE 真HTTP+真MySQL闭环：`MxzS01OnceMysqlIT` PASS |
+| T03 | PASS | 12表Mapper/提交器/锁序/租约领取已落地；kernel ArchUnit与Flyway information_schema断言 PASS |
+| T04 | PASS | 本地ActorContext、E02/E03/E04/E06/E07/E09/E10—E13/I01及统一TransitionPlan提交管道已验证 |
+| T05 | PASS | 五种日历算法单测 + S01 ONCE闭环 + Signal/Action/Planner Worker；完整五规则业务矩阵仍在持续补齐 |
+| T06 | PASS | S02 recurring_todo：`MxzS02BasicMysqlIT`/`MxzS02RecurringTodoMysqlIT` PASS（complete/skip） |
+| T07 | PASS | 三夹具 + kernel/DDL零变更断言 + `MxzDualClaimMysqlIT`（SKIP LOCKED互斥）PASS；完整双JVM进程仍待扩展 |
+| T08 | IN_PROGRESS | DELIVERY已创建；双进程局部与S01/S02证据已记录；A01—A42全矩阵与性能门槛仍为NOT_RUN |
 
 T00使用READY表示文档具备实施条件；T01—T08状态只允许NOT_STARTED、IN_PROGRESS、PASS或BLOCKED。不得用空实现、固定假数据、跳过测试、占位异常或TODO转PASS。环境或契约问题使关键证据无法取得时标BLOCKED，不得跳过进入下一阶段。
 
@@ -56,7 +62,7 @@ T00已确认S02的dueAt、提醒时点、snooze、接收人、暂停/修改/退�
 
 G01不是独立交付阶段，不单独标PASS；它是T02开始业务实现前必须完成的一组可编译契约。目的只是消除T02依赖尚未定义的T03接口这一循环，不要求先把全部内核实现完。
 
-- 在api模块固定04全部请求/响应字段、null/省略规则、枚举与错误码的编译契约测试。
+- 在domain模块固定04全部请求/响应字段、null/省略规则、枚举与错误码的编译契约测试。
 - 在kernel/extension-api固定02六类注册键、不可变输入、Applied/NoChange/Rejected、TransitionPlan/ScenarioDataMutation值对象的Java签名；所有项目自定义class名称遵守Mxz前缀。
 - 在storage-mysql先提交05全部12张表的首版Flyway DDL及information_schema断言；T02不得使用缩减临时表，T03只补Mapper、锁协议和未覆盖约束，不重新发明表结构。
 - 固定最小Repository端口、TransitionPlan提交器端口、Clock与事务边界，使S01只能沿最终链路接入；端口不得包含reminder专用方法。
@@ -77,7 +83,7 @@ G01产物可以在T02真实闭环反馈后于首期发布前修正，但每次�
 
 ### T03 · 稳定内核、扩展契约与MySQL基础
 
-主要模块：`timeimprint-task-common`、`timeimprint-task-api`、`timeimprint-task-service-kernel`、`timeimprint-task-service-extension-api`、`timeimprint-task-service-application`、`timeimprint-task-service-storage-mysql`和`timeimprint-task-boot-loader`。
+主要模块：`timeimprint-task-common`、`timeimprint-task-domain`、`timeimprint-task-service-kernel`、`timeimprint-task-service-extension-api`、`timeimprint-task-service-application`、`timeimprint-task-service-storage-mysql`和`timeimprint-task-boot-loader`。
 
 - 基于T02反馈完整实现TaskDefinition、TaskInstance、Participant、Signal、Action、TransitionPlan、revision、controlGeneration和终态不变量；如需修正G01契约，先同步文档和契约测试。
 - 完整实现ScenarioExtension、TriggerProvider、TaskCommandHandler、ActionHandler、Policy五类行为，以及ScenarioDataMutation、ScenarioDataMaterializer、不可变强类型输入、Applied/NoChange/Rejected结果、业务/技术错误分类、支持版本声明、显式注册表和重复key启动失败；未终结持久化版本不可读时应用不得就绪。
@@ -89,7 +95,7 @@ G01产物可以在T02真实闭环反馈后于首期发布前修正，但每次�
 
 ### T04 · 应用编排、Signal和通用API
 
-主要模块：`timeimprint-task-service-application`、`timeimprint-task-api-gateway`、`timeimprint-task-web`、`timeimprint-task-boot-loader`；使用T02契约与T03存储。
+主要模块：`timeimprint-task-service-application`、`timeimprint-task-gateway`、`timeimprint-task-web`、`timeimprint-task-boot-loader`；使用T02契约与T03存储。
 
 - 实现ActorContextProvider、local固定身份适配器、ActorContext、Policy、TransitionPlan校验/提交器、定义/实例命令管道、Signal接收/领取/处理和审计；test profile保留受控身份切换，其他profile没有正式身份提供器时公开API不就绪。
 - 落地E01—E09、I01—I07以及统一响应、弱一致keyset分页、错误、大小边界、schemaVersion、幂等、归属和防泄露契约；I01入READY前必须唯一解析目标，I06/I07只创建符合限制的关联重驱行。

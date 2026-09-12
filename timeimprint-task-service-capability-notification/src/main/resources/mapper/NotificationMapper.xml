@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.capability.notification.mapper.NotificationMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO tt_notification (tenant_id, definition_id, instance_id, transition_id,
+            title, body, purpose, created_at)
+        VALUES (#{tenantId}, #{definitionId}, #{instanceId}, #{transitionId},
+            #{title}, #{body}, #{purpose}, #{createdAt})
+    </insert>
+
+</mapper>

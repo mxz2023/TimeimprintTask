@@ -31,7 +31,7 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
 | `timeimprint-task-common` | 无业务含义的工具、基础技术类型 | 无 |
-| `timeimprint-task-api` | 对外接口、请求/响应 DTO、响应信封 | common |
+| `timeimprint-task-domain` | HTTP请求/响应DTO、统一响应信封与错误码；不含Controller或用例编排。业务领域值对象仍在`service-kernel` | common |
 | `timeimprint-task-service-kernel` | 任务定义、实例、参与人、稳定生命周期和迁移计划值对象；纯 Java | common |
 | `timeimprint-task-service-extension-api` | Scenario、Trigger、Command、Action、Policy 扩展契约和注册描述 | kernel、common |
 | `timeimprint-task-service-application` | 用例编排、权限、幂等、事务、迁移计划校验和原子提交 | kernel、extension-api、common |
@@ -40,8 +40,8 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 | `timeimprint-task-service-capability-calendar` | 一次性、日/周/月/N 日规则和时间计算能力 | extension-api、kernel、common |
 | `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道实现 | extension-api、kernel、common |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
-| `timeimprint-task-api-gateway` | 实现对外 API、构造 ActorContext、DTO 转换和错误映射 | api、application、kernel、common |
-| `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理 | api、gateway、common |
+| `timeimprint-task-gateway` | 接入编排：构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、common |
+| `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理 | domain、gateway、common |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 
 一期不创建cache、独立AI能力、工作流、外部IM或未来场景模块。Spring AI只作为已批准的技术版本基线，不表示首期已实现AI业务能力。缓存能力及其工程形态暂不确定，后续根据真实性能需求单独设计和审批；不能用空接口、空Bean、空表或固定假数据声称完成了扩展能力。
@@ -53,7 +53,7 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 ```text
 timeimprint-task
 ├── timeimprint-task-common
-├── timeimprint-task-api
+├── timeimprint-task-domain
 ├── timeimprint-task-service-kernel
 ├── timeimprint-task-service-extension-api
 ├── timeimprint-task-service-application
@@ -72,7 +72,7 @@ timeimprint-task
 ├── timeimprint-task-service-scenario-collaboration
 ├── timeimprint-task-service-scenario-workflow
 ├── timeimprint-task-service-scenario-automation
-├── timeimprint-task-api-gateway
+├── timeimprint-task-gateway
 ├── timeimprint-task-web
 └── timeimprint-task-boot-loader
 ```
@@ -113,9 +113,9 @@ timeimprint-task
 依赖方向只允许向稳定契约收敛：
 
 ```text
-web → api-gateway → application → kernel
-             │             └── extension-api
-             └── api
+web → gateway → application → kernel
+             │          └── extension-api
+             └── domain
 
 runtime ────────────────→ application / kernel / extension-api
 capability-* ───────────→ extension-api / kernel

@@ -12,8 +12,8 @@
 
 | 编号 | 场景 | 场景标识 | 场景族或目标模块 | 排期位置 | 契约状态 | 实现状态 | 主要能力 | 永久文档 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S01 | 通用提醒 | `reminder` | basic / `scenario-basic` | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | calendar、notification | [S01](S01-reminder.md) |
-| S02 | 周期待办 | `recurring_todo` | basic / `scenario-basic` | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | calendar、notification | [S02](S02-recurring-todo.md) |
+| S01 | 通用提醒 | `reminder` | basic / `scenario-basic` | P01 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | calendar、notification | [S01](S01-reminder.md) |
+| S02 | 周期待办 | `recurring_todo` | basic / `scenario-basic` | P01 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | calendar、notification | [S02](S02-recurring-todo.md) |
 | S03 | 生日与纪念日 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、notification | [S03](S03-anniversary.md) |
 | S04 | 到期管理 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、notification | [S04](S04-deadline-management.md) |
 | S05 | 缴费管理 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、trigger、notification、integration | [S05](S05-payment-management.md) |

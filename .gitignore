@@ -1,0 +1,13 @@
+target/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+.flattened-pom.xml
+**/dependency-reduced-pom.xml

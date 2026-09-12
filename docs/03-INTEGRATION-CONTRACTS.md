@@ -32,7 +32,7 @@ MySQL 9.7 LTS的InnoDB支持READ COMMITTED和队列领取所需的SKIP LOCKED；
 
 ## 2. 模块构建与装配
 
-父POM必须显式列出02批准的13个一期模块。所有service模块使用平级`timeimprint-task-service-*`名称；不得生成旧`timeimprint-task-domain`、`timeimprint-task-dao`、巨型`timeimprint-task-service`、`timeimprint-task-cache`或任何cache替代模块。
+父POM必须显式列出02批准的13个一期模块。所有service模块使用平级`timeimprint-task-service-*`名称；HTTP传输契约模块固定为`timeimprint-task-domain`，接入编排模块固定为`timeimprint-task-gateway`。不得再引入平行的`timeimprint-task-api`、`timeimprint-task-api-gateway`、`timeimprint-task-dao`、巨型`timeimprint-task-service`、`timeimprint-task-cache`或任何cache替代模块。
 
 `timeimprint-task-boot-loader`是唯一组合根，负责：
 

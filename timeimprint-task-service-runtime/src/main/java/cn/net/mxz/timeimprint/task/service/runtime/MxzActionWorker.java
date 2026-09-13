@@ -6,6 +6,7 @@ import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPo
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskInstanceRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
+import cn.net.mxz.timeimprint.task.service.application.runtime.MxzRuntimeAdmission;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionExecutionMode;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
@@ -61,6 +62,7 @@ public class MxzActionWorker {
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
+    private final MxzRuntimeAdmission admission;
 
     public MxzActionWorker(
             ActionJobExecutionPort actionPort,
@@ -69,7 +71,8 @@ public class MxzActionWorker {
             ExtensionRegistry extensionRegistry,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            MxzRuntimeAdmission admission) {
         this.actionPort = actionPort;
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
@@ -77,13 +80,20 @@ public class MxzActionWorker {
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
+        this.admission = admission;
     }
 
     @Scheduled(fixedDelay = 2000, initialDelay = 6000)
     public void pollAndExecute() {
+        if (!admission.acceptingClaims()) {
+            return;
+        }
         try {
             List<Long> ids = actionPort.listReadyDueIds(clock.nowUtcSeconds(), CLAIM_BATCH);
             for (Long actionJobId : ids) {
+                if (!admission.acceptingClaims()) {
+                    return;
+                }
                 try {
                     executeAction(actionJobId);
                 } catch (Exception e) {
@@ -162,6 +172,10 @@ public class MxzActionWorker {
                         handler.timeoutSeconds(),
                         MAX_HANDLER_TIMEOUT_SECONDS);
                 actionPort.markCancelled(actionJobId, "HANDLER_TIMEOUT_MISCONFIGURED", now);
+                return null;
+            }
+
+            if (!admission.acceptingClaims()) {
                 return null;
             }
 
@@ -253,6 +267,10 @@ public class MxzActionWorker {
                         externalHandler.timeoutSeconds(),
                         MAX_HANDLER_TIMEOUT_SECONDS);
                 actionPort.markCancelled(actionJobId, "HANDLER_TIMEOUT_MISCONFIGURED", now);
+                return null;
+            }
+
+            if (!admission.acceptingClaims()) {
                 return null;
             }
 

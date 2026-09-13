@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.service.runtime;
 
 import cn.net.mxz.timeimprint.task.common.BusinessClock;
 import cn.net.mxz.timeimprint.task.service.application.port.TriggerPlannerPort;
+import cn.net.mxz.timeimprint.task.service.application.runtime.MxzRuntimeAdmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,14 +23,20 @@ public class MxzTriggerPlanner {
 
     private final TriggerPlannerPort plannerPort;
     private final BusinessClock clock;
+    private final MxzRuntimeAdmission admission;
 
-    public MxzTriggerPlanner(TriggerPlannerPort plannerPort, BusinessClock clock) {
+    public MxzTriggerPlanner(
+            TriggerPlannerPort plannerPort, BusinessClock clock, MxzRuntimeAdmission admission) {
         this.plannerPort = plannerPort;
         this.clock = clock;
+        this.admission = admission;
     }
 
     @Scheduled(fixedDelay = 30000, initialDelay = 10000)
     public void planNextWindows() {
+        if (!admission.acceptingClaims()) {
+            return;
+        }
         try {
             plannerPort.planDueBindings(clock.nowUtcSeconds(), BINDING_BATCH, OCC_PER_BINDING);
         } catch (Exception e) {

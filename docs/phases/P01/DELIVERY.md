@@ -298,8 +298,11 @@ Failsafe: Tests run: 3, Failures: 0
 - A03 / A11：并发规划唯一事实与改时间规则屏障（见 §5.3）
 - A06 / A14 / A19 / A25–A27 / A29–A33 / A38 / A40–A42 等：见 §5.4
 
+已验证（续）:
+- A39：local/test 非回环地址启动失败；liveness 不依赖 DB；停机 admission 拒绝写（503 RETRY_LATER）并停止 claim；宽限后租约回收 → RETRY_WAIT，旧 token CAS=0（见 §5.6）
+
 尚未执行（保持 NOT_RUN）:
-- 优雅停机（A39）与接管时间窗 SLA（07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛）
+- 07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛（与 A39 机制验证分离）
 - M01—M10 性能门槛
 - A01—A42 完整验收矩阵
 - E01—E13、I01—I07 全量契约回归
@@ -394,9 +397,27 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
 仍 NOT_RUN / 未收口:
-- A39 优雅停机与非回环启动
 - 07 §6 性能门槛与接管真时钟 SLA
 - E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
+
+### 5.6 A39 回环绑定、健康边界与优雅停机
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA39ShutdownMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 3, Failures: 0
+全量复跑: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify
+退出码: 0
+Failsafe: Tests run: 78, Failures: 0
+recordedAtUtc: 2026-09-13T07:52:24Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+- A39：`MxzLoopbackAddressEnvironmentPostProcessor` — local/test 非回环 `SERVER_ADDRESS`/`server.address` → 启动失败
+- A39：liveness 不依赖 DB；readiness 在 migrate/registry/live-schema/DB 失败时拒绝流量（既有指示器 + REFUSING → `OUT_OF_SERVICE`）
+- A39：`MxzRuntimeAdmission` + `MxzShutdownAdmissionLifecycle` — 停机先 `beginShutdown` + readiness REFUSING；`MxzShutdownWriteRejectFilter` 拒绝公开写（503 `RETRY_LATER`）；Signal/Action/Planner 停止领取；租约回收至 `RETRY_WAIT`，无伪造批量 READY；旧 `execution_token` CAS=0
 
 ---
 
@@ -404,19 +425,18 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 **状态: 现有套件 PASS；契约全矩阵仍 NOT_RUN（不得宣称 P01 完成）**
 
-recordedAtUtc: 2026-09-13T06:12:00Z
+recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 75, Failures: 0 |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0 |
 
 说明:
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A39：优雅停机 / 非回环启动
 - 07 §6 性能与接管时间窗 SLA：NOT_RUN
 - E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
 
@@ -426,7 +446,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 优雅停机（A39）与 07 §6 接管时间窗 SLA | NOT_RUN |
+| — | 07 §6 接管时间窗 SLA（真时钟） | NOT_RUN |
 | — | Performance gate | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |

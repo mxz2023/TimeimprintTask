@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.service.runtime;
 
 import cn.net.mxz.timeimprint.task.common.BusinessClock;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskSignalRepository;
+import cn.net.mxz.timeimprint.task.service.application.runtime.MxzRuntimeAdmission;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzSignalProcessingService;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,21 +28,30 @@ public class MxzSignalWorker {
     private final TaskSignalRepository signalRepository;
     private final MxzSignalProcessingService processingService;
     private final BusinessClock clock;
+    private final MxzRuntimeAdmission admission;
 
     public MxzSignalWorker(
             TaskSignalRepository signalRepository,
             MxzSignalProcessingService processingService,
-            BusinessClock clock) {
+            BusinessClock clock,
+            MxzRuntimeAdmission admission) {
         this.signalRepository = signalRepository;
         this.processingService = processingService;
         this.clock = clock;
+        this.admission = admission;
     }
 
     @Scheduled(fixedDelay = 2000, initialDelay = 5000)
     public void pollAndProcess() {
+        if (!admission.acceptingClaims()) {
+            return;
+        }
         try {
             List<Long> ids = signalRepository.listReadyDueIds(clock.nowUtcSeconds(), CLAIM_BATCH);
             for (Long signalId : ids) {
+                if (!admission.acceptingClaims()) {
+                    return;
+                }
                 try {
                     processingService.processSignal(signalId);
                 } catch (Exception e) {

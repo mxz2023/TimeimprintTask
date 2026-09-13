@@ -24,6 +24,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionTarget;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -275,6 +276,11 @@ public class MxzDefinitionCommandService {
 
             var result = committer.commit(new MxzTransitionCommitRequest(
                     plan, definitionId, null, "COMMAND", commandKey));
+
+            if ("resume".equals(commandKey)) {
+                Instant now = clock.nowUtcSeconds();
+                definitionControlPort.rebuildFutureWindow(definitionId, now);
+            }
 
             commandDedupRepository.complete(
                     actor.tenantKey(),

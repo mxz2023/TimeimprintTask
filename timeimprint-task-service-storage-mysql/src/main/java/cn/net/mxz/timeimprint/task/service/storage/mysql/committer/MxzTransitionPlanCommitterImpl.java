@@ -128,6 +128,7 @@ public class MxzTransitionPlanCommitterImpl implements TransitionPlanCommitter {
                 newControlGen = controlGeneration + 1;
             } else if ("ACTIVE".equals(newControlState) && "PAUSED".equals(defRow.getControlState())) {
                 newControlGen = controlGeneration + 1;
+                pausedAt = null;
             }
             int updated = definitionMapper.updateRevision(
                     request.definitionId(),

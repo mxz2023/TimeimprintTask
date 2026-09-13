@@ -195,6 +195,20 @@ Failsafe: Tests run: 8, Failures: 0
 - A21：S02 缺省展开为 60/240/720、1440、3，Signal 后 1 INITIAL+3 CHASE；非法偏移/有效期/snooze/未知字段拒绝且不落数据
 - M01—M10（相对时间切片，非固定 2026-09-08 业务钟）：S01 五规则窗口间距与 ONCE 耗尽入箱；S02 默认催办时点、双 PENDING 不互阻、WEEKLY/MONTHLY31/EVERY_N_DAYS 创建与间距断言
 
+### 4.10 A12 暂停跨周期再恢复
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA12ResumeMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 1, Failures: 0
+```
+
+- pause / resume 各递增 `controlGeneration`；resume 清空 `pausedAt`
+- 暂停跨多个 DAILY 周期后再 resume：新 WAITING 仅含 resume 时刻之后的 occurrence，不补发暂停区间
+- 暂停前已 PENDING 的实例保持 PENDING，Action 数量不被 resume 重建
+
 ---
 
 ## 5. 双进程与性能验收

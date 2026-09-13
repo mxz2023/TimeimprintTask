@@ -258,16 +258,22 @@ public class MxzTaskGateway {
                 actionJobId, req.requestId(), req.expectedStatus(), req.reason()));
     }
 
-    /** E06: pause / resume / retire a definition. */
+    /** E06: update / pause / resume / retire a definition. */
     public CommandResultView executeDefinitionCommand(long definitionId, String commandKey, DefinitionCommandRequest req) {
-        var result = definitionCommandService.execute(definitionId, commandKey, req.requestId());
+        var result = definitionCommandService.execute(
+                definitionId,
+                commandKey,
+                req.requestId(),
+                req.expectedRevision(),
+                req.commandSchemaVersion(),
+                req.payload());
         var defView = toDefinitionView(queryService.getDefinition(definitionId));
         JsonNode defNode = objectMapper.valueToTree(defView);
         return new CommandResultView(
                 "DEFINITION",
                 String.valueOf(definitionId),
                 result.revision(),
-                !result.commandKey().equals("no_change"),
+                result.changed(),
                 defNode,
                 objectMapper.createObjectNode());
     }

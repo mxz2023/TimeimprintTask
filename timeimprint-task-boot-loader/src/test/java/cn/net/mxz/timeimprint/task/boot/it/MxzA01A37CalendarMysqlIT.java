@@ -26,7 +26,7 @@ import org.springframework.test.context.DynamicPropertySource;
 
 /**
  * A01/A37：E02 非法日历配置拒绝；合法预览与创建 occurrenceKey 一致。
- * definition update / scheduleGeneration 部分仍待后续补齐。
+ * definition update / scheduleGeneration 见 MxzDefinitionUpdateMysqlIT。
  */
 @SpringBootTest(
         classes = MxzTimeImprintTaskApplication.class,

@@ -25,6 +25,17 @@ public interface TriggerBindingMapper {
                      @Param("exhausted") boolean exhausted,
                      @Param("updatedAt") LocalDateTime updatedAt);
 
+    int updateConfigAndSchedule(@Param("triggerBindingId") long triggerBindingId,
+                                @Param("expectedRevision") long expectedRevision,
+                                @Param("newRevision") long newRevision,
+                                @Param("configJson") String configJson,
+                                @Param("configHash") byte[] configHash,
+                                @Param("scheduleGeneration") long scheduleGeneration,
+                                @Param("nextFireAt") LocalDateTime nextFireAt,
+                                @Param("cursorJson") String cursorJson,
+                                @Param("exhausted") boolean exhausted,
+                                @Param("updatedAt") LocalDateTime updatedAt);
+
     /** Planner: SKIP LOCKED scan for due bindings. */
     List<Long> selectDueTriggerIds(@Param("providerKey") String providerKey,
                                    @Param("now") LocalDateTime now,

@@ -103,4 +103,14 @@
           AND lifecycle_category = 'WAITING'
     </update>
 
+    <update id="bumpWaitingSnapshots">
+        UPDATE tt_task_instance SET
+            title_snapshot = #{title},
+            description_snapshot = #{description},
+            revision = revision + 1,
+            updated_at = #{updatedAt}
+        WHERE definition_id = #{definitionId}
+          AND lifecycle_category = 'WAITING'
+    </update>
+
 </mapper>

@@ -102,7 +102,7 @@ curl -sS "${HDR[@]}" -X POST "$BASE/internal/v1/action-jobs/$ACTION_ID/commands/
 | E03 | `POST /api/v1/task-definitions` | 同上 | 创建定义 |
 | E04 | `GET /api/v1/task-definitions/{definitionId}` | 同上 | 查定义 |
 | E05 | `GET /api/v1/task-definitions` | 同上 | 定义列表 |
-| E06 | `POST /api/v1/task-definitions/{definitionId}/commands/{commandKey}` | 同上 | `pause` / `resume` / `retire` |
+| E06 | `POST /api/v1/task-definitions/{definitionId}/commands/{commandKey}` | 同上 | `update` / `pause` / `resume` / `retire` |
 | E07 | `GET /api/v1/task-instances/{instanceId}` | `MxzTaskInstanceController` | 查实例 |
 | E08 | `GET /api/v1/task-instances` | 同上 | 实例列表 |
 | E09 | `POST /api/v1/task-instances/{instanceId}/commands/{commandKey}` | 同上 | S02：`complete` / `skip`（`snooze` 视实现） |

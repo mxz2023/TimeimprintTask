@@ -24,6 +24,17 @@ public interface TaskDefinitionMapper {
                        @Param("pausedAt") java.time.LocalDateTime pausedAt,
                        @Param("retiredAt") java.time.LocalDateTime retiredAt);
 
+    int updateContent(@Param("definitionId") long definitionId,
+                      @Param("expectedRevision") long expectedRevision,
+                      @Param("newRevision") long newRevision,
+                      @Param("scenarioSchemaVersion") int scenarioSchemaVersion,
+                      @Param("title") String title,
+                      @Param("description") String description,
+                      @Param("scenarioConfigJson") String scenarioConfigJson,
+                      @Param("scenarioConfigHash") byte[] scenarioConfigHash,
+                      @Param("updatedBy") String updatedBy,
+                      @Param("updatedAt") java.time.LocalDateTime updatedAt);
+
     List<TaskDefinitionRow> selectList(@Param("tenantId") String tenantId,
                                        @Param("scenarioKey") String scenarioKey,
                                        @Param("controlState") String controlState,

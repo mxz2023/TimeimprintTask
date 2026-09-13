@@ -170,14 +170,15 @@ Failsafe: Tests run: 4, Failures: 0
 命令: ./mvnw -q -pl timeimprint-task-service-capability-calendar test \
   -Dtest=MxzCalendarOccurrenceCalculatorTest,MxzCalendarConfigParserTest
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA01A37CalendarMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT
+  -Dit.test=MxzA01A37CalendarMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT,MxzDefinitionUpdateMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
-Failsafe: Tests run: 3, Failures: 0
+Failsafe: Tests run: 5, Failures: 0
 ```
 
 - A01：after 严格排除、月末/闰年钳制、EVERY_N_DAYS 锚点不漂移、JVM 默认时区不影响结果（单测）
 - A37：schemaVersion 1 字段白名单；缺字段/多余字段/非法 weekday·zone·localTime → `INVALID_REQUEST`；E02 预览与 E03 创建同 `occurrenceKey`
-- 未覆盖：definition update 完整替换与 `scheduleGeneration` 递增（待后续）
+- A37 / A24：E06 `update` 六字段完整替换；`description=null` 清空；规范化无变化 → NoChange（revision/scheduleGeneration 不变）；仅日历配置变化 → `scheduleGeneration+1` 且旧 WAITING→CANCELLED 并重建窗口；标题变化不升 scheduleGeneration；ACTIVE 快照不被覆盖
 
 ---
 

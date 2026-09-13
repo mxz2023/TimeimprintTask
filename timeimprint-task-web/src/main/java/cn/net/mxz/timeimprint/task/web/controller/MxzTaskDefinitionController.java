@@ -186,14 +186,14 @@ public class MxzTaskDefinitionController {
     }
 
     /**
-     * E06 · 对定义执行控制命令：{@code pause} / {@code resume} / {@code retire}。
+     * E06 · 对定义执行命令：{@code update} / {@code pause} / {@code resume} / {@code retire}。
      *
      * <p><b>方法与路径：</b>{@code POST /api/v1/task-definitions/{definitionId}/commands/{commandKey}}
      *
      * <p><b>路径参数：</b>
      * <ul>
      *   <li>{@code definitionId} — 定义主键</li>
-     *   <li>{@code commandKey} — 命令键：{@code pause}、{@code resume}、{@code retire}</li>
+     *   <li>{@code commandKey} — 命令键：{@code update}、{@code pause}、{@code resume}、{@code retire}</li>
      * </ul>
      *
      * <p><b>请求体参数（DefinitionCommandRequest）：</b>
@@ -201,7 +201,7 @@ public class MxzTaskDefinitionController {
      *   <li>{@code requestId} — 幂等键，标准 UUID 小写</li>
      *   <li>{@code expectedRevision} — 乐观锁期望修订号（来自 E04 的 revision）</li>
      *   <li>{@code commandSchemaVersion} — 命令 schema 版本，通常为 1</li>
-     *   <li>{@code payload} — 命令载荷 JSON（一期控制命令一般为 {@code {}}）</li>
+     *   <li>{@code payload} — update 为六个字段完整替换；pause/resume/retire 为空对象 {@code {}}</li>
      * </ul>
      *
      * <p><b>调用示例：</b>

@@ -52,4 +52,10 @@ public interface TaskInstanceMapper {
                                @Param("snapshotHash") byte[] snapshotHash,
                                @Param("terminalAt") LocalDateTime terminalAt,
                                @Param("updatedAt") LocalDateTime updatedAt);
+
+    /** Bump WAITING title/description snapshots after non-calendar definition update. */
+    int bumpWaitingSnapshots(@Param("definitionId") long definitionId,
+                             @Param("title") String title,
+                             @Param("description") String description,
+                             @Param("updatedAt") LocalDateTime updatedAt);
 }

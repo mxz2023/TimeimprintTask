@@ -52,6 +52,19 @@
         WHERE definition_id = #{definitionId} AND revision = #{expectedRevision}
     </update>
 
+    <update id="updateContent">
+        UPDATE tt_task_definition SET
+            scenario_schema_version = #{scenarioSchemaVersion},
+            title = #{title},
+            description = #{description},
+            scenario_config_json = #{scenarioConfigJson},
+            scenario_config_hash = #{scenarioConfigHash},
+            revision = #{newRevision},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        WHERE definition_id = #{definitionId} AND revision = #{expectedRevision}
+    </update>
+
     <select id="selectList" resultMap="RM">
         SELECT * FROM tt_task_definition
         WHERE tenant_id = #{tenantId}

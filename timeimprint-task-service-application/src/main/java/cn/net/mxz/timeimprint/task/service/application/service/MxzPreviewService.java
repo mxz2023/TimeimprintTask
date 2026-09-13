@@ -71,7 +71,11 @@ public class MxzPreviewService {
             throw new MxzApplicationException("INVALID_REQUEST", msg);
         }
         var occs = MxzCalendarOccurrenceCalculator.preview(rule, after, limit).stream()
-                .map(o -> new Occurrence(o.occurrenceKey(), o.occurrenceAt(), o.occurrenceAt()))
+                .map(o -> {
+                    // docs/04-API.md: S01 dueAt=null；S02 dueAt=occurrenceAt
+                    Instant dueAt = "recurring_todo".equals(scenarioKey) ? o.occurrenceAt() : null;
+                    return new Occurrence(o.occurrenceKey(), o.occurrenceAt(), dueAt);
+                })
                 .toList();
         return new PreviewOutcome(scenarioKey, scenarioSchemaVersion, scenarioConfigJson, triggerBindings, occs);
     }

@@ -398,9 +398,9 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A35：`liveSchema` HealthIndicator 纳入 readiness；未终结 Signal schema 无读取器 → readiness DOWN；终结后恢复 UP；历史 TERMINAL 公共快照仍可读；NoChange/Rejected 与技术异常分流
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
-仍 NOT_RUN / 未收口（本轮后已部分收口，见 §5.9）:
+仍 NOT_RUN / 未收口:
 - 07 §6 性能门槛（1万/1000/P95）
-- E01—E13 独立全量契约矩阵（公开端点；I 系见 §5.9）
+- 公共 HTTP 边界（07 §5）；E/I 端点矩阵见 §5.9–§5.10
 
 ### 5.6 A39 回环绑定、健康边界与优雅停机
 
@@ -457,7 +457,7 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 
 仍 NOT_RUN / 未收口:
 - 07 §6 性能门槛（1万/1000/P95）
-- E01—E13 独立全量契约矩阵（公开端点；I 系见 §5.9）
+- 公共 HTTP 边界（07 §5）；E/I 端点矩阵见 §5.9–§5.10
 
 ### 5.9 I01—I07 独立 HTTP 契约矩阵
 
@@ -486,18 +486,49 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 说明: 此前 [A32](../../07-ACCEPTANCE.md) 以 gateway 直调覆盖 I06/I07 业务规则；本类补齐 **HTTP 信封与诊断读模型**。不得据此宣称 E01—E13 矩阵完成。
 
+### 5.10 E01—E13 独立 HTTP 契约矩阵
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzEMatrixMysqlIT,MxzA40SpiMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 10, Failures: 0
+recordedAtUtc: 2026-09-13T09:34:24Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+类: timeimprint-task-boot-loader/.../MxzEMatrixMysqlIT.java
+```
+
+覆盖（对照 [07 §5](../../07-ACCEPTANCE.md)；不适用项写明）:
+
+| 端点 | 已覆盖 | 部分 / 未覆盖 |
+| --- | --- | --- |
+| [E01](../../04-API.md) GET `/api/v1/task-scenarios` | Page 信封；`ScenarioMetadataView` 字段集；含 reminder/recurring_todo；无 lease/token | cursor 翻页未单测；身份 N/A |
+| [E02](../../04-API.md) POST `/api/v1/task-definitions/preview` | 成功字段集；S01 `dueAt=null`；不写 Signal；limit/scenarioKey 校验 → `INVALID_REQUEST` | 未知字段未断言 |
+| [E03](../../04-API.md) POST `/api/v1/task-definitions` | 创建字段集；同 requestId 幂等；摘要冲突 `IDEMPOTENCY_CONFLICT`；非法 UUID | update 六字段完整替换见既有 DefinitionUpdate IT |
+| [E04](../../04-API.md)/[E05](../../04-API.md) | 详情/列表字段集；scenarioKey+controlState 过滤；缺失 `RESOURCE_NOT_FOUND` | keyset 翻页见 A34 |
+| [E06](../../04-API.md) pause/resume | `CommandResultView`；幂等；错误 revision → `REVISION_CONFLICT` | retire/update 见 A02/DefinitionUpdate |
+| [E07](../../04-API.md)/[E08](../../04-API.md)/[E09](../../04-API.md) | 实例字段集+deliverySummary；列表过滤；complete 幂等；未知 command → `COMMAND_NOT_SUPPORTED` | skip/snooze 见 S02/A07 |
+| [E10](../../04-API.md)—[E13](../../04-API.md) | inbox 列表/详情/未读数字段集；mark-read 幂等保留 readAt；校验失败 | scenarioKey 过滤未单测（Controller 当前无该参） |
+
+顺带契约对齐（同提交）:
+- E02 预览：S01 `dueAt` 改为 null（此前误等于 occurrenceAt）；gateway 空安全序列化
+- E09 未声明 commandKey：由 `EXTENSION_NOT_FOUND` 改为 `COMMAND_NOT_SUPPORTED`（对齐 04；A40 同步）
+
+说明: 公共 HTTP 边界（未知路径/方法/媒体类型/64KiB 等）仍 NOT_RUN；不得宣称 P01 完成。
+
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
 
-**状态: 现有套件 PASS；E 系契约全矩阵与性能仍 NOT_RUN（不得宣称 P01 完成）**
+**状态: 现有套件 PASS；公共 HTTP 边界与性能仍 NOT_RUN（不得宣称 P01 完成）**
 
 recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（I 矩阵后未再全量复跑；局部见 §5.9） |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（E/I 矩阵后未再全量复跑；局部见 §5.9–§5.10） |
 
 说明:
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
@@ -505,8 +536,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
 - 07 §6 性能门槛（1万定义/1000到期/P95）：NOT_RUN
-- E01—E13 独立全量契约矩阵：NOT_RUN
-- I01—I07：HTTP 矩阵已记 §5.9（部分维度 PARTIAL）；不得单独宣称整包 E+I 完成
+- 公共 HTTP 边界（未知路径/方法/媒体类型/空体/畸形 JSON/64KiB 等）：NOT_RUN
+- E01—E13 / I01—I07：端点矩阵已记 §5.9–§5.10（部分维度 PARTIAL）
 
 ---
 
@@ -515,7 +546,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
 | — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | NOT_RUN |
-| — | E01—E13 独立全量契约矩阵 | NOT_RUN |
+| — | 公共 HTTP 边界（07 §5） | NOT_RUN |
+| — | E01—E13 独立 HTTP 契约矩阵 | PASS（证据 §5.10；部分维度 PARTIAL） |
 | — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 

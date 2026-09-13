@@ -148,8 +148,9 @@ public class MxzInstanceCommandService {
                     defSnap.scenarioKey(), CommandScope.INSTANCE, commandKey, commandSchemaVersion);
             var handlerOpt = extensionRegistry.commandHandlers().find(handlerKey);
             if (handlerOpt.isEmpty()) {
-                throw new MxzApplicationException("EXTENSION_NOT_FOUND",
-                        "no handler for " + defSnap.scenarioKey() + "/" + commandKey + "/v" + commandSchemaVersion);
+                throw new MxzApplicationException(
+                        "COMMAND_NOT_SUPPORTED",
+                        "scenario does not declare commandKey=" + commandKey);
             }
             var handler = handlerOpt.get();
 

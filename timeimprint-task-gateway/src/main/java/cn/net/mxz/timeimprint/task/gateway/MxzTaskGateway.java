@@ -112,7 +112,10 @@ public class MxzTaskGateway {
                 Instant.parse(req.after()),
                 req.limit());
         List<OccurrenceView> occs = out.occurrences().stream()
-                .map(o -> new OccurrenceView(o.occurrenceKey(), o.occurrenceAt().toString(), o.dueAt().toString()))
+                .map(o -> new OccurrenceView(
+                        o.occurrenceKey(),
+                        o.occurrenceAt().toString(),
+                        o.dueAt() == null ? null : o.dueAt().toString()))
                 .toList();
         List<TriggerBindingInput> normalized = req.triggerBindings();
         return new PreviewResult(

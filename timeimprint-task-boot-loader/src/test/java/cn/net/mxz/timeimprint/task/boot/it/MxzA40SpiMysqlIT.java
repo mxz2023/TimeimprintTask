@@ -88,7 +88,7 @@ class MxzA40SpiMysqlIT {
                         "expectedRevision", revision,
                         "commandSchemaVersion", 1,
                         "payload", Map.of()));
-        assertEquals("EXTENSION_NOT_FOUND", resp.path("code").asText(), resp.toString());
+        assertEquals("COMMAND_NOT_SUPPORTED", resp.path("code").asText(), resp.toString());
     }
 
     @Test

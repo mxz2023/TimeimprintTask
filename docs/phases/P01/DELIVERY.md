@@ -264,6 +264,20 @@ Failsafe: Tests run: 1, Failures: 0
 - LOCAL 路径：同事务 claim → 写 inbox → 闭合 Attempt → CAS 完结；CAS 失败抛错整笔回滚
 - 强制 token 失配后：Action 仍为 READY、无 Attempt、无 inbox；再次执行后恰好 1 条 inbox
 
+### 4.15 A15 死锁/锁等待整笔事务重试
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA15TxRetryMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 3, Failures: 0
+```
+
+- `TransactionBoundary` 对死锁/锁等待完整重开事务，最多 3 次；成功路径无部分写入
+- 3 次耗尽 → `RETRY_LATER`，回滚后无残留 `tt_command_dedup` 行
+- EXTERNAL 已提交 `effectStartedAt` 后，结果事务重试不增加 handler 调用次数
+
 ---
 
 ## 5. 双进程与性能验收

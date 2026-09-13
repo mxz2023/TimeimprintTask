@@ -9,6 +9,11 @@ public class MxzApplicationException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    public MxzApplicationException(String errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
     public String errorCode() {
         return errorCode;
     }

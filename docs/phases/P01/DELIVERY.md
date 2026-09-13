@@ -139,6 +139,19 @@ Failsafe: Tests run: 9, Failures: 0
 - Signal 同步路径只执行 `availableAt <= now` 的 LOCAL_TRANSACTIONAL；未到期 Action 留给 ActionWorker（S01 IT 已覆盖）
 - MANUAL-HTTP 日历字段与 `MxzCalendarConfigParser` 对齐（`startDate` / `weekday`）
 
+### 4.6 A05 / A36 状态机与并发冲突
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA05A36StateConcurrencyMysqlIT,MxzS02RecurringTodoMysqlIT,MxzS02BasicMysqlIT,MxzS01OnceMysqlIT
+退出码: 0
+Failsafe: Tests run: 9, Failures: 0
+```
+
+- E09 校验 `expectedRevision`（不匹配 → `REVISION_CONFLICT`）
+- A05：complete 同 requestId 重放 / 不同 requestId 同终态 NoChange；相反终态 `STATE_CONFLICT`；skip 原因必填与长度；并发 complete 仅一方变更
+- A36：S02 PLANNED→PENDING→COMPLETED/SKIPPED；pause 将 WAITING 置 `TERMINAL/CANCELLED`（非 SKIPPED）且 `terminalAt` 有值；S01 PLANNED→TRIGGERED 且拒绝 complete
+
 ---
 
 ## 5. 双进程与性能验收

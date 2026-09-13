@@ -170,10 +170,11 @@ class MxzS02RecurringTodoMysqlIT {
         assertEquals(1, snapshot.path("actionGeneration").asInt(), snapshotJson);
 
         // ── 5. Execute complete command → COMPLETED ───────────────────────────
+        long revisionAfterSignal = instAfterSignal.path("data").path("revision").asLong();
         String completeRequestId = UUID.randomUUID().toString();
         Map<String, Object> completeBody = Map.of(
                 "requestId", completeRequestId,
-                "expectedRevision", 0,
+                "expectedRevision", revisionAfterSignal,
                 "commandSchemaVersion", 1,
                 "payload", Map.of("note", "done"));
         JsonNode completed = post("/api/v1/task-instances/" + instanceId + "/commands/complete", completeBody);
@@ -250,12 +251,14 @@ class MxzS02RecurringTodoMysqlIT {
                 instanceId);
         assertTrue(readyBefore != null && readyBefore >= 1, "need movable actions before snooze");
 
+        JsonNode instPending = get("/api/v1/task-instances/" + instanceId);
+        long revision = instPending.path("data").path("revision").asLong();
         java.time.Instant snoozeUntil = java.time.Instant.now().plusSeconds(20 * 60).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
         JsonNode snoozed = post(
                 "/api/v1/task-instances/" + instanceId + "/commands/snooze",
                 Map.of(
                         "requestId", UUID.randomUUID().toString(),
-                        "expectedRevision", 1,
+                        "expectedRevision", revision,
                         "commandSchemaVersion", 1,
                         "payload", Map.of("snoozeUntil", snoozeUntil.toString())));
         assertEquals("OK", snoozed.path("code").asText(), "snooze: " + snoozed);

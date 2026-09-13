@@ -333,7 +333,12 @@ public class MxzTaskGateway {
             payloadJson = "{}";
         }
         var result = instanceCommandService.execute(
-                instanceId, commandKey, req.commandSchemaVersion(), req.requestId(), payloadJson);
+                instanceId,
+                commandKey,
+                req.commandSchemaVersion(),
+                req.requestId(),
+                req.expectedRevision(),
+                payloadJson);
 
         var instView = toInstanceView(queryService.getInstance(instanceId));
         JsonNode instNode = objectMapper.valueToTree(instView);

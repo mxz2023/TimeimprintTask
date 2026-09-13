@@ -86,6 +86,7 @@ public class MxzInstanceCommandService {
             String commandKey,
             int commandSchemaVersion,
             String requestId,
+            long expectedRevision,
             String payloadJson) {
 
         var actor = actorContextProvider.requireCurrentActor();
@@ -119,6 +120,22 @@ public class MxzInstanceCommandService {
                     .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
             var defSnap = definitionRepository.findByIdForUpdate(instSnap.definitionId())
                     .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+
+            if (instSnap.revision() != expectedRevision) {
+                commandDedupRepository.complete(
+                        actor.tenantKey(),
+                        actor.principalId(),
+                        op,
+                        requestId,
+                        "REVISION_CONFLICT",
+                        "INSTANCE",
+                        String.valueOf(instanceId),
+                        instSnap.revision(),
+                        "{\"error\":\"REVISION_CONFLICT\"}");
+                throw new MxzApplicationException(
+                        "REVISION_CONFLICT",
+                        "expectedRevision=" + expectedRevision + " current=" + instSnap.revision());
+            }
 
             var handlerKey = new TaskCommandHandlerKey(
                     defSnap.scenarioKey(), CommandScope.INSTANCE, commandKey, commandSchemaVersion);

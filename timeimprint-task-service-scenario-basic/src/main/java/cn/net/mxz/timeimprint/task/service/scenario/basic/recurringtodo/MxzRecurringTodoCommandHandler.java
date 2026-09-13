@@ -100,6 +100,9 @@ public class MxzRecurringTodoCommandHandler {
             if (reason == null || reason.isBlank()) {
                 return new HandlerResult.Rejected("INVALID_REQUEST", "skip reason is required");
             }
+            if (reason.codePointCount(0, reason.length()) > 500) {
+                return new HandlerResult.Rejected("INVALID_REQUEST", "skip reason exceeds 500 code points");
+            }
             Map<String, Object> snapshot = new LinkedHashMap<>();
             snapshot.put("scenarioState", "SKIPPED");
             snapshot.put("reason", reason);

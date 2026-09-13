@@ -398,9 +398,9 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A35：`liveSchema` HealthIndicator 纳入 readiness；未终结 Signal schema 无读取器 → readiness DOWN；终结后恢复 UP；历史 TERMINAL 公共快照仍可读；NoChange/Rejected 与技术异常分流
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
-仍 NOT_RUN / 未收口:
+仍 NOT_RUN / 未收口（本轮后已部分收口，见 §5.9）:
 - 07 §6 性能门槛（1万/1000/P95）
-- E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
+- E01—E13 独立全量契约矩阵（公开端点；I 系见 §5.9）
 
 ### 5.6 A39 回环绑定、健康边界与优雅停机
 
@@ -457,20 +457,47 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 
 仍 NOT_RUN / 未收口:
 - 07 §6 性能门槛（1万/1000/P95）
-- E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
+- E01—E13 独立全量契约矩阵（公开端点；I 系见 §5.9）
+
+### 5.9 I01—I07 独立 HTTP 契约矩阵
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzIMatrixMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 5, Failures: 0
+recordedAtUtc: 2026-09-13T09:25:26Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+类: timeimprint-task-boot-loader/.../MxzIMatrixMysqlIT.java
+```
+
+覆盖（对照 [07 §5](../../07-ACCEPTANCE.md) 端点维度；不适用项写明）:
+
+| 端点 | 已覆盖 | 部分 / 未覆盖 |
+| --- | --- | --- |
+| [I01](../../04-API.md) POST `/internal/v1/task-signals/{providerKey}` | 成功受理；同 key 同摘要 `duplicated=true`；同 key 异摘要 `IDEMPOTENCY_CONFLICT`；非法 `requestId` → `INVALID_REQUEST`；未知 definition → `RESOURCE_NOT_FOUND`；`SignalAcceptedView` 字段集 | 畸形 `occurredAt` 拒绝但错误码未强制 `INVALID_REQUEST`（PARTIAL）；未知 JSON 字段未断言；身份覆盖 N/A（local 固定 Actor） |
+| [I02](../../04-API.md) GET `/internal/v1/task-signals/{signalId}` | 成功诊断字段集；无 `executionToken`/`payload`/`payloadHash`；缺失 → `RESOURCE_NOT_FOUND` | 身份归属 N/A |
+| [I03](../../04-API.md) GET `/internal/v1/action-jobs` | 按 definitionId 列表；`status`+`handlerKey=in_app_notification` 过滤；字段集 | cursor 翻页未单测 |
+| [I04](../../04-API.md) GET `/internal/v1/action-jobs/{actionJobId}` | 详情字段集；`storedStatus`/`effectiveStatus`；`attempts`；无 token/payload | — |
+| [I05](../../04-API.md) GET `/internal/v1/task-transitions` | definitionId / instanceId 列表；`TransitionDiagnosticView` 字段集 | cursor 翻页未单测 |
+| [I06](../../04-API.md) POST `.../task-signals/{id}/commands/redrive` | 真 HTTP：DEAD→新行 `redriveNo=1`；同 `requestId` 幂等回放 | 最大次数仍见 A32 gateway |
+| [I07](../../04-API.md) POST `.../action-jobs/{id}/commands/redrive` | 真 HTTP：LOCAL DEAD→新行；幂等；库中有 EXTERNAL 时 `STATE_CONFLICT` | 最大 3 次仍见 A32 |
+
+说明: 此前 [A32](../../07-ACCEPTANCE.md) 以 gateway 直调覆盖 I06/I07 业务规则；本类补齐 **HTTP 信封与诊断读模型**。不得据此宣称 E01—E13 矩阵完成。
 
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
 
-**状态: 现有套件 PASS；契约全矩阵仍 NOT_RUN（不得宣称 P01 完成）**
+**状态: 现有套件 PASS；E 系契约全矩阵与性能仍 NOT_RUN（不得宣称 P01 完成）**
 
 recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0 |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（I 矩阵后未再全量复跑；局部见 §5.9） |
 
 说明:
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
@@ -478,7 +505,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
 - 07 §6 性能门槛（1万定义/1000到期/P95）：NOT_RUN
-- E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
+- E01—E13 独立全量契约矩阵：NOT_RUN
+- I01—I07：HTTP 矩阵已记 §5.9（部分维度 PARTIAL）；不得单独宣称整包 E+I 完成
 
 ---
 
@@ -487,7 +515,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
 | — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | NOT_RUN |
-| — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
+| — | E01—E13 独立全量契约矩阵 | NOT_RUN |
+| — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 
 ---

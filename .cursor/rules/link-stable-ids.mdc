@@ -1,0 +1,31 @@
+---
+description: 稳定编号（E/I/A/M/T/S/CAP）必须附文档链接，避免只写缩写
+alwaysApply: true
+---
+
+# 稳定编号必须可点击
+
+向用户提到下列缩写时，**不要只写字母编号**。首次出现或列表中的每一项都要附上仓库内文档链接（Markdown），方便用户点开看具体定义。
+
+## 链接约定
+
+| 编号族 | 含义 | 链接到 |
+| --- | --- | --- |
+| `E01`–`E13` | 公开 HTTP 端点 | [docs/04-API.md](docs/04-API.md) 第 4 节（可链到文件；正文写清方法与路径） |
+| `I01`–`I07` | 内部 HTTP 端点 | [docs/04-API.md](docs/04-API.md) 第 5 节 |
+| `M01`–`M10` | 纵向场景矩阵 | [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) 第 3 节 |
+| `A01`–`A42` | 状态/故障/并发验收项 | [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) 第 4 节 |
+| `T00`–`T08` | P01 实施任务 | [docs/phases/P01/IMPLEMENTATION.md](docs/phases/P01/IMPLEMENTATION.md) |
+| `S01` / `S02` 等 | 场景 | 对应 `docs/scenarios/Sxx-*.md` |
+| `CAP01` 等 | 能力域 | 对应 `docs/capabilities/CAPxx-*.md` |
+| `INV-*` | 编码不变量 | [docs/02-AI-CODING-GUIDE.md](docs/02-AI-CODING-GUIDE.md) |
+
+## 写法示例
+
+差：`先做 E01 → E05 → E08`
+
+好：`先做 [E01](docs/04-API.md)（GET /api/v1/task-scenarios）→ [E05](docs/04-API.md)（GET /api/v1/task-definitions）→ [E08](docs/04-API.md)（GET /api/v1/task-instances）`
+
+同一条回复里若连续多次提到同一编号，第一次必须带链接与一句话含义；后续可只写编号，但列表/步骤标题中仍建议带链接。
+
+纯内部思考或工具调用参数不受此限；**面向用户的说明、步骤、计划必须遵守**。

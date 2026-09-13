@@ -287,8 +287,9 @@ Failsafe: Tests run: 3, Failures: 0
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
-Failsafe: Tests run: 3, Failures: 0
-（MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
+Failsafe: Tests run: 4, Failures: 0
+（MxzTakeoverSlaDualProcessIT + MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
+recordedAtUtc: 2026-09-13T08:20:45Z
 ```
 
 已验证:
@@ -300,10 +301,10 @@ Failsafe: Tests run: 3, Failures: 0
 
 已验证（续）:
 - A39：local/test 非回环地址启动失败；liveness 不依赖 DB；停机 admission 拒绝写（503 RETRY_LATER）并停止 claim；宽限后租约回收 → RETRY_WAIT，旧 token CAS=0（见 §5.6）
+- 07 §6 独立接管真时钟 SLA：子进程领取后被杀，父进程调度在原租约到期后 `2 × scan(2000ms) + 10s` 内接管；恰好 1 条 inbox；旧 token CAS=0（见 §5.7）
 
 尚未执行（保持 NOT_RUN）:
-- 07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛（与 A39 机制验证分离）
-- M01—M10 性能门槛
+- 07 §6 性能门槛（1万定义 / 1000 到期 / P95）与公平性积压测试
 - A01—A42 完整验收矩阵
 - E01—E13、I01—I07 全量契约回归
 
@@ -397,7 +398,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
 仍 NOT_RUN / 未收口:
-- 07 §6 性能门槛与接管真时钟 SLA
+- 07 §6 性能门槛与公平性积压
 - E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
 
 ### 5.6 A39 回环绑定、健康边界与优雅停机
@@ -419,6 +420,28 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A39：liveness 不依赖 DB；readiness 在 migrate/registry/live-schema/DB 失败时拒绝流量（既有指示器 + REFUSING → `OUT_OF_SERVICE`）
 - A39：`MxzRuntimeAdmission` + `MxzShutdownAdmissionLifecycle` — 停机先 `beginShutdown` + readiness REFUSING；`MxzShutdownWriteRejectFilter` 拒绝公开写（503 `RETRY_LATER`）；Signal/Action/Planner 停止领取；租约回收至 `RETRY_WAIT`，无伪造批量 READY；旧 `execution_token` CAS=0
 
+### 5.7 07 §6 独立接管真时钟 SLA
+
+```
+命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzTakeoverSlaDualProcessIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 1, Failures: 0
+全量 dual-process-it: Tests run: 4, Failures: 0（连续两遍）
+recordedAtUtc: 2026-09-13T08:20:45Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+- 子进程 `MxzClaimAndHoldMain` 以 `LEASE_SECONDS=10` 领取 Action 后 `destroyForcibly`；**不**人为改写 `lease_until`
+- 父进程开启 `spring.task.scheduling.enabled=true`；effective scan interval = Worker/Reaper `fixedDelay` 2000ms；门槛 = 租约到期后 `2×2000ms + 10s`
+- 父进程调度 reaper → RETRY_WAIT（含退避）→ ActionWorker 接管执行；断言 SUCCEEDED 落在 deadline 内、inbox=1、旧 token CAS=0
+- 附带稳定：`MxzDualClaimMysqlIT` 改为同事务 SELECT SKIP LOCKED + UPDATE RUNNING，并对齐 MySQL UTC
+
+仍 NOT_RUN / 未收口:
+- 07 §6 性能门槛与公平性积压测试
+- E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
+
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
@@ -437,7 +460,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- 07 §6 性能与接管时间窗 SLA：NOT_RUN
+- 07 §6 性能门槛与公平性积压：NOT_RUN
 - E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
 
 ---
@@ -446,8 +469,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 07 §6 接管时间窗 SLA（真时钟） | NOT_RUN |
-| — | Performance gate | NOT_RUN |
+| — | 07 §6 性能门槛（1万/1000/P95）与公平性积压 | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 

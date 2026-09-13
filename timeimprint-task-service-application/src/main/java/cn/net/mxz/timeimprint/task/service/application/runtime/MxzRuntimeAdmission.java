@@ -26,6 +26,11 @@ public class MxzRuntimeAdmission {
         acceptingClaims.set(false);
     }
 
+    /** Test hook: stop queue claim/poll without rejecting HTTP writes. */
+    public void suspendClaimsForTests() {
+        acceptingClaims.set(false);
+    }
+
     /** Test / recovery hook only. */
     public void resetForTests() {
         acceptingWrites.set(true);

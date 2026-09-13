@@ -16,7 +16,8 @@ import java.util.UUID;
  * until killed. Uses plain JDBC so the child process does not start Spring workers.
  *
  * <p>Args: {@code signal|action} {@code id} {@code tokenFile} {@code jdbcUrl} {@code user} {@code
- * password}
+ * password} [{@code leaseSeconds}] — leaseSeconds defaults to 300 (A04/A20 hold); pass 10 for §6
+ * wall-clock SLA.
  */
 public final class MxzClaimAndHoldMain {
 
@@ -25,7 +26,7 @@ public final class MxzClaimAndHoldMain {
     public static void main(String[] args) throws Exception {
         if (args.length < 6) {
             System.err.println(
-                    "usage: MxzClaimAndHoldMain signal|action <id> <tokenFile> <jdbcUrl> <user> <password>");
+                    "usage: MxzClaimAndHoldMain signal|action <id> <tokenFile> <jdbcUrl> <user> <password> [leaseSeconds]");
             System.exit(2);
         }
         String mode = args[0];
@@ -34,6 +35,7 @@ public final class MxzClaimAndHoldMain {
         String jdbcUrl = args[3];
         String user = args[4];
         String password = args[5];
+        int leaseSeconds = args.length >= 7 ? Integer.parseInt(args[6]) : 300;
         String token = UUID.randomUUID().toString();
         String owner = "crash-child-" + ProcessHandle.current().pid();
 
@@ -42,9 +44,9 @@ public final class MxzClaimAndHoldMain {
             c.setAutoCommit(false);
             int claimed;
             if ("signal".equals(mode)) {
-                claimed = claimSignal(c, id, owner, token);
+                claimed = claimSignal(c, id, owner, token, leaseSeconds);
             } else if ("action".equals(mode)) {
-                claimed = claimAction(c, id, owner, token);
+                claimed = claimAction(c, id, owner, token, leaseSeconds);
             } else {
                 System.err.println("unknown mode: " + mode);
                 System.exit(2);
@@ -59,47 +61,52 @@ public final class MxzClaimAndHoldMain {
         }
 
         Files.writeString(tokenFile, token, StandardCharsets.UTF_8);
-        System.out.println("CLAIMED token=" + token);
+        System.out.println("CLAIMED token=" + token + " leaseSeconds=" + leaseSeconds);
         // Park until parent kills this process.
         Thread.sleep(Long.MAX_VALUE);
     }
 
-    private static int claimSignal(Connection c, long signalId, String owner, String token) throws Exception {
+    private static int claimSignal(
+            Connection c, long signalId, String owner, String token, int leaseSeconds) throws Exception {
         try (PreparedStatement ps =
                 c.prepareStatement(
                         """
                         UPDATE tt_task_signal SET
                           process_status = 'RUNNING',
                           lease_owner = ?,
-                          lease_until = UTC_TIMESTAMP() + INTERVAL 5 MINUTE,
+                          lease_until = UTC_TIMESTAMP() + INTERVAL ? SECOND,
                           execution_token = ?,
                           attempt_count = attempt_count + 1,
                           updated_at = UTC_TIMESTAMP()
                         WHERE signal_id = ? AND process_status IN ('READY', 'RETRY_WAIT')
                         """)) {
             ps.setString(1, owner);
-            ps.setString(2, token);
-            ps.setLong(3, signalId);
+            ps.setInt(2, leaseSeconds);
+            ps.setString(3, token);
+            ps.setLong(4, signalId);
             return ps.executeUpdate();
         }
     }
 
-    private static int claimAction(Connection c, long actionJobId, String owner, String token) throws Exception {
+    private static int claimAction(
+            Connection c, long actionJobId, String owner, String token, int leaseSeconds)
+            throws Exception {
         try (PreparedStatement ps =
                 c.prepareStatement(
                         """
                         UPDATE tt_action_job SET
                           status = 'RUNNING',
                           lease_owner = ?,
-                          lease_until = UTC_TIMESTAMP() + INTERVAL 5 MINUTE,
+                          lease_until = UTC_TIMESTAMP() + INTERVAL ? SECOND,
                           execution_token = ?,
                           attempt_count = attempt_count + 1,
                           updated_at = UTC_TIMESTAMP()
                         WHERE action_job_id = ? AND status IN ('READY', 'RETRY_WAIT')
                         """)) {
             ps.setString(1, owner);
-            ps.setString(2, token);
-            ps.setLong(3, actionJobId);
+            ps.setInt(2, leaseSeconds);
+            ps.setString(3, token);
+            ps.setLong(4, actionJobId);
             int n = ps.executeUpdate();
             if (n != 1) {
                 return n;

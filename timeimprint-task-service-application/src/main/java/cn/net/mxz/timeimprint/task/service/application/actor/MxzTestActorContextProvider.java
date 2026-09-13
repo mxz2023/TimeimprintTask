@@ -7,20 +7,20 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!test")
-public class MxzLocalActorContextProvider implements ActorContextProvider {
+@Profile("test")
+public class MxzTestActorContextProvider implements ActorContextProvider {
 
-    private final ActorContext fixed;
+    private final ActorContext defaults;
 
-    public MxzLocalActorContextProvider(
-            @Value("${timeimprint.local.tenant-id:local-tenant}") String tenantId,
-            @Value("${timeimprint.local.actor-id:local-actor}") String actorId) {
-        this.fixed = new ActorContext("USER", actorId, tenantId);
+    public MxzTestActorContextProvider(
+            @Value("${timeimprint.test.tenant-id:test-tenant}") String tenantId,
+            @Value("${timeimprint.test.actor-id:test-actor}") String actorId) {
+        this.defaults = new ActorContext("USER", actorId, tenantId);
     }
 
     @Override
     public Optional<ActorContext> currentActor() {
-        return Optional.of(fixed);
+        return MxzTestActorContextHolder.get().or(() -> Optional.of(defaults));
     }
 
     @Override

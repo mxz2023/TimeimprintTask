@@ -27,6 +27,9 @@ timeimprint:
   local:
     tenant-id: ${LOCAL_TENANT_ID:local-tenant}
     actor-id: ${LOCAL_ACTOR_ID:local-actor}
+  test:
+    tenant-id: ${TEST_TENANT_ID:test-tenant}
+    actor-id: ${TEST_ACTOR_ID:test-actor}
 
 management:
   endpoints:

@@ -5,11 +5,13 @@ import cn.net.mxz.timeimprint.task.common.MxzSha256;
 import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzParticipantRecord;
 import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPort;
+import cn.net.mxz.timeimprint.task.service.application.port.InstanceCommandPort;
 import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitRequest;
 import cn.net.mxz.timeimprint.task.service.application.port.ParticipantQuery;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskInstanceRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskSignalRepository;
+import cn.net.mxz.timeimprint.task.service.application.port.TriggerBindingQuery;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
 import cn.net.mxz.timeimprint.task.service.application.recipient.MxzRecipientRules;
@@ -24,6 +26,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.ActionJobIntent;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionPlan;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.state.LifecycleCategory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -49,10 +52,12 @@ public class MxzSignalProcessingService {
     private final ParticipantQuery participantQuery;
     private final TransitionPlanCommitter committer;
     private final ActionJobExecutionPort actionJobExecutionPort;
+    private final InstanceCommandPort instanceCommandPort;
     private final ExtensionRegistry extensionRegistry;
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
+    private final TriggerBindingQuery triggerBindingQuery;
 
     public MxzSignalProcessingService(
             TaskSignalRepository signalRepository,
@@ -61,20 +66,24 @@ public class MxzSignalProcessingService {
             ParticipantQuery participantQuery,
             TransitionPlanCommitter committer,
             ActionJobExecutionPort actionJobExecutionPort,
+            InstanceCommandPort instanceCommandPort,
             ExtensionRegistry extensionRegistry,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TriggerBindingQuery triggerBindingQuery) {
         this.signalRepository = signalRepository;
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
         this.participantQuery = participantQuery;
         this.committer = committer;
         this.actionJobExecutionPort = actionJobExecutionPort;
+        this.instanceCommandPort = instanceCommandPort;
         this.extensionRegistry = extensionRegistry;
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
+        this.triggerBindingQuery = triggerBindingQuery;
     }
 
     public void processSignal(long signalId) {
@@ -96,6 +105,23 @@ public class MxzSignalProcessingService {
     }
 
     private void processClaimed(long signalId, String expectedToken) {
+        var peek = signalRepository
+                .findById(signalId)
+                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "signal"));
+        var def = definitionRepository
+                .findByIdForUpdate(peek.definitionId())
+                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+        if (peek.triggerBindingId() != null) {
+            triggerBindingQuery
+                    .findByIdForUpdate(peek.triggerBindingId())
+                    .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "trigger binding"));
+        }
+        if (peek.instanceId() == null) {
+            throw new MxzApplicationException("INVALID_REQUEST", "calendar signal requires instance");
+        }
+        instanceRepository
+                .findByIdForUpdate(peek.instanceId())
+                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
         var signal = signalRepository
                 .findByIdForUpdate(signalId)
                 .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "signal"));
@@ -104,9 +130,6 @@ public class MxzSignalProcessingService {
                 || !expectedToken.equals(signal.executionToken())) {
             throw new MxzApplicationException("STATE_CONFLICT", "signal token lost");
         }
-            var def = definitionRepository
-                    .findByIdForUpdate(signal.definitionId())
-                    .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
             Instant now = clock.nowUtcSeconds();
             if (signal.definitionControlGeneration() != def.controlGeneration()) {
                 signalRepository.markIgnored(
@@ -117,9 +140,6 @@ public class MxzSignalProcessingService {
                 signalRepository.markIgnored(
                         signalId, "CONTROL_STATE_BLOCKED", "definition " + def.controlState(), now);
                 return;
-            }
-            if (signal.instanceId() == null) {
-                throw new MxzApplicationException("INVALID_REQUEST", "calendar signal requires instance");
             }
             var inst = instanceRepository
                     .findByIdForUpdate(signal.instanceId())
@@ -187,6 +207,10 @@ public class MxzSignalProcessingService {
                         if (action.transitionId() != commit.transitionId()) {
                             continue;
                         }
+                        if (action.expiresAt() != null && !action.expiresAt().isAfter(now)) {
+                            actionJobExecutionPort.expireIfDue(action.actionJobId(), now);
+                            continue;
+                        }
                         if (action.availableAt() != null && action.availableAt().isAfter(now)) {
                             continue; // leave for Action Worker when availableAt arrives
                         }
@@ -215,6 +239,12 @@ public class MxzSignalProcessingService {
                             throw new MxzApplicationException(
                                     "INTERNAL_ERROR", "action failed: " + exec.outcomeCode());
                         }
+                    }
+                    var planTransition = expanded.instanceStateTransition();
+                    if (planTransition != null
+                            && planTransition.toLifecycleCategory() == LifecycleCategory.TERMINAL) {
+                        instanceCommandPort.cancelRemainingActionsExceptTransition(
+                                inst.instanceId(), commit.transitionId(), now);
                     }
                     signalRepository.markSucceeded(signalId, "APPLIED", "transition " + commit.transitionId(), now);
                 }

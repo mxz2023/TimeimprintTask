@@ -412,23 +412,55 @@ public class MxzTaskGateway {
         List<ParticipantView> parts = d.participants().stream()
                 .map(p -> new ParticipantView(p.principalType(), p.principalId(), p.roleCode(), p.sourceCode()))
                 .toList();
-        int ready = 0, succeeded = 0, total = d.actions().size();
+        int ready = 0,
+                running = 0,
+                retryWait = 0,
+                succeeded = 0,
+                dead = 0,
+                cancelled = 0,
+                expired = 0,
+                unknown = 0;
+        long currentGen = def.controlGeneration();
         for (var a : d.actions()) {
-            if ("READY".equals(a.status())) ready++;
-            if ("SUCCEEDED".equals(a.status())) succeeded++;
+            String status = a.status();
+            boolean genMismatch = a.definitionControlGeneration() != currentGen;
+            if (genMismatch && ("READY".equals(status) || "RETRY_WAIT".equals(status) || "RUNNING".equals(status))) {
+                // Control barrier: uncleaned stale work counts as CANCELLED (04 / A42).
+                // EXTERNAL with effectStartedAt remains RUNNING until closed — approximate via status only.
+                if ("RUNNING".equals(status) && "EXTERNAL".equals(a.executionMode())) {
+                    running++;
+                } else {
+                    cancelled++;
+                }
+                continue;
+            }
+            switch (status) {
+                case "READY" -> ready++;
+                case "RUNNING" -> running++;
+                case "RETRY_WAIT" -> retryWait++;
+                case "SUCCEEDED" -> succeeded++;
+                case "DEAD" -> dead++;
+                case "CANCELLED" -> cancelled++;
+                case "EXPIRED" -> expired++;
+                case "UNKNOWN" -> unknown++;
+                default -> {
+                }
+            }
         }
-        String deliveryState = total == 0 ? "NONE" : (succeeded == total ? "COMPLETE" : "PENDING");
+        int total = d.actions().size();
+        String deliveryState = deriveDeliveryState(
+                total, ready, running, retryWait, succeeded, dead, cancelled, expired, unknown);
         DeliverySummary delivery = new DeliverySummary(
                 deliveryState,
                 total,
                 ready,
-                0,
-                0,
+                running,
+                retryWait,
                 succeeded,
-                0,
-                0,
-                0,
-                0,
+                dead,
+                cancelled,
+                expired,
+                unknown,
                 d.inboxCount(),
                 d.unreadInboxCount(),
                 clock.nowUtcSeconds().toString());
@@ -540,5 +572,40 @@ public class MxzTaskGateway {
                 a.parentActionJobId() == null ? null : String.valueOf(a.parentActionJobId()),
                 a.redriveNo(),
                 attempts);
+    }
+
+    /** 04 DeliverySummary.deliveryState priority (A42). */
+    static String deriveDeliveryState(
+            int total,
+            int ready,
+            int running,
+            int retryWait,
+            int succeeded,
+            int dead,
+            int cancelled,
+            int expired,
+            int unknown) {
+        if (total == 0) {
+            return "NOT_SCHEDULED";
+        }
+        if (unknown > 0) {
+            return "UNKNOWN";
+        }
+        if (ready + running + retryWait > 0) {
+            return "IN_PROGRESS";
+        }
+        if (succeeded == total) {
+            return "DELIVERED";
+        }
+        if (succeeded > 0 && (dead + cancelled + expired) > 0) {
+            return "PARTIALLY_DELIVERED";
+        }
+        if (succeeded == 0 && dead > 0) {
+            return "FAILED";
+        }
+        if (expired > 0) {
+            return "EXPIRED";
+        }
+        return "CANCELLED";
     }
 }

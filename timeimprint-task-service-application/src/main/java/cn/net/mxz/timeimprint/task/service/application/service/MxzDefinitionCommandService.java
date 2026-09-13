@@ -11,6 +11,7 @@ import cn.net.mxz.timeimprint.task.service.application.port.DefinitionUpdatePort
 import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitRequest;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
+import cn.net.mxz.timeimprint.task.service.application.validation.MxzParticipantCreateValidator;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
@@ -58,6 +59,7 @@ public class MxzDefinitionCommandService {
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
+    private final MxzParticipantCreateValidator participantCreateValidator;
 
     public MxzDefinitionCommandService(
             ActorContextProvider actorContextProvider,
@@ -69,7 +71,8 @@ public class MxzDefinitionCommandService {
             TransitionPlanCommitter committer,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            MxzParticipantCreateValidator participantCreateValidator) {
         this.actorContextProvider = actorContextProvider;
         this.definitionRepository = definitionRepository;
         this.commandDedupRepository = commandDedupRepository;
@@ -80,6 +83,7 @@ public class MxzDefinitionCommandService {
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
+        this.participantCreateValidator = participantCreateValidator;
     }
 
     public record CommandResult(String commandKey, long definitionId, long revision, boolean changed) {}
@@ -165,7 +169,7 @@ public class MxzDefinitionCommandService {
                 String msg = ex.getMessage() == null ? "invalid scenarioConfig" : ex.getMessage();
                 throw new MxzApplicationException("INVALID_REQUEST", msg);
             }
-            validateParticipants(actor.principalId(), parsed.participants());
+            participantCreateValidator.validateParticipants(actor.principalId(), parsed.participants());
             validateCalendarBinding(parsed.triggerBindings());
 
             var now = clock.nowUtcSeconds();
@@ -450,25 +454,6 @@ public class MxzDefinitionCommandService {
                 msg = msg.substring("INVALID_REQUEST:".length()).trim();
             }
             throw new MxzApplicationException("INVALID_REQUEST", msg);
-        }
-    }
-
-    private void validateParticipants(
-            String actorId, List<MxzCreateDefinitionCommand.ParticipantInput> participants) {
-        boolean hasOwner = false;
-        for (var p : participants) {
-            if (!"USER".equals(p.principalType())) {
-                throw new MxzApplicationException("INVALID_REQUEST", "only USER principal supported");
-            }
-            if (!actorId.equals(p.principalId())) {
-                throw new MxzApplicationException("INVALID_REQUEST", "local actor must match participants");
-            }
-            if ("OWNER".equals(p.roleCode())) {
-                hasOwner = true;
-            }
-        }
-        if (!hasOwner) {
-            throw new MxzApplicationException("INVALID_REQUEST", "OWNER required");
         }
     }
 

@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
  * G01 / T03 helper: expected Flyway table set for information_schema assertions.
  * Full JDBC checks run under {@code mysql-it} once a datasource fixture is wired.
  */
-class MxzFlywaySchemaInformationSchemaTest {
+public class MxzFlywaySchemaInformationSchemaTest {
 
-    static List<String> expectedTableNames() {
+    public static List<String> expectedTableNames() {
         return List.of(
                 "tt_task_definition",
                 "tt_trigger_binding",
@@ -32,7 +32,7 @@ class MxzFlywaySchemaInformationSchemaTest {
                 "tt_inbox");
     }
 
-    static Set<String> queryTableNames(Connection connection, String schema) throws Exception {
+    public static Set<String> queryTableNames(Connection connection, String schema) throws Exception {
         try (var statement = connection.prepareStatement(
                 """
                 SELECT TABLE_NAME
@@ -53,7 +53,7 @@ class MxzFlywaySchemaInformationSchemaTest {
         }
     }
 
-    static void assertExpectedTablesPresent(Connection connection, String schema) throws Exception {
+    public     static void assertExpectedTablesPresent(Connection connection, String schema) throws Exception {
         Set<String> actual = queryTableNames(connection, schema);
         Set<String> expected = Set.copyOf(expectedTableNames());
         if (!actual.equals(expected)) {
@@ -61,6 +61,16 @@ class MxzFlywaySchemaInformationSchemaTest {
             var extra = actual.stream().filter(n -> !expected.contains(n)).sorted().toList();
             throw new AssertionError(
                     "schema mismatch: missing=" + missing + ", extra=" + extra);
+        }
+    }
+
+    /** A38: require all 12 platform tables; ignore unrelated tables in shared test DBs. */
+    public static void assertRequiredPlatformTablesPresent(Connection connection, String schema) throws Exception {
+        Set<String> actual = queryTableNames(connection, schema);
+        var missing =
+                expectedTableNames().stream().filter(n -> !actual.contains(n)).sorted().toList();
+        if (!missing.isEmpty()) {
+            throw new AssertionError("missing platform tables: " + missing);
         }
     }
 

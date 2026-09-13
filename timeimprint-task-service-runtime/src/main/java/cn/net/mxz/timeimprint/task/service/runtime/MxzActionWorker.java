@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.runtime;
 
 import cn.net.mxz.timeimprint.task.common.BusinessClock;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzPlatformLimits;
 import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPort;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskInstanceRepository;
@@ -43,7 +44,14 @@ public class MxzActionWorker {
 
     private static final Logger log = LoggerFactory.getLogger(MxzActionWorker.class);
     private static final int CLAIM_BATCH = 20;
+    /** Default lease; must match {@code LEASE_SECONDS} config (03). */
     private static final int LEASE_SECONDS = 30;
+    /**
+     * Handler {@code timeoutSeconds} must be ≤ {@code LEASE_SECONDS - ACTION_LEASE_SAFETY_SECONDS}
+     * (03 {@code ACTION_LEASE_SAFETY_SECONDS}, default 5 → max 25 with 30s lease).
+     */
+    private static final int MAX_HANDLER_TIMEOUT_SECONDS =
+            LEASE_SECONDS - MxzPlatformLimits.ACTION_LEASE_SAFETY_SECONDS;
     private static final String LEASE_OWNER = "action-worker";
 
     private final ActionJobExecutionPort actionPort;
@@ -146,6 +154,16 @@ public class MxzActionWorker {
                 log.warn("Action worker: no handler for key {}/{}", action.handlerKey(), action.schemaVersion());
                 return null;
             }
+            ActionHandler handler = handlerOpt.get();
+            if (handler.timeoutSeconds() > MAX_HANDLER_TIMEOUT_SECONDS) {
+                log.warn(
+                        "Action worker: handler {} timeoutSeconds {} exceeds lease safety max {}",
+                        action.handlerKey(),
+                        handler.timeoutSeconds(),
+                        MAX_HANDLER_TIMEOUT_SECONDS);
+                actionPort.markCancelled(actionJobId, "HANDLER_TIMEOUT_MISCONFIGURED", now);
+                return null;
+            }
 
             var tokenOpt = actionPort.claimForExecution(actionJobId, LEASE_OWNER, leaseUntil, now);
             if (tokenOpt.isEmpty()) {
@@ -160,7 +178,7 @@ public class MxzActionWorker {
             }
 
             var execCtx = buildContext(action, token);
-            var result = handlerOpt.get().execute(execCtx);
+            var result = handler.execute(execCtx);
             Instant done = clock.nowUtcSeconds();
             if (result.outcome() == ActionHandlerOutcome.RETRYABLE_FAILURE) {
                 actionPort.completeRetryableFailure(
@@ -225,6 +243,16 @@ public class MxzActionWorker {
                     .find(new ActionHandlerKey(action.handlerKey(), action.schemaVersion()));
             if (handlerOpt.isEmpty()) {
                 log.warn("Action worker: no EXTERNAL handler for {}/{}", action.handlerKey(), action.schemaVersion());
+                return null;
+            }
+            ActionHandler externalHandler = handlerOpt.get();
+            if (externalHandler.timeoutSeconds() > MAX_HANDLER_TIMEOUT_SECONDS) {
+                log.warn(
+                        "Action worker: EXTERNAL handler {} timeoutSeconds {} exceeds lease safety max {}",
+                        action.handlerKey(),
+                        externalHandler.timeoutSeconds(),
+                        MAX_HANDLER_TIMEOUT_SECONDS);
+                actionPort.markCancelled(actionJobId, "HANDLER_TIMEOUT_MISCONFIGURED", now);
                 return null;
             }
 

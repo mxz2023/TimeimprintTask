@@ -24,4 +24,15 @@ public class MxzInstanceCommandPortImpl implements InstanceCommandPort {
                 MxzStorageTime.toUtcLdt(now),
                 MxzStorageTime.toUtcLdt(now));
     }
+
+    @Override
+    public void cancelRemainingActionsExceptTransition(
+            long instanceId, long keepTransitionId, Instant now) {
+        actionJobMapper.cancelReadyByInstanceExceptTransition(
+                instanceId,
+                keepTransitionId,
+                "INSTANCE_TERMINAL",
+                MxzStorageTime.toUtcLdt(now),
+                MxzStorageTime.toUtcLdt(now));
+    }
 }

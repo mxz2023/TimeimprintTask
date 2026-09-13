@@ -232,6 +232,17 @@
           AND status IN ('READY', 'RETRY_WAIT')
     </update>
 
+    <update id="cancelReadyByInstanceExceptTransition">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE instance_id = #{instanceId}
+          AND transition_id != #{keepTransitionId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
     <update id="cancelReadyByDefinition">
         UPDATE tt_action_job SET
             status = 'CANCELLED',

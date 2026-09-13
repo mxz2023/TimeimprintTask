@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.storage.mysql;
 
 import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzPlatformLimits;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +31,7 @@ public class MxzSpringTransactionBoundary implements TransactionBoundary {
 
     public MxzSpringTransactionBoundary(PlatformTransactionManager transactionManager) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.transactionTemplate.setTimeout(MxzPlatformLimits.BUSINESS_TX_TIMEOUT_SECONDS);
     }
 
     @Override

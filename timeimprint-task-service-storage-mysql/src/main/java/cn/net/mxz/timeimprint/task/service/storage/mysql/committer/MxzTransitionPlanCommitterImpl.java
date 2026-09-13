@@ -1,6 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.storage.mysql.committer;
 
 import cn.net.mxz.timeimprint.task.common.MxzSha256;
+import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzPlatformLimits;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzTransitionPlanWriteValidator;
 import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitRequest;
 import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitResult;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
@@ -100,6 +103,7 @@ public class MxzTransitionPlanCommitterImpl implements TransitionPlanCommitter {
     @Override
     public MxzTransitionCommitResult commit(MxzTransitionCommitRequest request) {
         TransitionPlan plan = request.plan();
+        MxzTransitionPlanWriteValidator.validateBeforeWrite(plan, objectMapper);
         TransitionTarget target = plan.target();
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
@@ -385,6 +389,10 @@ public class MxzTransitionPlanCommitterImpl implements TransitionPlanCommitter {
         } else {
             TaskDefinitionRow r = definitionMapper.selectById(request.definitionId());
             toRevision = r != null ? r.getRevision() : 1L;
+        }
+
+        if (affectedRows > MxzPlatformLimits.MAX_MUTATED_ROWS_PER_WRITE_TX) {
+            throw new MxzApplicationException("INVALID_REQUEST", "mutated row count exceeded limit");
         }
 
         return new MxzTransitionCommitResult(

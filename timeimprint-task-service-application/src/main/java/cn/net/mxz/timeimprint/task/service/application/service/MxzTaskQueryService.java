@@ -1,5 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.application.service;
 
+import cn.net.mxz.timeimprint.task.service.application.actor.ActorContextProvider;
 import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzActionJobRecord;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzParticipantRecord;
@@ -38,6 +39,7 @@ public class MxzTaskQueryService {
     private final TriggerBindingQuery triggerBindingQuery;
     private final ActionJobExecutionPort actionJobExecutionPort;
     private final InboxRepository inboxRepository;
+    private final ActorContextProvider actorContextProvider;
 
     public MxzTaskQueryService(
             TaskDefinitionRepository definitionRepository,
@@ -45,19 +47,25 @@ public class MxzTaskQueryService {
             ParticipantQuery participantQuery,
             TriggerBindingQuery triggerBindingQuery,
             ActionJobExecutionPort actionJobExecutionPort,
-            InboxRepository inboxRepository) {
+            InboxRepository inboxRepository,
+            ActorContextProvider actorContextProvider) {
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
         this.participantQuery = participantQuery;
         this.triggerBindingQuery = triggerBindingQuery;
         this.actionJobExecutionPort = actionJobExecutionPort;
         this.inboxRepository = inboxRepository;
+        this.actorContextProvider = actorContextProvider;
     }
 
     public DefinitionDetail getDefinition(long definitionId) {
+        var actor = actorContextProvider.requireCurrentActor();
         var def = definitionRepository
                 .findById(definitionId)
                 .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+        if (!actor.tenantKey().equals(def.tenantId())) {
+            throw new MxzApplicationException("RESOURCE_NOT_FOUND", "definition");
+        }
         return new DefinitionDetail(
                 def,
                 participantQuery.listDefinitionLevel(definitionId),
@@ -66,12 +74,16 @@ public class MxzTaskQueryService {
     }
 
     public InstanceDetail getInstance(long instanceId) {
+        var actor = actorContextProvider.requireCurrentActor();
         var inst = instanceRepository
                 .findById(instanceId)
                 .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
         var def = definitionRepository
                 .findById(inst.definitionId())
                 .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+        if (!actor.tenantKey().equals(def.tenantId())) {
+            throw new MxzApplicationException("RESOURCE_NOT_FOUND", "instance");
+        }
         var actions = actionJobExecutionPort.listByInstance(instanceId);
         // inbox counts for this instance across recipients — approximate via actions succeeded
         int inboxCount = (int) actions.stream().filter(a -> "SUCCEEDED".equals(a.status())).count();

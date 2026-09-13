@@ -9,4 +9,6 @@ public interface TriggerBindingQuery {
     List<MxzTriggerBindingRecord> listByDefinition(long definitionId);
 
     Optional<MxzTriggerBindingRecord> findById(long triggerBindingId);
+
+    Optional<MxzTriggerBindingRecord> findByIdForUpdate(long triggerBindingId);
 }

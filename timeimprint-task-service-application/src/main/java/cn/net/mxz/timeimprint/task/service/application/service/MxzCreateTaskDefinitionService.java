@@ -12,7 +12,8 @@ import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitR
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
-import cn.net.mxz.timeimprint.task.service.application.recipient.MxzRecipientRules;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzCreateWriteLimitsValidator;
+import cn.net.mxz.timeimprint.task.service.application.validation.MxzParticipantCreateValidator;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzInitialDefinitionContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
@@ -39,6 +40,7 @@ public class MxzCreateTaskDefinitionService {
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
+    private final MxzParticipantCreateValidator participantCreateValidator;
 
     public MxzCreateTaskDefinitionService(
             ActorContextProvider actorContextProvider,
@@ -49,7 +51,8 @@ public class MxzCreateTaskDefinitionService {
             TransitionPlanCommitter committer,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            MxzParticipantCreateValidator participantCreateValidator) {
         this.actorContextProvider = actorContextProvider;
         this.extensionRegistry = extensionRegistry;
         this.definitionCreatePort = definitionCreatePort;
@@ -59,6 +62,7 @@ public class MxzCreateTaskDefinitionService {
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
+        this.participantCreateValidator = participantCreateValidator;
     }
 
     public MxzCreatedDefinitionResult create(
@@ -71,6 +75,16 @@ public class MxzCreateTaskDefinitionService {
             List<MxzCreateDefinitionCommand.ParticipantInput> participants,
             List<MxzCreateDefinitionCommand.TriggerBindingInput> triggerBindings) {
         var actor = actorContextProvider.requireCurrentActor();
+        Instant nowPreview = clock.nowUtcSeconds();
+        Instant windowEnd = nowPreview.plus(7, ChronoUnit.DAYS);
+        MxzCreateWriteLimitsValidator.validateBeforeWrite(
+                description,
+                scenarioConfigJson,
+                participants,
+                triggerBindings,
+                nowPreview,
+                windowEnd,
+                objectMapper);
         String op = "POST /api/v1/task-definitions";
         byte[] hash = MxzSha256.digestUtf8(requestId + ":" + scenarioKey + ":" + title);
         return tx.execute(() -> {
@@ -109,7 +123,7 @@ public class MxzCreateTaskDefinitionService {
                 String msg = ex.getMessage() == null ? "invalid scenarioConfig" : ex.getMessage();
                 throw new MxzApplicationException("INVALID_REQUEST", msg);
             }
-            validateParticipants(actor.principalId(), participants);
+            participantCreateValidator.validateParticipants(actor.principalId(), participants);
             String persistedConfigJson = scenarioConfigJson;
             if ("recurring_todo".equals(scenarioKey)) {
                 persistedConfigJson = writeJson(expandRecurringTodoDefaults(cfg));
@@ -175,29 +189,6 @@ public class MxzCreateTaskDefinitionService {
         if (stored != null && !java.util.Arrays.equals(stored, incoming)) {
             throw new MxzApplicationException("IDEMPOTENCY_CONFLICT", "same requestId different payload");
         }
-    }
-
-    private void validateParticipants(
-            String actorId, List<MxzCreateDefinitionCommand.ParticipantInput> participants) {
-        boolean hasOwner = false;
-        for (var p : participants) {
-            if (!"USER".equals(p.principalType())) {
-                throw new MxzApplicationException("INVALID_REQUEST", "only USER principal supported");
-            }
-            if (!actorId.equals(p.principalId())) {
-                throw new MxzApplicationException("INVALID_REQUEST", "local actor must match participants");
-            }
-            if ("OWNER".equals(p.roleCode())) {
-                hasOwner = true;
-            }
-        }
-        if (!hasOwner) {
-            throw new MxzApplicationException("INVALID_REQUEST", "OWNER required");
-        }
-        MxzRecipientRules.resolveFromInputs(
-                participants.stream()
-                        .map(p -> new MxzRecipientRules.ParticipantRef(p.principalId(), p.roleCode()))
-                        .toList());
     }
 
     private Map<String, Object> expandRecurringTodoDefaults(Map<String, Object> raw) {

@@ -206,7 +206,12 @@ public class MxzInstanceCommandService {
                     var planTransition = applied.plan().instanceStateTransition();
                     if (planTransition != null
                             && planTransition.toLifecycleCategory() == LifecycleCategory.TERMINAL) {
-                        instanceCommandPort.cancelRemainingActions(instanceId, now);
+                        if (!applied.plan().actionJobIntents().isEmpty()) {
+                            instanceCommandPort.cancelRemainingActionsExceptTransition(
+                                    instanceId, commit.transitionId(), now);
+                        } else {
+                            instanceCommandPort.cancelRemainingActions(instanceId, now);
+                        }
                     }
                     if ("snooze".equals(commandKey)) {
                         scenarioResult = buildSnoozeScenarioResult(instanceId);

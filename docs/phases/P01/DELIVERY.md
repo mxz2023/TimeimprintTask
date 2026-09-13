@@ -296,6 +296,7 @@ Failsafe: Tests run: 3, Failures: 0
 - A04 / A20：真二 JVM 领取后 `destroyForcibly`，租约回收接管；旧 token CAS=0；Signal 仅一条 `source_type=SIGNAL` 迁移；Action 恰好 1 条 inbox
 - A16 / A22：退避/Policy 退还/EXPIRED 与 OWNER·RECIPIENT·超限规则（见 §5.2）
 - A03 / A11：并发规划唯一事实与改时间规则屏障（见 §5.3）
+- A06 / A14 / A19 / A25–A27 / A29–A33 / A38 / A40–A42 等：见 §5.4
 
 尚未执行（保持 NOT_RUN）:
 - 优雅停机（A39）与接管时间窗 SLA（07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛）
@@ -349,6 +350,35 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A11：日历 update 与旧未来 Signal Worker 并发；PENDING 历史快照保留；旧 WAITING/READY 取消或 Signal-first 保留；`scheduleGeneration` +1 并重建新窗口；旧 IGNORED Signal 不能再次迁移
 - 实现要点：Planner 每绑定 `REQUIRES_NEW` 短事务；锁序 definition → binding；修复自调用导致事务未生效
 
+### 5.4 剩余 A 矩阵补齐（本轮串行）
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA06CompleteNotificationMysqlIT,MxzA19SchemaMysqlIT,MxzA26S01TerminalMysqlIT,MxzA25A29ScaleMysqlIT,MxzA32RedriveMysqlIT,MxzA14A30LocalProfileMysqlIT,MxzA14A30SecurityMysqlIT,MxzA27InterleaveMysqlIT,MxzA31A41CatchupMysqlIT,MxzA38SchemaMysqlIT,MxzA40SpiMysqlIT,MxzA42DeliveryStateMysqlIT,MxzS01OnceMysqlIT,MxzA16A22MysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+抽样结果: Failsafe 新套件 + 回归相关用例 PASS（见各 IT；A31/A42 单独复核 PASS）
+recordedAtUtc: 2026-09-13T05:50:22Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+已补专项证据:
+- A06：complete 与站内通知并发；终态后未开始 Action 取消；成功收件保留
+- A14 / A30：test profile 跨 tenant 读隔离 + debug 身份；local 固定 Actor；非 USER 拒绝
+- A19 / A38：12 表 information_schema；CHECK/UNIQUE 拒绝非法行；租约字段诊断
+- A25 / A29：参与人上限与 JSON 字节上限写前拒绝（TransitionPlan 上限见单测）
+- A26：S01 终态 Transition 保留 INITIAL，先前 decoy READY → CANCELLED
+- A27：Planner/Signal/pause 交错；锁序 definition→trigger→instance→Signal
+- A31 / A41：Planner 追赶幂等；过期 Action → EXPIRED 且无陈旧 inbox（pause 半边仍见 A12）
+- A32：I06/I07 DEAD 重驱链、幂等、EXTERNAL 拒绝、最多 3 次
+- A33：Handler timeout 租约安全余量（ActionWorker）；actionKey 格式单测
+- A40：SPI 注册键唯一；E01/未知命令映射
+- A42：deliveryState 按 04 优先级（NOT_SCHEDULED/…/DELIVERED）
+
+仍 NOT_RUN / 未收口:
+- A34 并发分页弱一致、A35 卸载旧 schema 不就绪、A39 优雅停机与非回环启动
+- 07 §6 性能门槛与接管真时钟 SLA
+- E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
+
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
@@ -371,9 +401,10 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A06 / A14 / A19 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
+- A34 / A35 / A39：无完整专项证据或未执行
 - 07 §6 性能与接管时间窗 SLA：NOT_RUN
-- 优雅停机 A39：NOT_RUN
+- E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
+- 本轮新增 mysql-it 后，**全量** `./mvnw -Pmysql-it verify` 尚未重跑（§6 表内 41 为历史快照）
 
 ---
 
@@ -382,7 +413,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
 | — | 优雅停机（A39）与 07 §6 接管时间窗 SLA | NOT_RUN |
-| — | Performance gate / A01—A42 全矩阵收口 | NOT_RUN |
+| — | A34 分页并发 / A35 schema 卸载就绪 | 未专项收口 |
+| — | Performance gate / 全量 mysql-it 复跑 | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 

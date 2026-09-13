@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.application.recipient;
 
 import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
+import cn.net.mxz.timeimprint.task.service.application.limit.MxzPlatformLimits;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzParticipantRecord;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.Set;
  */
 public final class MxzRecipientRules {
 
-    public static final int MAX_RECIPIENTS = 10;
+    public static final int MAX_RECIPIENTS = MxzPlatformLimits.MAX_RECIPIENTS;
 
     private MxzRecipientRules() {}
 

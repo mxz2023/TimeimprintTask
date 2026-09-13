@@ -26,4 +26,9 @@ public class MxzTriggerBindingQueryImpl implements TriggerBindingQuery {
     public Optional<MxzTriggerBindingRecord> findById(long triggerBindingId) {
         return Optional.ofNullable(MxzRowMapper.toBinding(mapper.selectById(triggerBindingId)));
     }
+
+    @Override
+    public Optional<MxzTriggerBindingRecord> findByIdForUpdate(long triggerBindingId) {
+        return Optional.ofNullable(MxzRowMapper.toBinding(mapper.selectByIdForUpdate(triggerBindingId)));
+    }
 }

@@ -103,6 +103,13 @@ public interface ActionJobMapper {
                               @Param("completedAt") LocalDateTime completedAt,
                               @Param("updatedAt") LocalDateTime updatedAt);
 
+    /** Cancel READY/RETRY_WAIT except actions belonging to keepTransitionId (A26). */
+    int cancelReadyByInstanceExceptTransition(@Param("instanceId") long instanceId,
+                                              @Param("keepTransitionId") long keepTransitionId,
+                                              @Param("outcomeCode") String outcomeCode,
+                                              @Param("completedAt") LocalDateTime completedAt,
+                                              @Param("updatedAt") LocalDateTime updatedAt);
+
     /** Cancel unstarted actions for a definition (lazy Worker / cleanup batch). */
     int cancelReadyByDefinition(@Param("definitionId") long definitionId,
                                 @Param("outcomeCode") String outcomeCode,

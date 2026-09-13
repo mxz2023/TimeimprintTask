@@ -173,7 +173,16 @@ class MxzA26S01TerminalMysqlIT {
                 WHERE instance_id = ? AND action_key LIKE 'INITIAL:%'
                 """,
                 instanceId);
-        actionWorker.pollAndExecute();
+        Long initialActionId = jdbc.queryForObject(
+                """
+                SELECT action_job_id FROM tt_action_job
+                WHERE instance_id = ? AND action_key LIKE 'INITIAL:%' AND status = 'READY'
+                ORDER BY action_job_id ASC LIMIT 1
+                """,
+                Long.class,
+                instanceId);
+        assertNotNull(initialActionId);
+        actionWorker.executeAction(initialActionId);
 
         Integer succeeded = jdbc.queryForObject(
                 """

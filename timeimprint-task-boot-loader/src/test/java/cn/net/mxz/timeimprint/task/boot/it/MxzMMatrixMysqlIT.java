@@ -110,7 +110,7 @@ class MxzMMatrixMysqlIT {
                 "UPDATE tt_action_job SET available_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND, "
                         + "next_attempt_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND WHERE definition_id = ?",
                 definitionId);
-        drainActions();
+        drainActions(definitionId);
 
         JsonNode inst = get("/api/v1/task-instances/" + instanceId);
         assertEquals("TRIGGERED", inst.path("data").path("scenarioState").asText());
@@ -480,9 +480,17 @@ class MxzMMatrixMysqlIT {
         throw new IllegalArgumentException("unsupported time type: " + value);
     }
 
-    private void drainActions() {
-        for (int i = 0; i < 10; i++) {
-            actionWorker.pollAndExecute();
+    private void drainActions(long definitionId) {
+        List<Long> ids = jdbc.query(
+                """
+                SELECT action_job_id FROM tt_action_job
+                WHERE definition_id = ? AND status IN ('READY','RETRY_WAIT')
+                ORDER BY action_job_id ASC
+                """,
+                (rs, rowNum) -> rs.getLong(1),
+                definitionId);
+        for (Long id : ids) {
+            actionWorker.executeAction(id);
         }
     }
 

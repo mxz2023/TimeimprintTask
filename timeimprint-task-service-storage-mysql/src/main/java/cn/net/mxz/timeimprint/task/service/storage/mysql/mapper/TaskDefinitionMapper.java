@@ -38,6 +38,7 @@ public interface TaskDefinitionMapper {
     List<TaskDefinitionRow> selectList(@Param("tenantId") String tenantId,
                                        @Param("scenarioKey") String scenarioKey,
                                        @Param("controlState") String controlState,
-                                       @Param("cursor") Long cursor,
+                                       @Param("cursorUpdatedAt") java.time.LocalDateTime cursorUpdatedAt,
+                                       @Param("cursorDefinitionId") Long cursorDefinitionId,
                                        @Param("limit") int limit);
 }

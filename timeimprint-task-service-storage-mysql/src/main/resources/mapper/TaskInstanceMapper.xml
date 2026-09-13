@@ -82,9 +82,9 @@
         <if test="scenarioState != null">AND i.scenario_state = #{scenarioState}</if>
         <if test="from != null">AND i.occurrence_at &gt;= #{from}</if>
         <if test="to != null">AND i.occurrence_at &lt;= #{to}</if>
-        <if test="cursor != null">AND (i.occurrence_at, i.instance_id) &gt; (
-            SELECT occurrence_at, instance_id FROM tt_task_instance WHERE instance_id = #{cursor}
-        )</if>
+        <if test="cursorOccurrenceAt != null and cursorInstanceId != null">
+            AND (i.occurrence_at, i.instance_id) &gt; (#{cursorOccurrenceAt}, #{cursorInstanceId})
+        </if>
         ORDER BY i.occurrence_at ASC, i.instance_id ASC
         LIMIT #{limit}
     </select>

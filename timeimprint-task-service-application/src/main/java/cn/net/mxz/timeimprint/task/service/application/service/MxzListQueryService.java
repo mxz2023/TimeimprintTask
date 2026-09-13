@@ -7,6 +7,7 @@ import cn.net.mxz.timeimprint.task.service.application.model.MxzActionJobRecord;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzAttemptRecord;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzSignalRecord;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzTransitionRecord;
+import cn.net.mxz.timeimprint.task.service.application.paging.MxzPageCursors;
 import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPort;
 import cn.net.mxz.timeimprint.task.service.application.port.ParticipantQuery;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
@@ -108,10 +109,19 @@ public class MxzListQueryService {
             String scenarioKey, String controlState, String participantRole, String cursor, int limit) {
         var actor = actorContextProvider.requireCurrentActor();
         int safeLimit = normalizeLimit(limit);
+        String sk = blankToNull(scenarioKey);
+        String cs = blankToNull(controlState);
+        Instant cursorUpdatedAt = null;
+        Long cursorDefinitionId = null;
+        if (cursor != null && !cursor.isBlank()) {
+            var decoded = MxzPageCursors.decodeDefinition(cursor, actor.tenantKey(), sk, cs);
+            cursorUpdatedAt = decoded.updatedAt();
+            cursorDefinitionId = decoded.definitionId();
+        }
         // Over-fetch when filtering by role in memory.
         int fetch = participantRole == null || participantRole.isBlank() ? safeLimit + 1 : Math.min(100, safeLimit * 5 + 1);
         List<MxzTaskDefinitionSnapshot> rows = definitionRepository.list(
-                actor.tenantKey(), blankToNull(scenarioKey), blankToNull(controlState), cursor, fetch);
+                actor.tenantKey(), sk, cs, cursorUpdatedAt, cursorDefinitionId, fetch);
         if (participantRole != null && !participantRole.isBlank()) {
             rows = rows.stream()
                     .filter(d -> participantQuery.listDefinitionLevel(d.definitionId()).stream()
@@ -121,7 +131,15 @@ public class MxzListQueryService {
         List<MxzTaskDefinitionSnapshot> page = rows.size() > safeLimit + 1
                 ? rows.subList(0, safeLimit + 1)
                 : rows;
-        return slice(page, safeLimit, d -> String.valueOf(d.definitionId()));
+        boolean hasMore = page.size() > safeLimit;
+        List<MxzTaskDefinitionSnapshot> items = hasMore ? page.subList(0, safeLimit) : page;
+        String next = null;
+        if (hasMore && !items.isEmpty()) {
+            var last = items.get(items.size() - 1);
+            next = MxzPageCursors.encodeDefinition(new MxzPageCursors.DefinitionCursor(
+                    actor.tenantKey(), sk, cs, last.updatedAt(), last.definitionId()));
+        }
+        return new PageResult<>(List.copyOf(items), next, hasMore);
     }
 
     public PageResult<MxzTaskInstanceSnapshot> listInstances(
@@ -136,16 +154,27 @@ public class MxzListQueryService {
             int limit) {
         var actor = actorContextProvider.requireCurrentActor();
         int safeLimit = normalizeLimit(limit);
+        String sk = blankToNull(scenarioKey);
+        String lc = blankToNull(lifecycleCategory);
+        String ss = blankToNull(scenarioState);
+        Instant cursorOccurrenceAt = null;
+        Long cursorInstanceId = null;
+        if (cursor != null && !cursor.isBlank()) {
+            var decoded = MxzPageCursors.decodeInstance(cursor, actor.tenantKey(), definitionId, sk, lc, ss);
+            cursorOccurrenceAt = decoded.occurrenceAt();
+            cursorInstanceId = decoded.instanceId();
+        }
         int fetch = participantRole == null || participantRole.isBlank() ? safeLimit + 1 : Math.min(100, safeLimit * 5 + 1);
         List<MxzTaskInstanceSnapshot> rows = instanceRepository.list(
                 actor.tenantKey(),
                 definitionId,
-                blankToNull(scenarioKey),
-                blankToNull(lifecycleCategory),
-                blankToNull(scenarioState),
+                sk,
+                lc,
+                ss,
                 from,
                 to,
-                cursor,
+                cursorOccurrenceAt,
+                cursorInstanceId,
                 fetch);
         if (participantRole != null && !participantRole.isBlank()) {
             rows = rows.stream()
@@ -156,7 +185,21 @@ public class MxzListQueryService {
         List<MxzTaskInstanceSnapshot> page = rows.size() > safeLimit + 1
                 ? rows.subList(0, safeLimit + 1)
                 : rows;
-        return slice(page, safeLimit, i -> String.valueOf(i.instanceId()));
+        boolean hasMore = page.size() > safeLimit;
+        List<MxzTaskInstanceSnapshot> items = hasMore ? page.subList(0, safeLimit) : page;
+        String next = null;
+        if (hasMore && !items.isEmpty()) {
+            var last = items.get(items.size() - 1);
+            next = MxzPageCursors.encodeInstance(new MxzPageCursors.InstanceCursor(
+                    actor.tenantKey(),
+                    definitionId,
+                    sk,
+                    lc,
+                    ss,
+                    last.occurrenceAt() != null ? last.occurrenceAt() : Instant.EPOCH,
+                    last.instanceId()));
+        }
+        return new PageResult<>(List.copyOf(items), next, hasMore);
     }
 
     public MxzSignalRecord getSignal(long signalId) {

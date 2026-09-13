@@ -131,8 +131,24 @@ class MxzA17A18A21MysqlIT {
                 Long.class,
                 instanceId);
         gateway.processSignal(signalId);
-        for (int i = 0; i < 8; i++) {
-            actionWorker.pollAndExecute();
+        List<Long> actionIds = jdbc.query(
+                """
+                SELECT action_job_id FROM tt_action_job
+                WHERE instance_id = ? AND status IN ('READY','RETRY_WAIT')
+                ORDER BY action_job_id ASC
+                """,
+                (rs, rowNum) -> rs.getLong(1),
+                instanceId);
+        jdbc.update(
+                """
+                UPDATE tt_action_job SET
+                  available_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND,
+                  next_attempt_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND
+                WHERE instance_id = ?
+                """,
+                instanceId);
+        for (Long actionId : actionIds) {
+            actionWorker.executeAction(actionId);
         }
         Integer actions = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM tt_action_job WHERE instance_id = ?",
@@ -222,8 +238,17 @@ class MxzA17A18A21MysqlIT {
                 "UPDATE tt_action_job SET available_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND, "
                         + "next_attempt_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND WHERE definition_id = ?",
                 definitionId);
-        actionWorker.pollAndExecute();
-        actionWorker.pollAndExecute();
+        Long actionJobId = jdbc.queryForObject(
+                """
+                SELECT action_job_id FROM tt_action_job
+                WHERE definition_id = ? AND status IN ('READY','RETRY_WAIT')
+                ORDER BY action_job_id ASC LIMIT 1
+                """,
+                Long.class,
+                definitionId);
+        assertNotNull(actionJobId);
+        actionWorker.executeAction(actionJobId);
+        actionWorker.executeAction(actionJobId);
 
         Integer inboxCount = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM tt_inbox WHERE definition_id = ?",

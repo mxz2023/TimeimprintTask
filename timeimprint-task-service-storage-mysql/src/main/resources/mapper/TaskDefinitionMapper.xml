@@ -70,9 +70,9 @@
         WHERE tenant_id = #{tenantId}
         <if test="scenarioKey != null">AND scenario_key = #{scenarioKey}</if>
         <if test="controlState != null">AND control_state = #{controlState}</if>
-        <if test="cursor != null">AND (updated_at, definition_id) &lt; (
-            SELECT updated_at, definition_id FROM tt_task_definition WHERE definition_id = #{cursor}
-        )</if>
+        <if test="cursorUpdatedAt != null and cursorDefinitionId != null">
+            AND (updated_at, definition_id) &lt; (#{cursorUpdatedAt}, #{cursorDefinitionId})
+        </if>
         ORDER BY updated_at DESC, definition_id DESC
         LIMIT #{limit}
     </select>

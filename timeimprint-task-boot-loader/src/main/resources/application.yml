@@ -44,7 +44,7 @@ management:
         liveness:
           include: livenessState
         readiness:
-          include: readinessState,db
+          include: readinessState,db,liveSchema
 
 ---
 spring:

@@ -13,7 +13,10 @@ public interface TaskInstanceRepository {
 
     List<MxzTaskInstanceSnapshot> listByDefinition(long definitionId);
 
-    /** E08: list instances for tenant with optional filters; cursor is last instanceId. */
+    /**
+     * E08: list instances for tenant with optional filters.
+     * {@code cursorOccurrenceAt}/{@code cursorInstanceId} are a frozen keyset boundary.
+     */
     List<MxzTaskInstanceSnapshot> list(
             String tenantId,
             Long definitionId,
@@ -22,6 +25,7 @@ public interface TaskInstanceRepository {
             String scenarioState,
             Instant from,
             Instant to,
-            String cursor,
+            Instant cursorOccurrenceAt,
+            Long cursorInstanceId,
             int limit);
 }

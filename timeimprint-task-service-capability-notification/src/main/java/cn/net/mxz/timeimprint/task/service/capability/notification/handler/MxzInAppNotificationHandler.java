@@ -78,13 +78,34 @@ public class MxzInAppNotificationHandler implements ActionHandler {
             row.setReadAt(null);
             row.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC));
 
-            inboxMapper.insert(row);
-
-            return new MxzActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "INBOX_CREATED", null);
+            try {
+                inboxMapper.insert(row);
+                return new MxzActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "INBOX_CREATED", null);
+            } catch (RuntimeException insertEx) {
+                // At-least-once / dirty-queue safe: unique recipient or action_job already materialised.
+                if (isDuplicateKey(insertEx)) {
+                    return new MxzActionExecutionResult(
+                            ActionHandlerOutcome.SUCCEEDED, "INBOX_ALREADY_EXISTS", null);
+                }
+                throw insertEx;
+            }
         } catch (Exception e) {
             return new MxzActionExecutionResult(ActionHandlerOutcome.PERMANENT_FAILURE,
                     "PAYLOAD_PARSE_ERROR", e.getMessage());
         }
+    }
+
+    private static boolean isDuplicateKey(Throwable t) {
+        for (Throwable c = t; c != null; c = c.getCause()) {
+            String msg = c.getMessage();
+            if (msg != null
+                    && (msg.contains("uk_inbox_notification_recipient")
+                            || msg.contains("uk_inbox_action")
+                            || msg.contains("Duplicate entry"))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private long toLong(Object o) {

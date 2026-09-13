@@ -40,7 +40,8 @@ public interface TaskInstanceMapper {
                                      @Param("scenarioState") String scenarioState,
                                      @Param("from") LocalDateTime from,
                                      @Param("to") LocalDateTime to,
-                                     @Param("cursor") Long cursor,
+                                     @Param("cursorOccurrenceAt") LocalDateTime cursorOccurrenceAt,
+                                     @Param("cursorInstanceId") Long cursorInstanceId,
                                      @Param("limit") int limit);
 
     /** Cancel waiting instances for a given binding/scheduleGeneration (pause/retire/update). */

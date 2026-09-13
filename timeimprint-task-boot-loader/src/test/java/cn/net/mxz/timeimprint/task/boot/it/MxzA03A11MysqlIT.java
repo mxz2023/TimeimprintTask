@@ -285,18 +285,6 @@ class MxzA03A11MysqlIT {
                         String.class,
                         pendingId));
 
-        assertEquals(
-                "TERMINAL",
-                jdbc.queryForObject(
-                        "SELECT lifecycle_category FROM tt_task_instance WHERE instance_id = ?",
-                        String.class,
-                        futureWaiting));
-        assertEquals(
-                "CANCELLED",
-                jdbc.queryForObject(
-                        "SELECT scenario_state FROM tt_task_instance WHERE instance_id = ?",
-                        String.class,
-                        futureWaiting));
         String oldSignalStatus = jdbc.queryForObject(
                 "SELECT process_status FROM tt_task_signal WHERE signal_id = ?",
                 String.class,
@@ -305,7 +293,13 @@ class MxzA03A11MysqlIT {
                 "IGNORED".equals(oldSignalStatus) || "SUCCEEDED".equals(oldSignalStatus),
                 "old signal must be IGNORED (update first) or SUCCEEDED (signal first); was " + oldSignalStatus);
         if ("SUCCEEDED".equals(oldSignalStatus)) {
-            // Signal-first path: migrated instance is historical ACTIVE/PENDING, not the cancelled WAITING.
+            // Signal-first: occurrence already migrated before schedule barrier; keep ACTIVE/PENDING.
+            assertEquals(
+                    "ACTIVE",
+                    jdbc.queryForObject(
+                            "SELECT lifecycle_category FROM tt_task_instance WHERE instance_id = ?",
+                            String.class,
+                            futureWaiting));
             assertEquals(
                     "PENDING",
                     get("/api/v1/task-instances/" + futureWaiting)
@@ -313,6 +307,19 @@ class MxzA03A11MysqlIT {
                             .path("scenarioState")
                             .asText());
         } else {
+            // Update-first: old WAITING cancelled; no Action from the ignored future Signal.
+            assertEquals(
+                    "TERMINAL",
+                    jdbc.queryForObject(
+                            "SELECT lifecycle_category FROM tt_task_instance WHERE instance_id = ?",
+                            String.class,
+                            futureWaiting));
+            assertEquals(
+                    "CANCELLED",
+                    jdbc.queryForObject(
+                            "SELECT scenario_state FROM tt_task_instance WHERE instance_id = ?",
+                            String.class,
+                            futureWaiting));
             assertEquals(
                     0,
                     jdbc.queryForObject(
@@ -350,21 +357,24 @@ class MxzA03A11MysqlIT {
                             oldFutureSignal));
         }
 
-        // Old READY Action (if any on cancelled WAITING) cannot cross schedule barrier via Worker.
-        List<Long> staleActions = jdbc.query(
-                """
-                SELECT action_job_id FROM tt_action_job
-                WHERE definition_id = ? AND status IN ('READY','RETRY_WAIT')
-                  AND instance_id = ?
-                """,
-                (rs, rowNum) -> rs.getLong(1),
-                definitionId,
-                futureWaiting);
-        for (Long actionId : staleActions) {
-            actionWorker.executeAction(actionId);
-            String st = jdbc.queryForObject(
-                    "SELECT status FROM tt_action_job WHERE action_job_id = ?", String.class, actionId);
-            assertNotEquals("SUCCEEDED", st);
+        // Update-first only: cancelled WAITING must not let leftover READY Actions succeed past barrier.
+        // Signal-first ACTIVE/PENDING Actions belong to preserved history and may still complete.
+        if ("IGNORED".equals(oldSignalStatus)) {
+            List<Long> staleActions = jdbc.query(
+                    """
+                    SELECT action_job_id FROM tt_action_job
+                    WHERE definition_id = ? AND status IN ('READY','RETRY_WAIT')
+                      AND instance_id = ?
+                    """,
+                    (rs, rowNum) -> rs.getLong(1),
+                    definitionId,
+                    futureWaiting);
+            for (Long actionId : staleActions) {
+                actionWorker.executeAction(actionId);
+                String st = jdbc.queryForObject(
+                        "SELECT status FROM tt_action_job WHERE action_job_id = ?", String.class, actionId);
+                assertNotEquals("SUCCEEDED", st);
+            }
         }
     }
 

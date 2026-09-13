@@ -374,8 +374,27 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A40：SPI 注册键唯一；E01/未知命令映射
 - A42：deliveryState 按 04 优先级（NOT_SCHEDULED/…/DELIVERED）
 
+### 5.5 A34 / A35 分页弱一致与 live-schema 就绪
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA34PaginationMysqlIT,MxzA35ExtensionSchemaMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 4, Failures: 0
+全量复跑: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify
+退出码: 0
+Failsafe: Tests run: 75, Failures: 0
+recordedAtUtc: 2026-09-13T06:12:00Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+- A34：E05/E08 不透明 base64url keyset cursor（冻结 `updatedAt`/`occurrenceAt`+id 边界）；并发 touch `updated_at` 单次遍历无重复；`asOf` 为响应时间；首页刷新可收敛
+- A35：`liveSchema` HealthIndicator 纳入 readiness；未终结 Signal schema 无读取器 → readiness DOWN；终结后恢复 UP；历史 TERMINAL 公共快照仍可读；NoChange/Rejected 与技术异常分流
+- 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
+
 仍 NOT_RUN / 未收口:
-- A34 并发分页弱一致、A35 卸载旧 schema 不就绪、A39 优雅停机与非回环启动
+- A39 优雅停机与非回环启动
 - 07 §6 性能门槛与接管真时钟 SLA
 - E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
 
@@ -385,26 +404,21 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 **状态: 现有套件 PASS；契约全矩阵仍 NOT_RUN（不得宣称 P01 完成）**
 
-recordedAtUtc: 2026-09-13T05:06:58Z
+recordedAtUtc: 2026-09-13T06:12:00Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 单元 | `./mvnw -q test` | 0 | PASS |
-| 打包 | `./mvnw -q package` | 0 | PASS |
-| 真库 IT | `./mvnw -Pmysql-it verify` | 0 | Failsafe Tests run: 41, Failures: 0 |
-| 双进程 IT | `./mvnw -Pmysql-it,dual-process-it verify`（boot-loader） | 0 | Failsafe Tests run: 1（DualClaim）, Failures: 0 |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 75, Failures: 0 |
 
 说明:
-- 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行（上表已分步执行）。
-- 首次全量 `mysql-it` 曾 FAIL：`A02` 固定 title 与历史脏数据冲突（expected 1 was 4）；后期 IT 因 Hikari 多上下文耗尽连接（Too many connections）。已用唯一次运行 title、IT 侧 `maximum-pool-size=4` 与会话 `max_connections=500` 解除后重跑 PASS。
-- `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
+- 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
+- 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A34 / A35 / A39：无完整专项证据或未执行
+- A39：优雅停机 / 非回环启动
 - 07 §6 性能与接管时间窗 SLA：NOT_RUN
 - E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
-- 本轮新增 mysql-it 后，**全量** `./mvnw -Pmysql-it verify` 尚未重跑（§6 表内 41 为历史快照）
 
 ---
 
@@ -413,8 +427,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
 | — | 优雅停机（A39）与 07 §6 接管时间窗 SLA | NOT_RUN |
-| — | A34 分页并发 / A35 schema 卸载就绪 | 未专项收口 |
-| — | Performance gate / 全量 mysql-it 复跑 | NOT_RUN |
+| — | Performance gate | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 

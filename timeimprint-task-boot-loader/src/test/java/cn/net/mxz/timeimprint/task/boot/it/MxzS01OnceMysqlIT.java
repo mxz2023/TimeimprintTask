@@ -151,7 +151,16 @@ class MxzS01OnceMysqlIT {
                 "UPDATE tt_action_job SET available_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND, "
                         + "next_attempt_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND WHERE definition_id = ?",
                 Long.parseLong(definitionId));
-        actionWorker.pollAndExecute();
+        Long actionJobId = jdbc.queryForObject(
+                """
+                SELECT action_job_id FROM tt_action_job
+                WHERE definition_id = ? AND status = 'READY'
+                ORDER BY action_job_id ASC LIMIT 1
+                """,
+                Long.class,
+                Long.parseLong(definitionId));
+        assertNotNull(actionJobId);
+        actionWorker.executeAction(actionJobId);
 
         Integer actionsAfter = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM tt_action_job WHERE definition_id = ? AND status = 'SUCCEEDED'",

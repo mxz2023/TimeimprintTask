@@ -1,6 +1,5 @@
 package cn.net.mxz.timeimprint.task.service.storage.mysql.repo;
 
-import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.port.TaskInstanceRepository;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.snapshot.MxzTaskInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzRowMapper;
@@ -44,9 +43,9 @@ public class MxzTaskInstanceRepositoryImpl implements TaskInstanceRepository {
             String scenarioState,
             Instant from,
             Instant to,
-            String cursor,
+            Instant cursorOccurrenceAt,
+            Long cursorInstanceId,
             int limit) {
-        Long cursorId = parseCursor(cursor);
         return mapper.selectList(
                         tenantId,
                         definitionId,
@@ -55,21 +54,11 @@ public class MxzTaskInstanceRepositoryImpl implements TaskInstanceRepository {
                         scenarioState,
                         from == null ? null : MxzStorageTime.toUtcLdt(from),
                         to == null ? null : MxzStorageTime.toUtcLdt(to),
-                        cursorId,
+                        cursorOccurrenceAt == null ? null : MxzStorageTime.toUtcLdt(cursorOccurrenceAt),
+                        cursorInstanceId,
                         limit)
                 .stream()
                 .map(MxzRowMapper::toInstance)
                 .toList();
-    }
-
-    private static Long parseCursor(String cursor) {
-        if (cursor == null || cursor.isBlank()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(cursor);
-        } catch (NumberFormatException e) {
-            throw new MxzApplicationException("INVALID_CURSOR", "cursor");
-        }
     }
 }

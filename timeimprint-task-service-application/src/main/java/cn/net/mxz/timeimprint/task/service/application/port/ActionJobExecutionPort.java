@@ -61,6 +61,24 @@ public interface ActionJobExecutionPort {
      */
     boolean recoverExpiredLease(long actionJobId, java.time.Instant now);
 
+    /**
+     * If READY/RETRY_WAIT and expiresAt &lt;= now, mark EXPIRED.
+     * @return true if expired by this call
+     */
+    boolean expireIfDue(long actionJobId, java.time.Instant now);
+
+    /**
+     * Technical RETRYABLE_FAILURE: RUNNING → RETRY_WAIT with backoff, or DEAD if attempts exhausted.
+     */
+    void completeRetryableFailure(
+            long actionJobId, String executionToken, String outcomeCode, String summary, java.time.Instant now);
+
+    /**
+     * Policy barrier before side-effect: close Attempt as POLICY_BLOCKED, refund attempt_count, READY.
+     */
+    void releasePolicyBlocked(
+            long actionJobId, String executionToken, String outcomeCode, java.time.Instant now);
+
     Optional<MxzActionJobRecord> findById(long actionJobId);
 
     /** List READY action jobs due for execution (for worker polling, no lock). */

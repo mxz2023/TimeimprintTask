@@ -1,6 +1,5 @@
 package cn.net.mxz.timeimprint.task.service.scenario.basic.reminder;
 
-import cn.net.mxz.timeimprint.task.common.MxzSha256;
 import cn.net.mxz.timeimprint.task.service.capability.notification.handler.MxzInAppNotificationHandler;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzInitialDefinitionContext;
@@ -18,7 +17,6 @@ import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionTarget;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.state.LifecycleCategory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,14 +80,13 @@ public class MxzReminderScenarioExtension implements ScenarioExtension {
             return new HandlerResult.NoChange("already_not_planned:" + instSnapshot.scenarioState());
         }
 
-        // Extract info from signal payload
+        // Extract info from signal payload. Final recipients are expanded by the platform
+        // (PENDING_EXPAND); scenarios must not bind a single recipient into the Action template.
         Map<String, Object> sigFields = context.payload() instanceof MxzJsonPayload jp
                 ? jp.fields() : Map.of();
         String title = toString(sigFields.get("title"), "");
         String body = toString(sigFields.get("body"), null);
         String tenantId = toString(sigFields.get("tenantId"), "local");
-        String recipientType = toString(sigFields.get("recipientType"), "USER");
-        String recipientId = toString(sigFields.get("recipientId"), "local-actor");
 
         Instant occurrenceAt = instSnapshot.occurrenceAt() != null ? instSnapshot.occurrenceAt() : Instant.now();
         Instant expiresAt = occurrenceAt.plus(EXPIRES_AFTER_HOURS, ChronoUnit.HOURS);
@@ -100,29 +97,23 @@ public class MxzReminderScenarioExtension implements ScenarioExtension {
             body = instSnapshot.descriptionSnapshot();
         }
 
-        // Build stable action key
-        String actionKeyInput = "in_app:" + instSnapshot.instanceId() + ":INITIAL:0:USER:" + recipientId;
-        String actionKey = "ntf_" + Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(MxzSha256.sha256Bytes(actionKeyInput.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-
-        // Build notification payload
         Map<String, Object> notifPayload = new LinkedHashMap<>();
         notifPayload.put("purpose", "INITIAL");
+        notifPayload.put("slotIndex", 0);
+        notifPayload.put("actionGeneration", 1);
         notifPayload.put("title", title);
         notifPayload.put("body", body);
         notifPayload.put("definitionId", instSnapshot.definitionId());
         notifPayload.put("instanceId", instSnapshot.instanceId());
         notifPayload.put("tenantId", tenantId);
-        notifPayload.put("recipientType", recipientType);
-        notifPayload.put("recipientId", recipientId);
 
         ActionJobIntent actionIntent = new ActionJobIntent(
                 MxzInAppNotificationHandler.HANDLER_KEY,
                 MxzInAppNotificationHandler.SCHEMA_VERSION,
-                actionKey,
+                "INITIAL:PENDING_EXPAND",
                 "LOCAL_TRANSACTIONAL",
-                "USER",
-                recipientId,
+                null,
+                null,
                 occurrenceAt,
                 expiresAt,
                 new MxzJsonPayload(notifPayload));

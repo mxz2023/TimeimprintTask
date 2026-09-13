@@ -12,6 +12,7 @@ import cn.net.mxz.timeimprint.task.service.application.port.TaskInstanceReposito
 import cn.net.mxz.timeimprint.task.service.application.port.TaskSignalRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
+import cn.net.mxz.timeimprint.task.service.application.recipient.MxzRecipientRules;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzSignalProcessContext;
@@ -31,11 +32,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
@@ -138,10 +137,11 @@ public class MxzSignalProcessingService {
                 payloadFields.putIfAbsent("occurrenceAt", inst.occurrenceAt().toString());
             }
             var participants = participantQuery.listDefinitionLevel(def.definitionId());
-            List<String> recipients = collectRecipients(participants);
-            if (recipients.isEmpty()) {
-                // Fixture/poison rows without OWNER/RECIPIENT must not stay READY forever.
-                signalRepository.markIgnored(signalId, "NO_RECIPIENTS", "no recipients", clock.nowUtcSeconds());
+            List<String> recipients;
+            try {
+                recipients = MxzRecipientRules.resolve(participants);
+            } catch (MxzApplicationException ex) {
+                signalRepository.markIgnored(signalId, ex.errorCode(), ex.getMessage(), now);
                 return;
             }
             payloadFields.putIfAbsent("recipientType", "USER");
@@ -226,7 +226,7 @@ public class MxzSignalProcessingService {
         if (plan.actionJobIntents().isEmpty()) {
             return plan;
         }
-        List<String> recipients = resolveRecipients(participants);
+        List<String> recipients = MxzRecipientRules.resolve(participants);
         List<ActionJobIntent> expanded = new ArrayList<>();
         for (ActionJobIntent intent : plan.actionJobIntents()) {
             Map<String, Object> base = new HashMap<>();
@@ -315,30 +315,6 @@ public class MxzSignalProcessingService {
             }
             return null;
         });
-    }
-
-    private static List<String> resolveRecipients(List<MxzParticipantRecord> participants) {
-        List<String> finalRecipients = collectRecipients(participants);
-        if (finalRecipients.isEmpty()) {
-            throw new MxzApplicationException("INVALID_REQUEST", "no recipients");
-        }
-        if (finalRecipients.size() > 10) {
-            throw new MxzApplicationException("INVALID_REQUEST", "too many recipients");
-        }
-        return finalRecipients;
-    }
-
-    private static List<String> collectRecipients(List<MxzParticipantRecord> participants) {
-        Set<String> recipients = new LinkedHashSet<>();
-        Set<String> owners = new LinkedHashSet<>();
-        for (var p : participants) {
-            if ("RECIPIENT".equals(p.roleCode())) {
-                recipients.add(p.principalId());
-            } else if ("OWNER".equals(p.roleCode())) {
-                owners.add(p.principalId());
-            }
-        }
-        return recipients.isEmpty() ? List.copyOf(owners) : List.copyOf(recipients);
     }
 
     private Map<String, Object> parse(String json) {

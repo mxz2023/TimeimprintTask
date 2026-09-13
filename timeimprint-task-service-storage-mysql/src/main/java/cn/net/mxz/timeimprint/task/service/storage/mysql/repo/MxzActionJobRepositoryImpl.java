@@ -286,6 +286,57 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
                 == 1;
     }
 
+    @Override
+    public boolean expireIfDue(long actionJobId, Instant now) {
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+        return mapper.markExpiredIfDue(actionJobId, "EXPIRED", nowLdt, nowLdt, nowLdt) == 1;
+    }
+
+    @Override
+    public void completeRetryableFailure(
+            long actionJobId, String executionToken, String outcomeCode, String summary, Instant now) {
+        var row = mapper.selectByIdForUpdate(actionJobId);
+        if (row == null) {
+            throw new MxzApplicationException("RESOURCE_NOT_FOUND", "actionJob");
+        }
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+        attemptMapper.completeAttempt(
+                actionJobId, executionToken, "RETRYABLE_FAILURE", null, outcomeCode, summary, nowLdt);
+        int attemptCount = row.getAttemptCount() == null ? 0 : row.getAttemptCount();
+        int maxAttempts = row.getMaxAttempts() == null ? 5 : row.getMaxAttempts();
+        if (attemptCount >= maxAttempts) {
+            int closed = mapper.completeAction(
+                    actionJobId, executionToken, "DEAD", outcomeCode, summary, nowLdt, nowLdt);
+            if (closed != 1) {
+                throw new MxzApplicationException("STATE_CONFLICT", "action CAS failed");
+            }
+            return;
+        }
+        Instant next = now.plusSeconds(backoffSeconds(attemptCount));
+        int closed = mapper.completeToRetryWait(
+                actionJobId,
+                executionToken,
+                outcomeCode,
+                summary,
+                MxzStorageTime.toUtcLdt(next),
+                nowLdt);
+        if (closed != 1) {
+            throw new MxzApplicationException("STATE_CONFLICT", "action CAS failed");
+        }
+    }
+
+    @Override
+    public void releasePolicyBlocked(
+            long actionJobId, String executionToken, String outcomeCode, Instant now) {
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+        attemptMapper.completeAttempt(
+                actionJobId, executionToken, "POLICY_BLOCKED", "POLICY", outcomeCode, outcomeCode, nowLdt);
+        int released = mapper.refundPolicyBlocked(actionJobId, executionToken, outcomeCode, nowLdt);
+        if (released != 1) {
+            throw new MxzApplicationException("STATE_CONFLICT", "policy refund CAS failed");
+        }
+    }
+
     /** Technical backoff after attempt N failure: 5/30/120/600 seconds. */
     static long backoffSeconds(int attemptCount) {
         int[] delays = {5, 30, 120, 600};

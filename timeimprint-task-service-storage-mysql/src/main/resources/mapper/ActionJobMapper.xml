@@ -85,7 +85,9 @@
             execution_token = #{executionToken},
             attempt_count = attempt_count + 1,
             updated_at = #{updatedAt}
-        WHERE action_job_id = #{actionJobId} AND status IN ('READY', 'RETRY_WAIT')
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+          AND attempt_count &lt; max_attempts
     </update>
 
     <update id="cancelRunning">
@@ -113,6 +115,50 @@
             execution_token = NULL,
             updated_at = #{updatedAt}
         WHERE action_job_id = #{actionJobId} AND execution_token = #{executionToken}
+    </update>
+
+    <update id="completeToRetryWait">
+        UPDATE tt_action_job SET
+            status = 'RETRY_WAIT',
+            outcome_code = #{outcomeCode},
+            outcome_summary = #{outcomeSummary},
+            next_attempt_at = #{nextAttemptAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
+    <update id="refundPolicyBlocked">
+        UPDATE tt_action_job SET
+            status = 'READY',
+            attempt_count = GREATEST(attempt_count - 1, 0),
+            outcome_code = #{outcomeCode},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
+    <update id="markExpiredIfDue">
+        UPDATE tt_action_job SET
+            status = 'EXPIRED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+          AND expires_at IS NOT NULL
+          AND expires_at &lt;= #{now}
     </update>
 
     <select id="selectReadyDueIds" resultType="java.lang.Long">

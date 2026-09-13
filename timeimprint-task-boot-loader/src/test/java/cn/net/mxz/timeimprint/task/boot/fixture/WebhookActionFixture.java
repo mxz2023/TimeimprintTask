@@ -23,13 +23,20 @@ public class WebhookActionFixture implements ActionHandler {
     public static final String HANDLER_KEY = "webhook_action";
 
     public static final AtomicInteger INVOKE_COUNT = new AtomicInteger();
+    private static final AtomicInteger FAIL_REMAINING = new AtomicInteger();
     private static final AtomicReference<CountDownLatch> HOLD = new AtomicReference<>();
     private static final AtomicReference<CountDownLatch> ENTERED = new AtomicReference<>();
 
     public static void reset() {
         INVOKE_COUNT.set(0);
+        FAIL_REMAINING.set(0);
         HOLD.set(null);
         ENTERED.set(null);
+    }
+
+    /** Next {@code n} execute() calls return RETRYABLE_FAILURE, then SUCCEEDED. */
+    public static void failNext(int n) {
+        FAIL_REMAINING.set(n);
     }
 
     /** Next execute() blocks after entering until {@link #releaseHold()}. */
@@ -91,6 +98,10 @@ public class WebhookActionFixture implements ActionHandler {
             }
         }
         INVOKE_COUNT.incrementAndGet();
+        if (FAIL_REMAINING.getAndDecrement() > 0) {
+            return new MxzActionExecutionResult(
+                    ActionHandlerOutcome.RETRYABLE_FAILURE, "FIXTURE_RETRY", "webhook fixture retryable");
+        }
         return new MxzActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "FIXTURE_OK", "webhook fixture success");
     }
 }

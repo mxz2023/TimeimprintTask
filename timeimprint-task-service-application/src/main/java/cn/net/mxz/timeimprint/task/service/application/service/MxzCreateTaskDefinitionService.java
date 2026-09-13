@@ -12,6 +12,7 @@ import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitR
 import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
+import cn.net.mxz.timeimprint.task.service.application.recipient.MxzRecipientRules;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzInitialDefinitionContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
@@ -193,6 +194,10 @@ public class MxzCreateTaskDefinitionService {
         if (!hasOwner) {
             throw new MxzApplicationException("INVALID_REQUEST", "OWNER required");
         }
+        MxzRecipientRules.resolveFromInputs(
+                participants.stream()
+                        .map(p -> new MxzRecipientRules.ParticipantRef(p.principalId(), p.roleCode()))
+                        .toList());
     }
 
     private Map<String, Object> expandRecurringTodoDefaults(Map<String, Object> raw) {

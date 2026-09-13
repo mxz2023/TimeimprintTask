@@ -294,6 +294,7 @@ Failsafe: Tests run: 3, Failures: 0
 已验证:
 - 并发 SKIP LOCKED 领取互斥（同一 Signal 不被两个 claim 同时拿走）
 - A04 / A20：真二 JVM 领取后 `destroyForcibly`，租约回收接管；旧 token CAS=0；Signal 仅一条 `source_type=SIGNAL` 迁移；Action 恰好 1 条 inbox
+- A16 / A22：退避/Policy 退还/EXPIRED 与 OWNER·RECIPIENT·超限规则（见 §5.2）
 
 尚未执行（保持 NOT_RUN）:
 - 优雅停机（A39）与接管时间窗 SLA（07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛）
@@ -314,6 +315,22 @@ Failsafe: Tests run: 2, Failures: 0
 - Signal：短事务领取提交 RUNNING+token；子进程 `MxzClaimAndHoldMain` 领取后被杀；`MxzSignalLeaseReaper` → RETRY_WAIT；父进程 `processSignal` 接管；旧 token `completeWithToken` 为 false；一条 SIGNAL 迁移
 - Action：同上路径经 `MxzActionLeaseReaper` + `ActionWorker`；最终 1 条 inbox；旧 token 无权回写
 - 实现要点：`processSignal` 改为 claim 与处理两段事务；Signal 完成 CAS 要求 RUNNING+token；新增 `MxzSignalLeaseReaper`
+
+### 5.2 A16 / A22 Action 退避与接收人规则
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA16A22MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 2, Failures: 0
+抽样回归: MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzA07A13A28MysqlIT,MxzA09ExternalCrashMysqlIT,MxzA10LocalCasMysqlIT,MxzA15TxRetryMysqlIT,MxzA16A22MysqlIT → Tests run: 15, Failures: 0
+recordedAtUtc: 2026-09-13T05:27:51Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+- A16：EXTERNAL 可重试失败首次退避约 5s；`attempt_count` 达 `max_attempts` → DEAD；副作用前 Policy DENY 退还计数并记 `POLICY_BLOCKED`；`expires_at` 到界 → EXPIRED
+- A22：无 RECIPIENT 时通知 OWNER；显式 RECIPIENT 不隐式含 OWNER；>10 人 Signal `IGNORED` 且无 Action
+- 实现要点：`MxzRecipientRules`；S01/S02 Signal 发出 `PENDING_EXPAND` 模板由平台按接收人展开；`completeRetryableFailure` / `releasePolicyBlocked` / `expireIfDue`；claim 要求 `attempt_count < max_attempts`
 
 ---
 
@@ -337,7 +354,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A03 / A06 / A11 / A14 / A16 / A19 / A22 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
+- A03 / A06 / A11 / A14 / A19 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
 - 07 §6 性能与接管时间窗 SLA：NOT_RUN
 - 优雅停机 A39：NOT_RUN
 

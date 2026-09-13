@@ -8,11 +8,17 @@ import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionExecutionMode;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.MxzPolicyEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision;
+import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyPhase;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
 import cn.net.mxz.timeimprint.task.service.extension.spi.ActionHandler;
+import cn.net.mxz.timeimprint.task.service.extension.spi.Policy;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.snapshot.MxzTaskDefinitionSnapshot;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.snapshot.MxzTaskInstanceSnapshot;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -114,12 +120,16 @@ public class MxzActionWorker {
             if (peek.isEmpty()) return null;
             // Lock order: definition → instance → Action → Attempt (claim inserts Attempt).
             var defOpt = definitionRepository.findByIdForUpdate(peek.get().definitionId());
-            instanceRepository.findByIdForUpdate(peek.get().instanceId());
+            var instOpt = instanceRepository.findByIdForUpdate(peek.get().instanceId());
             var actionOpt = actionPort.findByIdForUpdate(actionJobId);
-            if (defOpt.isEmpty() || actionOpt.isEmpty()) return null;
+            if (defOpt.isEmpty() || instOpt.isEmpty() || actionOpt.isEmpty()) return null;
             var action = actionOpt.get();
             if (!"READY".equals(action.status()) && !"RETRY_WAIT".equals(action.status())) return null;
             if (!"LOCAL_TRANSACTIONAL".equals(action.executionMode())) return null;
+
+            if (actionPort.expireIfDue(actionJobId, now)) {
+                return null;
+            }
 
             var def = defOpt.get();
             if (action.definitionControlGeneration() != def.controlGeneration()
@@ -144,14 +154,24 @@ public class MxzActionWorker {
             String token = tokenOpt.get();
             action = actionPort.findByIdForUpdate(actionJobId).orElse(action);
 
+            if (isPolicyBlocked(def, instOpt.get(), actionJobId)) {
+                actionPort.releasePolicyBlocked(actionJobId, token, "POLICY_BLOCKED", now);
+                return null;
+            }
+
             var execCtx = buildContext(action, token);
             var result = handlerOpt.get().execute(execCtx);
+            Instant done = clock.nowUtcSeconds();
+            if (result.outcome() == ActionHandlerOutcome.RETRYABLE_FAILURE) {
+                actionPort.completeRetryableFailure(
+                        actionJobId, token, result.outcomeCode(), result.safeSummary(), done);
+                return null;
+            }
             if (result.outcome() != ActionHandlerOutcome.SUCCEEDED) {
                 throw new IllegalStateException(
                         "LOCAL handler failed: " + result.outcomeCode() + " " + result.safeSummary());
             }
 
-            Instant done = clock.nowUtcSeconds();
             actionPort.completeAttempt(
                     actionJobId,
                     token,
@@ -180,11 +200,21 @@ public class MxzActionWorker {
                 String targetType, String targetId, String payloadJson) {}
 
         ClaimPack claimed = tx.execute(() -> {
+            var peek = actionPort.findById(actionJobId);
+            if (peek.isEmpty()) return null;
+            if (!"EXTERNAL".equals(peek.get().executionMode())) return null;
+
+            var defOpt = definitionRepository.findByIdForUpdate(peek.get().definitionId());
+            var instOpt = instanceRepository.findByIdForUpdate(peek.get().instanceId());
             var actionOpt = actionPort.findByIdForUpdate(actionJobId);
-            if (actionOpt.isEmpty()) return null;
+            if (defOpt.isEmpty() || instOpt.isEmpty() || actionOpt.isEmpty()) return null;
             var action = actionOpt.get();
             if (!"READY".equals(action.status()) && !"RETRY_WAIT".equals(action.status())) return null;
             if (!"EXTERNAL".equals(action.executionMode())) return null;
+
+            if (actionPort.expireIfDue(actionJobId, now)) {
+                return null;
+            }
 
             if (isBarrierBlocked(action.definitionId(), action.definitionControlGeneration())) {
                 actionPort.markCancelled(actionJobId, "CONTROL_BARRIER", clock.nowUtcSeconds());
@@ -202,8 +232,13 @@ public class MxzActionWorker {
             if (tokenOpt.isEmpty()) {
                 return null;
             }
+            String token = tokenOpt.get();
+            if (isPolicyBlocked(defOpt.get(), instOpt.get(), actionJobId)) {
+                actionPort.releasePolicyBlocked(actionJobId, token, "POLICY_BLOCKED", clock.nowUtcSeconds());
+                return null;
+            }
             return new ClaimPack(
-                    tokenOpt.get(),
+                    token,
                     action.definitionId(),
                     action.instanceId(),
                     action.transitionId(),
@@ -273,22 +308,25 @@ public class MxzActionWorker {
 
         var result = handler.execute(execCtx);
         Instant done = clock.nowUtcSeconds();
-        String status =
-                switch (result.outcome()) {
-                    case SUCCEEDED -> "SUCCEEDED";
-                    case UNKNOWN -> "UNKNOWN";
-                    case PERMANENT_FAILURE -> "DEAD";
-                    case RETRYABLE_FAILURE -> "RETRY_WAIT";
-                };
-        String attemptOutcome = result.outcome().name();
-
         String token = claimed.token();
         tx.execute(() -> {
+            if (result.outcome() == ActionHandlerOutcome.RETRYABLE_FAILURE) {
+                actionPort.completeRetryableFailure(
+                        actionJobId, token, result.outcomeCode(), result.safeSummary(), done);
+                return null;
+            }
+            String status =
+                    switch (result.outcome()) {
+                        case SUCCEEDED -> "SUCCEEDED";
+                        case UNKNOWN -> "UNKNOWN";
+                        case PERMANENT_FAILURE -> "DEAD";
+                        case RETRYABLE_FAILURE -> "RETRY_WAIT";
+                    };
             // Result TX must not revoke an already-started EXTERNAL call due to later pause.
             actionPort.completeAttempt(
                     actionJobId,
                     token,
-                    attemptOutcome,
+                    result.outcome().name(),
                     null,
                     result.outcomeCode(),
                     result.safeSummary(),
@@ -311,6 +349,19 @@ public class MxzActionWorker {
         return actionControlGen != def.controlGeneration()
                 || def.controlState() == ControlState.PAUSED
                 || def.controlState() == ControlState.RETIRED;
+    }
+
+    /** True when any ACTION_EXECUTE Policy returns DENY or RETRY_LATER (refundable before effect). */
+    private boolean isPolicyBlocked(
+            MxzTaskDefinitionSnapshot def, MxzTaskInstanceSnapshot inst, long actionJobId) {
+        var ctx = new MxzPolicyEvaluationContext(PolicyPhase.ACTION_EXECUTE, def, inst, null, actionJobId);
+        for (Policy policy : extensionRegistry.policies().policiesForPhase(PolicyPhase.ACTION_EXECUTE)) {
+            PolicyDecision decision = policy.evaluate(ctx);
+            if (decision == PolicyDecision.DENY || decision == PolicyDecision.RETRY_LATER) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private MxzActionExecutionContext buildContext(

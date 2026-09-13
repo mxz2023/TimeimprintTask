@@ -187,8 +187,6 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
                 : (instSnapshot.occurrenceAt() != null ? instSnapshot.occurrenceAt() : Instant.now());
         Instant expiresAt = dueAt.plus(expireMinutes, ChronoUnit.MINUTES);
 
-        String recipientId = extractRecipient(context);
-
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("scenarioState", "PENDING");
         snapshot.put("dueAt", dueAt.toString());
@@ -201,14 +199,14 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
 
         long definitionId = context.definitionSnapshot().definitionId();
         List<ActionJobIntent> actions = new ArrayList<>();
-        actions.add(buildActionIntent(definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1,
-                recipientId, dueAt, expiresAt));
+        actions.add(buildExpandableActionIntent(
+                definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1, dueAt, expiresAt));
 
         for (int i = 0; i < chaseOffsets.size(); i++) {
             Instant chaseAt = dueAt.plus(chaseOffsets.get(i), ChronoUnit.MINUTES);
             if (chaseAt.isBefore(expiresAt)) {
-                actions.add(buildActionIntent(definitionId, instSnapshot.instanceId(), "CHASE", i + 1, 1,
-                        recipientId, chaseAt, expiresAt));
+                actions.add(buildExpandableActionIntent(
+                        definitionId, instSnapshot.instanceId(), "CHASE", i + 1, 1, chaseAt, expiresAt));
             }
         }
 
@@ -251,6 +249,34 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
                 MUTATION_REPLACE_INSTANCE_SNAPSHOT,
                 1,
                 new MxzJsonPayload(snapshot));
+    }
+
+    /** Template Action; platform expands to one job per final recipient. */
+    static ActionJobIntent buildExpandableActionIntent(
+            long definitionId,
+            long instanceId,
+            String purpose,
+            int slotIndex,
+            int actionGeneration,
+            Instant availableAt,
+            Instant expiresAt) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("purpose", purpose);
+        payload.put("slotIndex", slotIndex);
+        payload.put("actionGeneration", actionGeneration);
+        payload.put("definitionId", definitionId);
+        payload.put("instanceId", instanceId);
+
+        return new ActionJobIntent(
+                MxzInAppNotificationHandler.HANDLER_KEY,
+                MxzInAppNotificationHandler.SCHEMA_VERSION,
+                purpose + ":PENDING_EXPAND",
+                "LOCAL_TRANSACTIONAL",
+                null,
+                null,
+                availableAt,
+                expiresAt,
+                new MxzJsonPayload(payload));
     }
 
     static ActionJobIntent buildActionIntent(
@@ -312,14 +338,6 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
         } catch (Exception e) {
             return Map.of();
         }
-    }
-
-    private String extractRecipient(MxzSignalProcessContext context) {
-        if (context.payload() instanceof MxzJsonPayload jp) {
-            Object r = jp.fields().get("recipientId");
-            if (r != null) return String.valueOf(r);
-        }
-        return "local-actor";
     }
 
     private static String base64Url(byte[] bytes) {

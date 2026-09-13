@@ -64,6 +64,29 @@ public interface ActionJobMapper {
                        @Param("completedAt") LocalDateTime completedAt,
                        @Param("updatedAt") LocalDateTime updatedAt);
 
+    /** RUNNING → RETRY_WAIT with next_attempt_at (technical retry / policy refund path uses separate method). */
+    int completeToRetryWait(@Param("actionJobId") long actionJobId,
+                            @Param("executionToken") String executionToken,
+                            @Param("outcomeCode") String outcomeCode,
+                            @Param("outcomeSummary") String outcomeSummary,
+                            @Param("nextAttemptAt") LocalDateTime nextAttemptAt,
+                            @Param("updatedAt") LocalDateTime updatedAt);
+
+    /**
+     * Policy barrier before side-effect: RUNNING → READY, refund attempt_count, clear lease/token.
+     */
+    int refundPolicyBlocked(@Param("actionJobId") long actionJobId,
+                            @Param("executionToken") String executionToken,
+                            @Param("outcomeCode") String outcomeCode,
+                            @Param("updatedAt") LocalDateTime updatedAt);
+
+    /** READY/RETRY_WAIT → EXPIRED when expiresAt reached before claim. */
+    int markExpiredIfDue(@Param("actionJobId") long actionJobId,
+                         @Param("outcomeCode") String outcomeCode,
+                         @Param("completedAt") LocalDateTime completedAt,
+                         @Param("updatedAt") LocalDateTime updatedAt,
+                         @Param("now") LocalDateTime now);
+
     /** Scan READY action IDs due for execution (no lock, for worker polling). */
     List<Long> selectReadyDueIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
 

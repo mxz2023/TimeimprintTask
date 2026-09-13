@@ -20,4 +20,9 @@ public record MxzSignalRecord(
         int maxAttempts,
         Instant nextAttemptAt,
         String resultCode,
-        Instant processedAt) {}
+        Instant processedAt,
+        Long parentSignalId,
+        int redriveNo,
+        String leaseOwner,
+        Instant leaseUntil,
+        String resultSummary) {}

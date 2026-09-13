@@ -98,11 +98,16 @@ public final class MxzRowMapper {
                 MxzStorageTime.toInstant(r.getReceivedAt()),
                 r.getPayloadJson(),
                 r.getProcessStatus(),
-                r.getAttemptCount(),
-                r.getMaxAttempts(),
+                r.getAttemptCount() == null ? 0 : r.getAttemptCount(),
+                r.getMaxAttempts() == null ? 0 : r.getMaxAttempts(),
                 MxzStorageTime.toInstant(r.getNextAttemptAt()),
                 r.getResultCode(),
-                MxzStorageTime.toInstant(r.getProcessedAt()));
+                MxzStorageTime.toInstant(r.getProcessedAt()),
+                r.getParentSignalId(),
+                r.getRedriveNo() == null ? 0 : r.getRedriveNo(),
+                r.getLeaseOwner(),
+                MxzStorageTime.toInstant(r.getLeaseUntil()),
+                r.getResultSummary());
     }
 
     public static MxzActionJobRecord toAction(ActionJobRow r) {
@@ -112,19 +117,27 @@ public final class MxzRowMapper {
                 r.getTenantId(),
                 r.getDefinitionId(),
                 r.getInstanceId(),
-                r.getTransitionId(),
-                r.getDefinitionControlGeneration(),
+                r.getTransitionId() == null ? 0L : r.getTransitionId(),
+                r.getDefinitionControlGeneration() == null ? 0L : r.getDefinitionControlGeneration(),
                 r.getHandlerKey(),
                 r.getActionKey(),
                 r.getExecutionMode(),
-                r.getSchemaVersion(),
+                r.getSchemaVersion() == null ? 0 : r.getSchemaVersion(),
                 r.getTargetType(),
                 r.getTargetId(),
                 r.getPayloadJson(),
                 MxzStorageTime.toInstant(r.getAvailableAt()),
                 MxzStorageTime.toInstant(r.getExpiresAt()),
                 r.getStatus(),
-                r.getAttemptCount(),
-                r.getMaxAttempts());
+                r.getAttemptCount() == null ? 0 : r.getAttemptCount(),
+                r.getMaxAttempts() == null ? 0 : r.getMaxAttempts(),
+                MxzStorageTime.toInstant(r.getNextAttemptAt()),
+                r.getLeaseOwner(),
+                MxzStorageTime.toInstant(r.getLeaseUntil()),
+                r.getOutcomeCode(),
+                r.getOutcomeSummary(),
+                MxzStorageTime.toInstant(r.getCompletedAt()),
+                r.getParentActionJobId(),
+                r.getRedriveNo() == null ? 0 : r.getRedriveNo());
     }
 }

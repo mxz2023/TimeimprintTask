@@ -6,7 +6,9 @@ import cn.net.mxz.timeimprint.task.domain.request.CreateTaskDefinitionRequest;
 import cn.net.mxz.timeimprint.task.domain.request.DefinitionCommandRequest;
 import cn.net.mxz.timeimprint.task.domain.request.PreviewRequest;
 import cn.net.mxz.timeimprint.task.domain.view.CommandResultView;
+import cn.net.mxz.timeimprint.task.domain.view.Page;
 import cn.net.mxz.timeimprint.task.domain.view.PreviewResult;
+import cn.net.mxz.timeimprint.task.domain.view.ScenarioMetadataView;
 import cn.net.mxz.timeimprint.task.domain.view.TaskDefinitionView;
 import cn.net.mxz.timeimprint.task.gateway.MxzTaskGateway;
 import jakarta.validation.Valid;
@@ -16,10 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 任务定义相关公开 HTTP 接口（契约 E02 / E03 / E04 / E06）。
+ * 任务定义相关公开 HTTP 接口（契约 E01 / E02 / E03 / E04 / E05 / E06）。
  *
  * <p>路径前缀 {@code /api/v1}。身份由本地 ActorContext 注入，请求体不得覆盖租户/操作者。
  * 字段语义以 {@code docs/04-API.md} 为准；联调示例见 {@code docs/phases/P01/MANUAL-HTTP.md}。
@@ -32,6 +35,22 @@ public class MxzTaskDefinitionController {
 
     public MxzTaskDefinitionController(MxzTaskGateway gateway) {
         this.gateway = gateway;
+    }
+
+    /**
+     * E01 · 列出已装配且可公开的场景元数据。
+     *
+     * <p><b>方法与路径：</b>{@code GET /api/v1/task-scenarios}
+     *
+     * <p><b>查询参数：</b>{@code cursor}、{@code limit}
+     *
+     * <p><b>调用示例：</b>{@code curl -sS 'http://127.0.0.1:18080/api/v1/task-scenarios'}
+     */
+    @GetMapping("/task-scenarios")
+    public MxzApiResponse<Page<ScenarioMetadataView>> listScenarios(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit) {
+        return ok(gateway.listScenarios(cursor, limit));
     }
 
     /**
@@ -125,6 +144,25 @@ public class MxzTaskDefinitionController {
     @PostMapping("/task-definitions")
     public MxzApiResponse<TaskDefinitionView> create(@Valid @RequestBody CreateTaskDefinitionRequest request) {
         return ok(gateway.create(request));
+    }
+
+    /**
+     * E05 · 分页列出任务定义。
+     *
+     * <p><b>方法与路径：</b>{@code GET /api/v1/task-definitions}
+     *
+     * <p><b>查询参数：</b>{@code scenarioKey}、{@code controlState}、{@code participantRole}、{@code cursor}、{@code limit}
+     *
+     * <p><b>调用示例：</b>{@code curl -sS 'http://127.0.0.1:18080/api/v1/task-definitions?scenarioKey=reminder'}
+     */
+    @GetMapping("/task-definitions")
+    public MxzApiResponse<Page<TaskDefinitionView>> listDefinitions(
+            @RequestParam(required = false) String scenarioKey,
+            @RequestParam(required = false) String controlState,
+            @RequestParam(required = false) String participantRole,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit) {
+        return ok(gateway.listDefinitions(scenarioKey, controlState, participantRole, cursor, limit));
     }
 
     /**

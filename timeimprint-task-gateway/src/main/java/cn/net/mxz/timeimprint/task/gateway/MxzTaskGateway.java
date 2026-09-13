@@ -6,7 +6,11 @@ import cn.net.mxz.timeimprint.task.domain.request.InternalSignalRequest;
 import cn.net.mxz.timeimprint.task.domain.request.InstanceCommandRequest;
 import cn.net.mxz.timeimprint.task.domain.request.MarkReadRequest;
 import cn.net.mxz.timeimprint.task.domain.request.PreviewRequest;
+import cn.net.mxz.timeimprint.task.domain.request.RedriveRequest;
 import cn.net.mxz.timeimprint.task.domain.request.TriggerBindingInput;
+import cn.net.mxz.timeimprint.task.domain.view.ActionJobDiagnosticView;
+import cn.net.mxz.timeimprint.task.domain.view.AttemptSummary;
+import cn.net.mxz.timeimprint.task.domain.view.CommandMetadataView;
 import cn.net.mxz.timeimprint.task.domain.view.CommandResultView;
 import cn.net.mxz.timeimprint.task.domain.view.DeliverySummary;
 import cn.net.mxz.timeimprint.task.domain.view.InboxView;
@@ -14,20 +18,27 @@ import cn.net.mxz.timeimprint.task.domain.view.OccurrenceView;
 import cn.net.mxz.timeimprint.task.domain.view.Page;
 import cn.net.mxz.timeimprint.task.domain.view.ParticipantView;
 import cn.net.mxz.timeimprint.task.domain.view.PreviewResult;
+import cn.net.mxz.timeimprint.task.domain.view.ScenarioMetadataView;
 import cn.net.mxz.timeimprint.task.domain.view.SignalAcceptedView;
+import cn.net.mxz.timeimprint.task.domain.view.SignalDiagnosticView;
 import cn.net.mxz.timeimprint.task.domain.view.TaskDefinitionView;
 import cn.net.mxz.timeimprint.task.domain.view.TaskInstanceView;
+import cn.net.mxz.timeimprint.task.domain.view.TransitionDiagnosticView;
 import cn.net.mxz.timeimprint.task.domain.view.TriggerBindingView;
 import cn.net.mxz.timeimprint.task.domain.view.UnreadCountView;
 import cn.net.mxz.timeimprint.task.common.BusinessClock;
 import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException;
+import cn.net.mxz.timeimprint.task.service.application.model.MxzActionJobRecord;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzCreateDefinitionCommand;
 import cn.net.mxz.timeimprint.task.service.application.model.MxzInboxRecord;
+import cn.net.mxz.timeimprint.task.service.application.model.MxzSignalRecord;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzCreateTaskDefinitionService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzDefinitionCommandService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzInboxService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzInstanceCommandService;
+import cn.net.mxz.timeimprint.task.service.application.service.MxzListQueryService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzPreviewService;
+import cn.net.mxz.timeimprint.task.service.application.service.MxzRedriveService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzSignalIngressService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzSignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.application.service.MxzTaskQueryService;
@@ -46,6 +57,8 @@ public class MxzTaskGateway {
     private final MxzPreviewService previewService;
     private final MxzCreateTaskDefinitionService createService;
     private final MxzTaskQueryService queryService;
+    private final MxzListQueryService listQueryService;
+    private final MxzRedriveService redriveService;
     private final MxzInboxService inboxService;
     private final MxzSignalIngressService signalIngressService;
     private final MxzSignalProcessingService signalProcessingService;
@@ -58,6 +71,8 @@ public class MxzTaskGateway {
             MxzPreviewService previewService,
             MxzCreateTaskDefinitionService createService,
             MxzTaskQueryService queryService,
+            MxzListQueryService listQueryService,
+            MxzRedriveService redriveService,
             MxzInboxService inboxService,
             MxzSignalIngressService signalIngressService,
             MxzSignalProcessingService signalProcessingService,
@@ -68,6 +83,8 @@ public class MxzTaskGateway {
         this.previewService = previewService;
         this.createService = createService;
         this.queryService = queryService;
+        this.listQueryService = listQueryService;
+        this.redriveService = redriveService;
         this.inboxService = inboxService;
         this.signalIngressService = signalIngressService;
         this.signalProcessingService = signalProcessingService;
@@ -139,6 +156,116 @@ public class MxzTaskGateway {
 
     public TaskDefinitionView getDefinition(long definitionId) {
         return toDefinitionView(queryService.getDefinition(definitionId));
+    }
+
+    public Page<ScenarioMetadataView> listScenarios(String cursor, Integer limit) {
+        var page = listQueryService.listScenarios(cursor, limit == null ? 20 : limit);
+        List<ScenarioMetadataView> items = page.items().stream()
+                .map(s -> new ScenarioMetadataView(
+                        s.scenarioKey(),
+                        s.displayName(),
+                        s.contractVersion(),
+                        s.supportedScenarioSchemaVersions(),
+                        s.definitionCommandKeys().stream()
+                                .map(k -> new CommandMetadataView(k, List.of(1)))
+                                .toList(),
+                        s.instanceCommandKeys().stream()
+                                .map(k -> new CommandMetadataView(k, List.of(1)))
+                                .toList(),
+                        s.requiredCapabilities()))
+                .toList();
+        return new Page<>(items, page.nextCursor(), page.hasMore(), listQueryService.asOf().toString());
+    }
+
+    public Page<TaskDefinitionView> listDefinitions(
+            String scenarioKey, String controlState, String participantRole, String cursor, Integer limit) {
+        var page = listQueryService.listDefinitions(
+                scenarioKey, controlState, participantRole, cursor, limit == null ? 20 : limit);
+        List<TaskDefinitionView> items = page.items().stream()
+                .map(d -> toDefinitionView(queryService.getDefinition(d.definitionId())))
+                .toList();
+        return new Page<>(items, page.nextCursor(), page.hasMore(), listQueryService.asOf().toString());
+    }
+
+    public Page<TaskInstanceView> listInstances(
+            Long definitionId,
+            String scenarioKey,
+            String lifecycleCategory,
+            String scenarioState,
+            String participantRole,
+            String from,
+            String to,
+            String cursor,
+            Integer limit) {
+        Instant fromAt = from == null || from.isBlank() ? null : Instant.parse(from);
+        Instant toAt = to == null || to.isBlank() ? null : Instant.parse(to);
+        var page = listQueryService.listInstances(
+                definitionId,
+                scenarioKey,
+                lifecycleCategory,
+                scenarioState,
+                participantRole,
+                fromAt,
+                toAt,
+                cursor,
+                limit == null ? 20 : limit);
+        List<TaskInstanceView> items = page.items().stream()
+                .map(i -> toInstanceView(queryService.getInstance(i.instanceId())))
+                .toList();
+        return new Page<>(items, page.nextCursor(), page.hasMore(), listQueryService.asOf().toString());
+    }
+
+    public SignalDiagnosticView getSignal(long signalId) {
+        return toSignalDiag(listQueryService.getSignal(signalId));
+    }
+
+    public Page<ActionJobDiagnosticView> listActionJobs(
+            Long definitionId, Long instanceId, String status, String handlerKey, String cursor, Integer limit) {
+        var page = listQueryService.listActionJobs(
+                definitionId, instanceId, status, handlerKey, cursor, limit == null ? 20 : limit);
+        List<ActionJobDiagnosticView> items = page.items().stream().map(this::toActionDiag).toList();
+        return new Page<>(items, page.nextCursor(), page.hasMore(), listQueryService.asOf().toString());
+    }
+
+    public ActionJobDiagnosticView getActionJob(long actionJobId) {
+        return toActionDiag(listQueryService.getActionJob(actionJobId));
+    }
+
+    public Page<TransitionDiagnosticView> listTransitions(
+            Long definitionId, Long instanceId, String cursor, Integer limit) {
+        var page = listQueryService.listTransitions(definitionId, instanceId, cursor, limit == null ? 20 : limit);
+        List<TransitionDiagnosticView> items = page.items().stream()
+                .map(t -> new TransitionDiagnosticView(
+                        String.valueOf(t.transitionId()),
+                        String.valueOf(t.definitionId()),
+                        t.instanceId() == null ? null : String.valueOf(t.instanceId()),
+                        t.sourceType(),
+                        t.sourceKey(),
+                        t.commandKey(),
+                        t.fromControlState(),
+                        t.toControlState(),
+                        t.fromLifecycle(),
+                        t.toLifecycle(),
+                        t.fromScenarioState(),
+                        t.toScenarioState(),
+                        t.fromRevision(),
+                        t.toRevision(),
+                        t.actorType(),
+                        t.actorId(),
+                        t.traceId(),
+                        t.createdAt() == null ? null : t.createdAt().toString()))
+                .toList();
+        return new Page<>(items, page.nextCursor(), page.hasMore(), listQueryService.asOf().toString());
+    }
+
+    public SignalDiagnosticView redriveSignal(long signalId, RedriveRequest req) {
+        return toSignalDiag(redriveService.redriveSignal(
+                signalId, req.requestId(), req.expectedStatus(), req.reason()));
+    }
+
+    public ActionJobDiagnosticView redriveAction(long actionJobId, RedriveRequest req) {
+        return toActionDiag(redriveService.redriveAction(
+                actionJobId, req.requestId(), req.expectedStatus(), req.reason()));
     }
 
     /** E06: pause / resume / retire a definition. */
@@ -343,5 +470,74 @@ public class MxzTaskGateway {
                 r.body(),
                 r.readAt() == null ? null : r.readAt().toString(),
                 r.createdAt().toString());
+    }
+
+    private SignalDiagnosticView toSignalDiag(MxzSignalRecord s) {
+        return new SignalDiagnosticView(
+                String.valueOf(s.signalId()),
+                String.valueOf(s.definitionId()),
+                s.instanceId() == null ? null : String.valueOf(s.instanceId()),
+                s.providerKey(),
+                s.signalKey(),
+                s.schemaVersion(),
+                s.processStatus(),
+                s.attemptCount(),
+                s.maxAttempts(),
+                s.nextAttemptAt() == null ? null : s.nextAttemptAt().toString(),
+                s.leaseOwner(),
+                s.leaseUntil() == null ? null : s.leaseUntil().toString(),
+                s.resultCode(),
+                s.resultSummary(),
+                s.occurredAt() == null ? null : s.occurredAt().toString(),
+                s.receivedAt() == null ? null : s.receivedAt().toString(),
+                s.processedAt() == null ? null : s.processedAt().toString(),
+                s.parentSignalId() == null ? null : String.valueOf(s.parentSignalId()),
+                s.redriveNo());
+    }
+
+    private ActionJobDiagnosticView toActionDiag(MxzActionJobRecord a) {
+        var def = queryService.getDefinition(a.definitionId()).definition();
+        String stored = a.status();
+        String effective = stored;
+        if (def.controlGeneration() != a.definitionControlGeneration()
+                && ("READY".equals(stored) || "RETRY_WAIT".equals(stored) || "RUNNING".equals(stored))) {
+            effective = "CANCELLED";
+        }
+        List<AttemptSummary> attempts = listQueryService.listAttempts(a.actionJobId()).stream()
+                .map(t -> new AttemptSummary(
+                        t.attemptNo(),
+                        t.startedAt() == null ? null : t.startedAt().toString(),
+                        t.finishedAt() == null ? null : t.finishedAt().toString(),
+                        t.effectStartedAt() != null,
+                        t.outcome(),
+                        t.errorClass(),
+                        t.errorCode(),
+                        t.providerReference(),
+                        t.safeSummary()))
+                .toList();
+        return new ActionJobDiagnosticView(
+                String.valueOf(a.actionJobId()),
+                String.valueOf(a.definitionId()),
+                String.valueOf(a.instanceId()),
+                String.valueOf(a.transitionId()),
+                a.handlerKey(),
+                a.executionMode(),
+                a.schemaVersion(),
+                a.targetType(),
+                stored,
+                effective,
+                a.attemptCount(),
+                a.maxAttempts(),
+                a.availableAt() == null ? null : a.availableAt().toString(),
+                a.expiresAt() == null ? null : a.expiresAt().toString(),
+                a.nextAttemptAt() == null ? null : a.nextAttemptAt().toString(),
+                a.leaseOwner(),
+                a.leaseUntil() == null ? null : a.leaseUntil().toString(),
+                a.outcomeCode(),
+                a.outcomeSummary(),
+                a.completedAt() == null ? null : a.completedAt().toString(),
+                a.parentActionJobId() == null ? null : String.valueOf(a.parentActionJobId()),
+                a.redriveNo(),
+                attempts);
     }
 }

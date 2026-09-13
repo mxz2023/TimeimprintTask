@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.extension.registry;
 
 import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioExtension;
+import java.util.List;
 import java.util.Optional;
 
 public interface ScenarioExtensionRegistry {
@@ -8,4 +9,7 @@ public interface ScenarioExtensionRegistry {
     Optional<ScenarioExtension> find(ScenarioExtensionKey key);
 
     ScenarioExtension require(ScenarioExtensionKey key);
+
+    /** All registered scenario extensions (E01 catalog). */
+    List<ScenarioExtension> listAll();
 }

@@ -61,5 +61,7 @@ public interface ActionJobMapper {
                                   @Param("status") String status,
                                   @Param("handlerKey") String handlerKey,
                                   @Param("limit") int limit,
-                                  @Param("cursor") String cursor);
+                                  @Param("cursor") Long cursor);
+
+    int countByParent(@Param("parentActionJobId") long parentActionJobId);
 }

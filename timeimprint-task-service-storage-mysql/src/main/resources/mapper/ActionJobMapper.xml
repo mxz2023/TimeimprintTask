@@ -141,4 +141,7 @@
         LIMIT #{limit}
     </select>
 
+    <select id="countByParent" resultType="int">
+        SELECT COUNT(*) FROM tt_action_job WHERE parent_action_job_id = #{parentActionJobId}
+    </select>
 </mapper>

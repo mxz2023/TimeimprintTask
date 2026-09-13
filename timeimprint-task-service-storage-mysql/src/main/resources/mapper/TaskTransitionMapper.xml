@@ -42,8 +42,10 @@
 
     <select id="selectByDefinitionId" resultMap="RM">
         SELECT * FROM tt_task_transition
-        WHERE definition_id = #{definitionId}
+        WHERE 1=1
+        <if test="definitionId != null">AND definition_id = #{definitionId}</if>
         <if test="instanceId != null">AND instance_id = #{instanceId}</if>
+        <if test="cursor != null">AND transition_id &lt; #{cursor}</if>
         ORDER BY transition_id DESC
         LIMIT #{limit}
     </select>

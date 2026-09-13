@@ -51,4 +51,6 @@ public interface TaskSignalMapper {
 
     /** Return IDs of READY/RETRY_WAIT signals due for processing. */
     List<Long> selectReadyDueIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
+
+    int countByParent(@Param("parentSignalId") long parentSignalId);
 }

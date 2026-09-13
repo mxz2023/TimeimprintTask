@@ -27,6 +27,6 @@ public interface TaskDefinitionMapper {
     List<TaskDefinitionRow> selectList(@Param("tenantId") String tenantId,
                                        @Param("scenarioKey") String scenarioKey,
                                        @Param("controlState") String controlState,
-                                       @Param("cursor") String cursor,
+                                       @Param("cursor") Long cursor,
                                        @Param("limit") int limit);
 }

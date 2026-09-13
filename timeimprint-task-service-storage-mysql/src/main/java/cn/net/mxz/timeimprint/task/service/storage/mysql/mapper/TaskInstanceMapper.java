@@ -33,6 +33,16 @@ public interface TaskInstanceMapper {
 
     List<TaskInstanceRow> selectByDefinitionIdAll(@Param("definitionId") long definitionId);
 
+    List<TaskInstanceRow> selectList(@Param("tenantId") String tenantId,
+                                     @Param("definitionId") Long definitionId,
+                                     @Param("scenarioKey") String scenarioKey,
+                                     @Param("lifecycleCategory") String lifecycleCategory,
+                                     @Param("scenarioState") String scenarioState,
+                                     @Param("from") LocalDateTime from,
+                                     @Param("to") LocalDateTime to,
+                                     @Param("cursor") Long cursor,
+                                     @Param("limit") int limit);
+
     /** Cancel waiting instances for a given binding/scheduleGeneration (pause/retire/update). */
     int cancelWaitingInstances(@Param("definitionId") long definitionId,
                                @Param("triggerBindingId") long triggerBindingId,

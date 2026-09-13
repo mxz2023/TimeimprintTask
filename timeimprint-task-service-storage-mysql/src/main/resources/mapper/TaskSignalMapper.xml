@@ -113,4 +113,8 @@
         LIMIT #{limit}
     </select>
 
+    <select id="countByParent" resultType="int">
+        SELECT COUNT(*) FROM tt_task_signal WHERE parent_signal_id = #{parentSignalId}
+    </select>
+
 </mapper>

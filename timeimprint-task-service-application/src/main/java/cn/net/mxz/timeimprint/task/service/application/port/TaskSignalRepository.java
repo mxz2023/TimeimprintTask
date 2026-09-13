@@ -20,4 +20,8 @@ public interface TaskSignalRepository {
     void markSucceeded(long signalId, String resultCode, String summary, java.time.Instant processedAt);
 
     void markIgnored(long signalId, String resultCode, String summary, java.time.Instant processedAt);
+
+    int countRedrives(long rootSignalId);
+
+    long insertRedrive(MxzSignalRecord template, long rootSignalId, int redriveNo, java.time.Instant now);
 }

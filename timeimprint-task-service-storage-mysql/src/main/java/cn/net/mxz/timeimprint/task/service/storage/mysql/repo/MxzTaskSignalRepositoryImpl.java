@@ -5,6 +5,7 @@ import cn.net.mxz.timeimprint.task.service.application.port.TaskSignalRepository
 import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzRowMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzStorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.TaskSignalMapper;
+import cn.net.mxz.timeimprint.task.service.storage.mysql.row.TaskSignalRow;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -101,5 +102,42 @@ public class MxzTaskSignalRepositoryImpl implements TaskSignalRepository {
                 summary,
                 MxzStorageTime.toUtcLdt(processedAt),
                 MxzStorageTime.toUtcLdt(processedAt));
+    }
+
+    @Override
+    public int countRedrives(long rootSignalId) {
+        return mapper.countByParent(rootSignalId);
+    }
+
+    @Override
+    public long insertRedrive(MxzSignalRecord template, long rootSignalId, int redriveNo, Instant now) {
+        var src = mapper.selectById(template.signalId());
+        if (src == null) {
+            throw new cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException(
+                    "RESOURCE_NOT_FOUND", "signal");
+        }
+        TaskSignalRow row = new TaskSignalRow();
+        row.setTenantId(src.getTenantId());
+        row.setDefinitionId(src.getDefinitionId());
+        row.setTriggerBindingId(src.getTriggerBindingId());
+        row.setInstanceId(src.getInstanceId());
+        row.setDefinitionControlGeneration(src.getDefinitionControlGeneration());
+        row.setParentSignalId(rootSignalId);
+        row.setRedriveNo(redriveNo);
+        row.setProviderKey(src.getProviderKey());
+        row.setSignalKey(src.getSignalKey() + ":redrive:" + redriveNo);
+        row.setSchemaVersion(src.getSchemaVersion());
+        row.setOccurredAt(src.getOccurredAt());
+        row.setReceivedAt(MxzStorageTime.toUtcLdt(now));
+        row.setPayloadJson(src.getPayloadJson());
+        row.setPayloadHash(src.getPayloadHash());
+        row.setProcessStatus("READY");
+        row.setAttemptCount(0);
+        row.setMaxAttempts(src.getMaxAttempts());
+        row.setNextAttemptAt(MxzStorageTime.toUtcLdt(now));
+        row.setCreatedAt(MxzStorageTime.toUtcLdt(now));
+        row.setUpdatedAt(MxzStorageTime.toUtcLdt(now));
+        mapper.insert(row);
+        return row.getSignalId();
     }
 }

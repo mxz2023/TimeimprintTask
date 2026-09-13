@@ -20,4 +20,12 @@ public record MxzActionJobRecord(
         Instant expiresAt,
         String status,
         int attemptCount,
-        int maxAttempts) {}
+        int maxAttempts,
+        Instant nextAttemptAt,
+        String leaseOwner,
+        Instant leaseUntil,
+        String outcomeCode,
+        String outcomeSummary,
+        Instant completedAt,
+        Long parentActionJobId,
+        int redriveNo) {}

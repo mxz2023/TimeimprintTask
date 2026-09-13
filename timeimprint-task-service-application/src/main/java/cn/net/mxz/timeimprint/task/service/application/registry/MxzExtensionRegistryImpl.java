@@ -68,6 +68,11 @@ public class MxzExtensionRegistryImpl implements ExtensionRegistry {
     record MapScenarioRegistry(Map<ScenarioExtensionKey, ScenarioExtension> map) implements ScenarioExtensionRegistry {
         @Override public Optional<ScenarioExtension> find(ScenarioExtensionKey k) { return Optional.ofNullable(map.get(k)); }
         @Override public ScenarioExtension require(ScenarioExtensionKey k) { return find(k).orElseThrow(() -> new IllegalStateException("ScenarioExtension not found: " + k)); }
+        @Override public List<ScenarioExtension> listAll() {
+            return map.values().stream()
+                    .sorted(java.util.Comparator.comparing(e -> e.registrationKey().scenarioKey()))
+                    .toList();
+        }
     }
     record MapTriggerRegistry(Map<TriggerProviderKey, TriggerProvider> map) implements TriggerProviderRegistry {
         @Override public Optional<TriggerProvider> find(TriggerProviderKey k) { return Optional.ofNullable(map.get(k)); }

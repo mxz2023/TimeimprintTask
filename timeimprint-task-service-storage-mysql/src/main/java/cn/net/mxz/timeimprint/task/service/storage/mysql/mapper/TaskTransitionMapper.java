@@ -12,8 +12,8 @@ public interface TaskTransitionMapper {
 
     TaskTransitionRow selectById(@Param("transitionId") long transitionId);
 
-    List<TaskTransitionRow> selectByDefinitionId(@Param("definitionId") long definitionId,
+    List<TaskTransitionRow> selectByDefinitionId(@Param("definitionId") Long definitionId,
                                                  @Param("instanceId") Long instanceId,
                                                  @Param("limit") int limit,
-                                                 @Param("cursor") String cursor);
+                                                 @Param("cursor") Long cursor);
 }

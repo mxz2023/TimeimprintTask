@@ -72,6 +72,23 @@
         ORDER BY occurrence_at ASC, instance_id ASC
     </select>
 
+    <select id="selectList" resultMap="RM">
+        SELECT i.* FROM tt_task_instance i
+        INNER JOIN tt_task_definition d ON d.definition_id = i.definition_id
+        WHERE d.tenant_id = #{tenantId}
+        <if test="definitionId != null">AND i.definition_id = #{definitionId}</if>
+        <if test="scenarioKey != null">AND d.scenario_key = #{scenarioKey}</if>
+        <if test="lifecycleCategory != null">AND i.lifecycle_category = #{lifecycleCategory}</if>
+        <if test="scenarioState != null">AND i.scenario_state = #{scenarioState}</if>
+        <if test="from != null">AND i.occurrence_at &gt;= #{from}</if>
+        <if test="to != null">AND i.occurrence_at &lt;= #{to}</if>
+        <if test="cursor != null">AND (i.occurrence_at, i.instance_id) &gt; (
+            SELECT occurrence_at, instance_id FROM tt_task_instance WHERE instance_id = #{cursor}
+        )</if>
+        ORDER BY i.occurrence_at ASC, i.instance_id ASC
+        LIMIT #{limit}
+    </select>
+
     <update id="cancelWaitingInstances">
         UPDATE tt_task_instance SET
             lifecycle_category = 'TERMINAL',

@@ -60,36 +60,70 @@ curl -sS "$BASE/actuator/health/readiness"
 
 ---
 
+## 2.1 列表与内部诊断（E01/E05/E08、I02—I07）速查
+
+```bash
+# E01 场景列表
+curl -sS "$BASE/api/v1/task-scenarios" | jq .
+
+# E05 定义列表
+curl -sS "$BASE/api/v1/task-definitions?scenarioKey=reminder&limit=20" | jq .
+
+# E08 实例列表
+curl -sS "$BASE/api/v1/task-instances?definitionId=$DEF_ID&limit=20" | jq .
+
+# I02 / I03 / I04 / I05
+curl -sS "$BASE/internal/v1/task-signals/$SIG_ID" | jq .
+curl -sS "$BASE/internal/v1/action-jobs?definitionId=$DEF_ID&limit=20" | jq .
+curl -sS "$BASE/internal/v1/action-jobs/$ACTION_ID" | jq .
+curl -sS "$BASE/internal/v1/task-transitions?definitionId=$DEF_ID&limit=20" | jq .
+
+# I06 / I07（仅 DEAD 且满足控制代次等条件时可成功）
+curl -sS "${HDR[@]}" -X POST "$BASE/internal/v1/task-signals/$SIG_ID/commands/redrive" -d "{
+  \"requestId\": \"$(uuid)\",
+  \"expectedStatus\": \"DEAD\",
+  \"reason\": \"manual redrive\"
+}" | jq .
+curl -sS "${HDR[@]}" -X POST "$BASE/internal/v1/action-jobs/$ACTION_ID/commands/redrive" -d "{
+  \"requestId\": \"$(uuid)\",
+  \"expectedStatus\": \"DEAD\",
+  \"reason\": \"manual redrive\"
+}" | jq .
+```
+
+---
+
 ## 2. 已实现端点一览
 
 | 契约编号 | 方法与路径 | Controller | 说明 |
 | --- | --- | --- | --- |
+| E01 | `GET /api/v1/task-scenarios` | `MxzTaskDefinitionController` | 场景列表 |
 | E02 | `POST /api/v1/task-definitions/preview` | `MxzTaskDefinitionController` | 预览发生，不写业务 |
 | E03 | `POST /api/v1/task-definitions` | 同上 | 创建定义 |
 | E04 | `GET /api/v1/task-definitions/{definitionId}` | 同上 | 查定义 |
+| E05 | `GET /api/v1/task-definitions` | 同上 | 定义列表 |
 | E06 | `POST /api/v1/task-definitions/{definitionId}/commands/{commandKey}` | 同上 | `pause` / `resume` / `retire` |
 | E07 | `GET /api/v1/task-instances/{instanceId}` | `MxzTaskInstanceController` | 查实例 |
+| E08 | `GET /api/v1/task-instances` | 同上 | 实例列表 |
 | E09 | `POST /api/v1/task-instances/{instanceId}/commands/{commandKey}` | 同上 | S02：`complete` / `skip`（`snooze` 视实现） |
 | E10 | `GET /api/v1/inbox` | `MxzInboxController` | 收件列表 |
 | E11 | `GET /api/v1/inbox/{inboxId}` | 同上 | 单条收件 |
 | E12 | `GET /api/v1/inbox-unread-count` | 同上 | 未读数 |
 | E13 | `POST /api/v1/inbox/{inboxId}/commands/mark-read` | 同上 | 标记已读 |
 | I01 | `POST /internal/v1/task-signals/{providerKey}` | `MxzInternalSignalController` | 投递 Signal |
-| （辅助） | `POST /internal/v1/task-signals/{signalId}/process` | 同上 | **非 04 正式编号**；手动触发处理（也可等 Worker） |
+| I02 | `GET /internal/v1/task-signals/{signalId}` | `MxzInternalDiagnosticController` | Signal 诊断 |
+| I03 | `GET /internal/v1/action-jobs` | 同上 | Action 列表 |
+| I04 | `GET /internal/v1/action-jobs/{actionJobId}` | 同上 | Action 详情 |
+| I05 | `GET /internal/v1/task-transitions` | 同上 | 迁移链路 |
+| I06 | `POST /internal/v1/task-signals/{signalId}/commands/redrive` | 同上 | Signal 重驱 |
+| I07 | `POST /internal/v1/action-jobs/{actionJobId}/commands/redrive` | 同上 | Action 重驱 |
+| （辅助） | `POST /internal/v1/task-signals/{signalId}/process` | `MxzInternalSignalController` | **非 04 正式编号**；手动触发处理（也可等 Worker） |
 
 ### 尚未实现（04 有契约，当前无 Controller）
 
 | 编号 | 方法与路径 |
 | --- | --- |
-| E01 | `GET /api/v1/task-scenarios` |
-| E05 | `GET /api/v1/task-definitions` |
-| E08 | `GET /api/v1/task-instances` |
-| I02 | `GET /internal/v1/task-signals/{signalId}` |
-| I03 | `GET /internal/v1/action-jobs` |
-| I04 | `GET /internal/v1/action-jobs/{actionJobId}` |
-| I05 | `GET /internal/v1/task-transitions` |
-| I06 | `POST /internal/v1/task-signals/{signalId}/commands/redrive` |
-| I07 | `POST /internal/v1/action-jobs/{actionJobId}/commands/redrive` |
+| — | （公开 E01—E13 与内部 I01—I07 已全部挂载；行为边界与验收矩阵仍待补齐） |
 
 查实例/Signal ID 可临时用 SQL（手动联调）：
 

@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-09-13
-阶段状态: VERIFYING（T08 全量回归已执行现有套件；A01—A42 全矩阵与性能门槛仍未收口）
+阶段状态: VERIFYING（T08 全量回归已执行现有套件；公共 HTTP 边界仍未收口）
 
 ---
 
@@ -305,9 +305,12 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 - 07 §6 独立公平性积压：10×101 READY 积压；单轮 ≤100；新到期 S01 10s 内收件（见 §5.8）
 
 尚未执行（保持 NOT_RUN）:
-- 07 §6 性能门槛（1万定义 / 1000 到期 / P95；预热+3 次正式跑）
-- A01—A42 完整验收矩阵
-- E01—E13、I01—I07 全量契约回归
+- A01—A42 完整验收矩阵（多项已有专项证据，矩阵总表未全部勾完）
+- 公共 HTTP 边界（07 §5）
+- E01—E13、I01—I07 全量契约回归（端点矩阵见 §5.9–§5.10）
+
+已验证（续·性能）:
+- 07 §6 性能门槛：专用库双进程；1万 ACTIVE；预热+3 次正式；P95 迁移/inbox 均达标（见 §5.11）
 
 ### 5.1 A04 / A20 双 JVM 崩溃接管
 
@@ -399,8 +402,8 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
 仍 NOT_RUN / 未收口:
-- 07 §6 性能门槛（1万/1000/P95）
 - 公共 HTTP 边界（07 §5）；E/I 端点矩阵见 §5.9–§5.10
+- 07 §6 性能门槛：见 §5.11
 
 ### 5.6 A39 回环绑定、健康边界与优雅停机
 
@@ -456,8 +459,8 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 - 构造 10 定义 × 101 READY 积压后，新到期 S01 在 10 秒内产生恰好 1 条 inbox（显式 poll，关闭 `@Scheduled` 避免跨测试上下文抢库）
 
 仍 NOT_RUN / 未收口:
-- 07 §6 性能门槛（1万/1000/P95）
 - 公共 HTTP 边界（07 §5）；E/I 端点矩阵见 §5.9–§5.10
+- 07 §6 性能门槛：见 §5.11
 
 ### 5.9 I01—I07 独立 HTTP 契约矩阵
 
@@ -517,27 +520,60 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 说明: 公共 HTTP 边界（未知路径/方法/媒体类型/64KiB 等）仍 NOT_RUN；不得宣称 P01 完成。
 
+### 5.11 07 §6 本地性能门槛（1万 / 1000 / P95）
+
+```
+命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzPerfGateDualProcessIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 2, Failures: 0（seed + warmup/formal；类内 631.2s）
+recordedAtUtc: 2026-09-13T09:55:13Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01）
+库: timeimprint_task_perf（专用空库，避免 local 脏积压干扰；Flyway 同版本迁移）
+进程: 父 SpringBootTest + 子 MxzPerfWorkerMain（双 JVM，CLAIM_BATCH_SIZE=100，scheduling=true）
+类: timeimprint-task-boot-loader/.../MxzPerfGateDualProcessIT.java
+suiteId: 0e42c193
+```
+
+结果（最近秩 P50/P95/P99；三次正式均 PASS，未只保留最好一次）:
+
+| 轮次 | runId | 收件 | 重复 | DEAD/EXPIRED | 积压 | P95 迁移 | P95 inbox | 清空耗时 | 判定 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 预热 | warmup-fe65e75b | 1000 | 0 | 0 | 0 | 2000ms | 2000ms | PT2M28S | PASS |
+| 正式1 | formal-1-31cfc580 | 1000 | 0 | 0 | 0 | 3000ms | 3000ms | PT2M27S | PASS |
+| 正式2 | formal-2-ea70345f | 1000 | 0 | 0 | 0 | 2000ms | 2000ms | PT2M28S | PASS |
+| 正式3 | formal-3-4072c426 | 1000 | 0 | 0 | 0 | 3000ms | 3000ms | PT2M28S | PASS |
+
+门槛核对:
+- 预建 9000 远未来 ACTIVE + 每轮 1000 目标 = 1 万 ACTIVE 定义；目标在 60s 窗均匀到期
+- occurrenceAt→SIGNAL Transition P95 ≤5s；occurrenceAt→inbox P95 ≤10s（正式三次均满足）
+- 1000 目标各恰好 1 条 inbox；无 DEAD/EXPIRED；末条到期后 30s 内本 runId 无 READY/RUNNING/RETRY_WAIT
+- 背景 seed：9000 ok，took PT16.6S
+
+说明: 清空耗时含窗口前 90s 创建余量 + 60s 到期窗；drain 断言以 backlog=0 与 deadline 为准。公共 HTTP 边界仍 NOT_RUN。
+
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
 
-**状态: 现有套件 PASS；公共 HTTP 边界与性能仍 NOT_RUN（不得宣称 P01 完成）**
+**状态: 现有套件 PASS；公共 HTTP 边界仍 NOT_RUN（不得宣称 P01 完成）**
 
 recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（E/I 矩阵后未再全量复跑；局部见 §5.9–§5.10） |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（E/I/性能后未再全量复跑） |
 
 说明:
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- 07 §6 性能门槛（1万定义/1000到期/P95）：NOT_RUN
 - 公共 HTTP 边界（未知路径/方法/媒体类型/空体/畸形 JSON/64KiB 等）：NOT_RUN
 - E01—E13 / I01—I07：端点矩阵已记 §5.9–§5.10（部分维度 PARTIAL）
+- 07 §6 性能门槛：PASS（证据 §5.11）
 
 ---
 
@@ -545,8 +581,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | NOT_RUN |
 | — | 公共 HTTP 边界（07 §5） | NOT_RUN |
+| — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | PASS（证据 §5.11） |
 | — | E01—E13 独立 HTTP 契约矩阵 | PASS（证据 §5.10；部分维度 PARTIAL） |
 | — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |

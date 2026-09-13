@@ -49,14 +49,14 @@ public class MxzRecurringTodoCommandHandler {
         public HandlerResult handle(MxzCommandExecutionContext ctx) {
             var inst = ctx.instanceSnapshot();
             if (inst == null) {
-                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "instance not found");
+                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "实例不存在");
             }
             if (!"PENDING".equals(inst.scenarioState())) {
                 if ("COMPLETED".equals(inst.scenarioState())) {
                     return new HandlerResult.NoChange("already_completed");
                 }
                 return new HandlerResult.Rejected("STATE_CONFLICT",
-                        "complete requires PENDING, got " + inst.scenarioState());
+                        "complete 要求场景状态为 PENDING，当前为 " + inst.scenarioState());
             }
 
             String reason = extractReason(ctx.commandPayload());
@@ -86,22 +86,22 @@ public class MxzRecurringTodoCommandHandler {
         public HandlerResult handle(MxzCommandExecutionContext ctx) {
             var inst = ctx.instanceSnapshot();
             if (inst == null) {
-                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "instance not found");
+                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "实例不存在");
             }
             if (!"PENDING".equals(inst.scenarioState())) {
                 if ("SKIPPED".equals(inst.scenarioState())) {
                     return new HandlerResult.NoChange("already_skipped");
                 }
                 return new HandlerResult.Rejected("STATE_CONFLICT",
-                        "skip requires PENDING, got " + inst.scenarioState());
+                        "skip 要求场景状态为 PENDING，当前为 " + inst.scenarioState());
             }
 
             String reason = extractReason(ctx.commandPayload());
             if (reason == null || reason.isBlank()) {
-                return new HandlerResult.Rejected("INVALID_REQUEST", "skip reason is required");
+                return new HandlerResult.Rejected("INVALID_REQUEST", "skip 命令必须在 payload.reason 提供跳过原因");
             }
             if (reason.codePointCount(0, reason.length()) > 500) {
-                return new HandlerResult.Rejected("INVALID_REQUEST", "skip reason exceeds 500 code points");
+                return new HandlerResult.Rejected("INVALID_REQUEST", "skip 的 reason 超过 500 个 Unicode 码点上限");
             }
             Map<String, Object> snapshot = new LinkedHashMap<>();
             snapshot.put("scenarioState", "SKIPPED");
@@ -136,20 +136,20 @@ public class MxzRecurringTodoCommandHandler {
             var inst = ctx.instanceSnapshot();
             var def = ctx.definitionSnapshot();
             if (inst == null) {
-                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "instance not found");
+                return new HandlerResult.Rejected("RESOURCE_NOT_FOUND", "实例不存在");
             }
             if (!"PENDING".equals(inst.scenarioState())) {
                 return new HandlerResult.Rejected("STATE_CONFLICT",
-                        "snooze requires PENDING, got " + inst.scenarioState());
+                        "snooze 要求场景状态为 PENDING，当前为 " + inst.scenarioState());
             }
             if (def.controlState() == ControlState.PAUSED || def.controlState() == ControlState.RETIRED) {
                 return new HandlerResult.Rejected("STATE_CONFLICT",
-                        "snooze not allowed when definition is " + def.controlState());
+                        "定义处于 " + def.controlState() + " 时不允许 snooze");
             }
 
             Instant snoozeUntil = extractSnoozeUntil(ctx.commandPayload());
             if (snoozeUntil == null) {
-                return new HandlerResult.Rejected("INVALID_REQUEST", "snoozeUntil is required");
+                return new HandlerResult.Rejected("INVALID_REQUEST", "snooze 命令必须提供未来的 snoozeUntil");
             }
 
             Map<String, Object> snapshot = parseSnapshot(inst.scenarioSnapshotJson());
@@ -159,15 +159,15 @@ public class MxzRecurringTodoCommandHandler {
             int actionGeneration = asInt(snapshot.get("actionGeneration"), 1);
             Instant expiresAt = parseInstant(snapshot.get("expiresAt"), inst.dueAt());
             if (expiresAt == null) {
-                return new HandlerResult.Rejected("STATE_CONFLICT", "instance expiresAt missing");
+                return new HandlerResult.Rejected("STATE_CONFLICT", "实例缺少 expiresAt，无法执行 snooze");
             }
             if (snoozeCount >= maxSnooze) {
-                return new HandlerResult.Rejected("STATE_CONFLICT", "maxSnoozeCount exceeded");
+                return new HandlerResult.Rejected("STATE_CONFLICT", "已达到 maxSnoozeCount，不能再次 snooze");
             }
             Instant now = ctx.nowUtc();
             if (!snoozeUntil.isAfter(now) || !snoozeUntil.isBefore(expiresAt)) {
                 return new HandlerResult.Rejected("STATE_CONFLICT",
-                        "snoozeUntil must be after now and strictly before expiresAt");
+                        "snoozeUntil 必须晚于当前时间且严格早于 expiresAt");
             }
 
             List<MxzActionJobView> movable = ctx.actionJobs().stream()
@@ -175,7 +175,7 @@ public class MxzRecurringTodoCommandHandler {
                     .sorted(Comparator.comparing(MxzActionJobView::availableAt))
                     .toList();
             if (movable.isEmpty()) {
-                return new HandlerResult.Rejected("STATE_CONFLICT", "no movable actions");
+                return new HandlerResult.Rejected("STATE_CONFLICT", "没有可平移的 READY/RETRY_WAIT Action，无法 snooze");
             }
 
             Instant anchor = movable.get(0).availableAt();
@@ -188,7 +188,7 @@ public class MxzRecurringTodoCommandHandler {
                 Instant newAvailable = old.availableAt().plus(delta);
                 if (!newAvailable.isBefore(expiresAt)) {
                     return new HandlerResult.Rejected("STATE_CONFLICT",
-                            "shifted action would reach or pass expiresAt");
+                            "平移后的 Action 会到达或超过 expiresAt");
                 }
                 Map<String, Object> payload = parsePayload(old.payloadJson());
                 String purpose = String.valueOf(payload.getOrDefault("purpose", "INITIAL"));

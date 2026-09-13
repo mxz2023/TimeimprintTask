@@ -1,14 +1,14 @@
 package cn.net.mxz.timeimprint.task.web.controller;
 
-import cn.net.mxz.timeimprint.task.domain.MxzApiErrorCodes;
+import cn.net.mxz.timeimprint.task.domain.MxzApiMessages;
 import cn.net.mxz.timeimprint.task.domain.MxzApiResponse;
+import cn.net.mxz.timeimprint.task.domain.MxzApiResponses;
 import cn.net.mxz.timeimprint.task.domain.request.InstanceCommandRequest;
 import cn.net.mxz.timeimprint.task.domain.view.CommandResultView;
 import cn.net.mxz.timeimprint.task.domain.view.Page;
 import cn.net.mxz.timeimprint.task.domain.view.TaskInstanceView;
 import cn.net.mxz.timeimprint.task.gateway.MxzTaskGateway;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,20 +55,18 @@ public class MxzTaskInstanceController {
             @RequestParam(required = false) String to,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit) {
-        return new MxzApiResponse<>(
-                MxzApiErrorCodes.OK,
-                "OK",
-                UUID.randomUUID().toString().replace("-", ""),
-                gateway.listInstances(
-                        definitionId,
-                        scenarioKey,
-                        lifecycleCategory,
-                        scenarioState,
-                        participantRole,
-                        from,
-                        to,
-                        cursor,
-                        limit));
+        Page<TaskInstanceView> page = gateway.listInstances(
+                definitionId,
+                scenarioKey,
+                lifecycleCategory,
+                scenarioState,
+                participantRole,
+                from,
+                to,
+                cursor,
+                limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return MxzApiResponses.ok("已返回任务实例列表，本页 " + n + " 条", page);
     }
 
     /**
@@ -88,8 +86,20 @@ public class MxzTaskInstanceController {
      */
     @GetMapping("/task-instances/{instanceId}")
     public MxzApiResponse<TaskInstanceView> get(@PathVariable long instanceId) {
-        return new MxzApiResponse<>(
-                MxzApiErrorCodes.OK, "OK", UUID.randomUUID().toString().replace("-", ""), gateway.getInstance(instanceId));
+        TaskInstanceView view = gateway.getInstance(instanceId);
+        return MxzApiResponses.ok(
+                "已查询任务实例详情，instanceId="
+                        + view.instanceId()
+                        + "，scenarioKey="
+                        + view.scenarioKey()
+                        + "，scenarioState="
+                        + view.scenarioState()
+                        + "，lifecycleCategory="
+                        + view.lifecycleCategory()
+                        + "，revision="
+                        + view.revision()
+                        + "；下一步可依据 allowedCommands 选择命令",
+                view);
     }
 
     /**
@@ -110,36 +120,24 @@ public class MxzTaskInstanceController {
      *   <li>{@code commandSchemaVersion} — 命令 schema 版本，通常为 1</li>
      *   <li>{@code payload} — 命令载荷；{@code complete} 可为 {@code {}}；{@code skip} 需含 {@code reason}</li>
      * </ul>
-     *
-     * <p><b>调用示例（完成）：</b>
-     * <pre>{@code
-     * curl -sS -H 'Content-Type: application/json' -H 'Accept: application/json' \
-     *   -X POST 'http://127.0.0.1:18080/api/v1/task-instances/1/commands/complete' -d "{
-     *   \"requestId\": \"$(uuidgen | tr '[:upper:]' '[:lower:]')\",
-     *   \"expectedRevision\": 2,
-     *   \"commandSchemaVersion\": 1,
-     *   \"payload\": {}
-     * }"
-     * }</pre>
-     *
-     * <p><b>调用示例（跳过）：</b>
-     * <pre>{@code
-     * curl -sS -H 'Content-Type: application/json' -H 'Accept: application/json' \
-     *   -X POST 'http://127.0.0.1:18080/api/v1/task-instances/1/commands/skip' -d "{
-     *   \"requestId\": \"$(uuidgen | tr '[:upper:]' '[:lower:]')\",
-     *   \"expectedRevision\": 2,
-     *   \"commandSchemaVersion\": 1,
-     *   \"payload\": {\"reason\": \"本期不需要\"}
-     * }"
-     * }</pre>
      */
     @PostMapping("/task-instances/{instanceId}/commands/{commandKey}")
     public MxzApiResponse<CommandResultView> executeCommand(
             @PathVariable long instanceId,
             @PathVariable String commandKey,
             @Valid @RequestBody InstanceCommandRequest req) {
-        return new MxzApiResponse<>(
-                MxzApiErrorCodes.OK, "OK", UUID.randomUUID().toString().replace("-", ""),
-                gateway.executeInstanceCommand(instanceId, commandKey, req));
+        CommandResultView result = gateway.executeInstanceCommand(instanceId, commandKey, req);
+        String scenarioState = null;
+        if (result.resourceSnapshot() != null && result.resourceSnapshot().has("scenarioState")) {
+            scenarioState = result.resourceSnapshot().path("scenarioState").asText(null);
+        }
+        return MxzApiResponses.ok(
+                MxzApiMessages.instanceCommandSucceeded(
+                        commandKey,
+                        instanceId,
+                        result.resourceRevision(),
+                        result.changed(),
+                        scenarioState == null ? "unknown" : scenarioState),
+                result);
     }
 }

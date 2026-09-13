@@ -150,7 +150,11 @@ public class MxzInstanceCommandService {
             if (handlerOpt.isEmpty()) {
                 throw new MxzApplicationException(
                         "COMMAND_NOT_SUPPORTED",
-                        "scenario does not declare commandKey=" + commandKey);
+                        "场景 "
+                                + defSnap.scenarioKey()
+                                + " 未声明命令 commandKey="
+                                + commandKey
+                                + "。请先查询该资源的 allowedCommands，改用已声明命令后再试");
             }
             var handler = handlerOpt.get();
 

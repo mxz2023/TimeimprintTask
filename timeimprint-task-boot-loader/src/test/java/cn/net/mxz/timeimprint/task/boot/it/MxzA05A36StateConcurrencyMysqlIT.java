@@ -330,7 +330,11 @@ class MxzA05A36StateConcurrencyMysqlIT {
                         "expectedRevision", after.path("data").path("revision").asLong(),
                         "commandSchemaVersion", 1,
                         "payload", Map.of()));
-        assertEquals("EXTENSION_NOT_FOUND", complete.path("code").asText(), complete.toString());
+        assertEquals("COMMAND_NOT_SUPPORTED", complete.path("code").asText(), complete.toString());
+        assertTrue(
+                complete.path("message").asText().contains("complete")
+                        && complete.path("message").asText().contains("reminder"),
+                complete.toString());
     }
 
     private PendingInstance createPendingS02(String title) throws Exception {

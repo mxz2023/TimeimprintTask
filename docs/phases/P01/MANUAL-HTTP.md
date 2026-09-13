@@ -56,7 +56,7 @@ curl -sS "$BASE/actuator/health/liveness"
 curl -sS "$BASE/actuator/health/readiness"
 ```
 
-成功响应信封形如：`{"code":"OK","message":"OK","traceId":"...","data":{...}}`。
+成功响应信封形如：`{"code":"OK","message":"已查询任务定义详情，definitionId=1，…","traceId":"...","data":{...}}`。`message` 为简体中文动作说明（见 [04-API](../../04-API.md) §2），不再使用无语义的 `OK`/`success`。
 
 ---
 

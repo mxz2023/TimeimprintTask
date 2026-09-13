@@ -26,16 +26,16 @@ public final class MxzCreateWriteLimitsValidator {
             Instant windowEnd,
             ObjectMapper objectMapper) {
         if (participants.size() > MxzPlatformLimits.MAX_PARTICIPANTS_PER_SCOPE) {
-            throw limit("too many participants");
+            throw limit("参与人数量超过上限，请减少 participants 后重试");
         }
         if (triggerBindings.size() > MxzPlatformLimits.MAX_TRIGGER_BINDINGS) {
-            throw limit("too many trigger bindings");
+            throw limit("触发绑定数量超过上限");
         }
         if (MxzUtf8LimitUtils.utf8ByteLength(description) > MxzPlatformLimits.MAX_JSON_VALUE_BYTES) {
-            throw limit("description too large");
+            throw limit("description 体积超过单 JSON 上限");
         }
         if (MxzUtf8LimitUtils.utf8ByteLength(scenarioConfigJson) > MxzPlatformLimits.MAX_JSON_VALUE_BYTES) {
-            throw limit("scenarioConfig too large");
+            throw limit("scenarioConfig 体积超过单 JSON 上限");
         }
         MxzRecipientRules.resolveFromInputs(
                 participants.stream()
@@ -75,7 +75,7 @@ public final class MxzCreateWriteLimitsValidator {
             totalOccurrences += window.size();
         }
         if (totalOccurrences > MxzPlatformLimits.MAX_OCCURRENCES_PER_WRITE_TX) {
-            throw limit("too many occurrences in planning window");
+            throw limit("规划窗口内发生次数超过上限");
         }
     }
 
@@ -83,7 +83,7 @@ public final class MxzCreateWriteLimitsValidator {
         try {
             return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
-            throw new MxzApplicationException("INVALID_REQUEST", "invalid trigger binding config");
+            throw new MxzApplicationException("INVALID_REQUEST", "触发绑定 config 不合法");
         }
     }
 

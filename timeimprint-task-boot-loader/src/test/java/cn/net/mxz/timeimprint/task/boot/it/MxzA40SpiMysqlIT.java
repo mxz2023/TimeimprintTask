@@ -89,6 +89,10 @@ class MxzA40SpiMysqlIT {
                         "commandSchemaVersion", 1,
                         "payload", Map.of()));
         assertEquals("COMMAND_NOT_SUPPORTED", resp.path("code").asText(), resp.toString());
+        String message = resp.path("message").asText();
+        assertTrue(message.contains("commandKey=not-a-real-command") || message.contains("未声明"), message);
+        assertTrue(message.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN),
+                message);
     }
 
     @Test

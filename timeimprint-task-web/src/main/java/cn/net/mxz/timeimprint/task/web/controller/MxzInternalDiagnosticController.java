@@ -1,7 +1,7 @@
 package cn.net.mxz.timeimprint.task.web.controller;
 
-import cn.net.mxz.timeimprint.task.domain.MxzApiErrorCodes;
 import cn.net.mxz.timeimprint.task.domain.MxzApiResponse;
+import cn.net.mxz.timeimprint.task.domain.MxzApiResponses;
 import cn.net.mxz.timeimprint.task.domain.request.RedriveRequest;
 import cn.net.mxz.timeimprint.task.domain.view.ActionJobDiagnosticView;
 import cn.net.mxz.timeimprint.task.domain.view.Page;
@@ -9,7 +9,6 @@ import cn.net.mxz.timeimprint.task.domain.view.SignalDiagnosticView;
 import cn.net.mxz.timeimprint.task.domain.view.TransitionDiagnosticView;
 import cn.net.mxz.timeimprint.task.gateway.MxzTaskGateway;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,13 +32,17 @@ public class MxzInternalDiagnosticController {
         this.gateway = gateway;
     }
 
-    /** I02 · 查询 Signal 诊断视图。 */
     @GetMapping("/task-signals/{signalId}")
     public MxzApiResponse<SignalDiagnosticView> getSignal(@PathVariable long signalId) {
-        return ok(gateway.getSignal(signalId));
+        SignalDiagnosticView view = gateway.getSignal(signalId);
+        return MxzApiResponses.ok(
+                "已查询 Signal 诊断，signalId="
+                        + view.signalId()
+                        + "，processStatus="
+                        + view.processStatus(),
+                view);
     }
 
-    /** I03 · 分页查询 Action 积压。 */
     @GetMapping("/action-jobs")
     public MxzApiResponse<Page<ActionJobDiagnosticView>> listActionJobs(
             @RequestParam(required = false) Long definitionId,
@@ -48,40 +51,59 @@ public class MxzInternalDiagnosticController {
             @RequestParam(required = false) String handlerKey,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit) {
-        return ok(gateway.listActionJobs(definitionId, instanceId, status, handlerKey, cursor, limit));
+        Page<ActionJobDiagnosticView> page =
+                gateway.listActionJobs(definitionId, instanceId, status, handlerKey, cursor, limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return MxzApiResponses.ok("已返回 Action 诊断列表，本页 " + n + " 条", page);
     }
 
-    /** I04 · 查询单个 Action 及 attempt 摘要。 */
     @GetMapping("/action-jobs/{actionJobId}")
     public MxzApiResponse<ActionJobDiagnosticView> getActionJob(@PathVariable long actionJobId) {
-        return ok(gateway.getActionJob(actionJobId));
+        ActionJobDiagnosticView view = gateway.getActionJob(actionJobId);
+        return MxzApiResponses.ok(
+                "已查询 Action 诊断，actionJobId="
+                        + view.actionJobId()
+                        + "，effectiveStatus="
+                        + view.effectiveStatus(),
+                view);
     }
 
-    /** I05 · 查询迁移链路。 */
     @GetMapping("/task-transitions")
     public MxzApiResponse<Page<TransitionDiagnosticView>> listTransitions(
             @RequestParam(required = false) Long definitionId,
             @RequestParam(required = false) Long instanceId,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit) {
-        return ok(gateway.listTransitions(definitionId, instanceId, cursor, limit));
+        Page<TransitionDiagnosticView> page = gateway.listTransitions(definitionId, instanceId, cursor, limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return MxzApiResponses.ok("已返回迁移链路列表，本页 " + n + " 条", page);
     }
 
-    /** I06 · 对 DEAD Signal 创建关联重驱行。 */
     @PostMapping("/task-signals/{signalId}/commands/redrive")
     public MxzApiResponse<SignalDiagnosticView> redriveSignal(
             @PathVariable long signalId, @Valid @RequestBody RedriveRequest request) {
-        return ok(gateway.redriveSignal(signalId, request));
+        SignalDiagnosticView view = gateway.redriveSignal(signalId, request);
+        return MxzApiResponses.ok(
+                "已对 DEAD Signal 发起重驱，signalId="
+                        + view.signalId()
+                        + "，processStatus="
+                        + view.processStatus()
+                        + "，redriveNo="
+                        + view.redriveNo(),
+                view);
     }
 
-    /** I07 · 对 LOCAL_TRANSACTIONAL 的 DEAD Action 创建关联重驱行。 */
     @PostMapping("/action-jobs/{actionJobId}/commands/redrive")
     public MxzApiResponse<ActionJobDiagnosticView> redriveAction(
             @PathVariable long actionJobId, @Valid @RequestBody RedriveRequest request) {
-        return ok(gateway.redriveAction(actionJobId, request));
-    }
-
-    private static <T> MxzApiResponse<T> ok(T data) {
-        return new MxzApiResponse<>(MxzApiErrorCodes.OK, "OK", UUID.randomUUID().toString().replace("-", ""), data);
+        ActionJobDiagnosticView view = gateway.redriveAction(actionJobId, request);
+        return MxzApiResponses.ok(
+                "已对 DEAD Action 发起重驱，actionJobId="
+                        + view.actionJobId()
+                        + "，effectiveStatus="
+                        + view.effectiveStatus()
+                        + "，redriveNo="
+                        + view.redriveNo(),
+                view);
     }
 }

@@ -1,7 +1,8 @@
 package cn.net.mxz.timeimprint.task.web.controller;
 
-import cn.net.mxz.timeimprint.task.domain.MxzApiErrorCodes;
+import cn.net.mxz.timeimprint.task.domain.MxzApiMessages;
 import cn.net.mxz.timeimprint.task.domain.MxzApiResponse;
+import cn.net.mxz.timeimprint.task.domain.MxzApiResponses;
 import cn.net.mxz.timeimprint.task.domain.request.CreateTaskDefinitionRequest;
 import cn.net.mxz.timeimprint.task.domain.request.DefinitionCommandRequest;
 import cn.net.mxz.timeimprint.task.domain.request.PreviewRequest;
@@ -12,7 +13,6 @@ import cn.net.mxz.timeimprint.task.domain.view.ScenarioMetadataView;
 import cn.net.mxz.timeimprint.task.domain.view.TaskDefinitionView;
 import cn.net.mxz.timeimprint.task.gateway.MxzTaskGateway;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,7 +50,9 @@ public class MxzTaskDefinitionController {
     public MxzApiResponse<Page<ScenarioMetadataView>> listScenarios(
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit) {
-        return ok(gateway.listScenarios(cursor, limit));
+        Page<ScenarioMetadataView> page = gateway.listScenarios(cursor, limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return MxzApiResponses.ok("已返回已装配场景列表，本页 " + n + " 条", page);
     }
 
     /**
@@ -93,7 +95,14 @@ public class MxzTaskDefinitionController {
      */
     @PostMapping("/task-definitions/preview")
     public MxzApiResponse<PreviewResult> preview(@Valid @RequestBody PreviewRequest request) {
-        return ok(gateway.preview(request));
+        PreviewResult result = gateway.preview(request);
+        int n = result.occurrences() == null ? 0 : result.occurrences().size();
+        return MxzApiResponses.ok(
+                "已完成发生预览且未写入业务数据，scenarioKey="
+                        + result.scenarioKey()
+                        + "，occurrences="
+                        + n,
+                result);
     }
 
     /**
@@ -143,7 +152,17 @@ public class MxzTaskDefinitionController {
      */
     @PostMapping("/task-definitions")
     public MxzApiResponse<TaskDefinitionView> create(@Valid @RequestBody CreateTaskDefinitionRequest request) {
-        return ok(gateway.create(request));
+        TaskDefinitionView created = gateway.create(request);
+        return MxzApiResponses.ok(
+                "已创建或幂等重放任务定义，definitionId="
+                        + created.definitionId()
+                        + "，scenarioKey="
+                        + created.scenarioKey()
+                        + "，controlState="
+                        + created.controlState()
+                        + "，revision="
+                        + created.revision(),
+                created);
     }
 
     /**
@@ -162,7 +181,10 @@ public class MxzTaskDefinitionController {
             @RequestParam(required = false) String participantRole,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer limit) {
-        return ok(gateway.listDefinitions(scenarioKey, controlState, participantRole, cursor, limit));
+        Page<TaskDefinitionView> page =
+                gateway.listDefinitions(scenarioKey, controlState, participantRole, cursor, limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return MxzApiResponses.ok("已返回任务定义列表，本页 " + n + " 条", page);
     }
 
     /**
@@ -182,7 +204,15 @@ public class MxzTaskDefinitionController {
      */
     @GetMapping("/task-definitions/{definitionId}")
     public MxzApiResponse<TaskDefinitionView> get(@PathVariable long definitionId) {
-        return ok(gateway.getDefinition(definitionId));
+        TaskDefinitionView view = gateway.getDefinition(definitionId);
+        return MxzApiResponses.ok(
+                "已查询任务定义详情，definitionId="
+                        + view.definitionId()
+                        + "，controlState="
+                        + view.controlState()
+                        + "，revision="
+                        + view.revision(),
+                view);
     }
 
     /**
@@ -220,12 +250,10 @@ public class MxzTaskDefinitionController {
             @PathVariable long definitionId,
             @PathVariable String commandKey,
             @Valid @RequestBody DefinitionCommandRequest req) {
-        return new MxzApiResponse<>(
-                MxzApiErrorCodes.OK, "OK", UUID.randomUUID().toString().replace("-", ""),
-                gateway.executeDefinitionCommand(definitionId, commandKey, req));
-    }
-
-    private static <T> MxzApiResponse<T> ok(T data) {
-        return new MxzApiResponse<>(MxzApiErrorCodes.OK, "OK", UUID.randomUUID().toString().replace("-", ""), data);
+        CommandResultView result = gateway.executeDefinitionCommand(definitionId, commandKey, req);
+        return MxzApiResponses.ok(
+                MxzApiMessages.definitionCommandSucceeded(
+                        commandKey, definitionId, result.resourceRevision(), result.changed()),
+                result);
     }
 }

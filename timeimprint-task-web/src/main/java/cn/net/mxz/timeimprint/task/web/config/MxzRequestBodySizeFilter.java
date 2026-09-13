@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.web.config;
 
 import cn.net.mxz.timeimprint.task.domain.MxzApiErrorCodes;
+import cn.net.mxz.timeimprint.task.domain.MxzApiMessages;
 import cn.net.mxz.timeimprint.task.domain.MxzApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -64,7 +65,8 @@ public class MxzRequestBodySizeFilter extends OncePerRequestFilter {
                 response.getOutputStream(),
                 new MxzApiResponse<>(
                         MxzApiErrorCodes.REQUEST_TOO_LARGE,
-                        "request body exceeds 64KiB",
+                        MxzApiMessages.error(
+                                MxzApiErrorCodes.REQUEST_TOO_LARGE, "request body exceeds 64KiB"),
                         UUID.randomUUID().toString().replace("-", ""),
                         null));
     }

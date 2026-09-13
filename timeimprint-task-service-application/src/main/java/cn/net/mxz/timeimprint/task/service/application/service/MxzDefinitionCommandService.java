@@ -474,7 +474,8 @@ public class MxzDefinitionCommandService {
                 yield ControlState.RETIRED;
             }
             default -> throw new MxzApplicationException(
-                    "COMMAND_NOT_SUPPORTED", "definition command '" + commandKey + "' not supported");
+                    "COMMAND_NOT_SUPPORTED",
+                    "定义命令 commandKey=" + commandKey + " 不受支持。请使用 update/pause/resume/retire");
         };
     }
 

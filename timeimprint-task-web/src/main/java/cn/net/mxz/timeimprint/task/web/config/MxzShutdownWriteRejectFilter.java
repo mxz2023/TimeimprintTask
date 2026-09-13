@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.web.config;
 
 import cn.net.mxz.timeimprint.task.domain.MxzApiErrorCodes;
+import cn.net.mxz.timeimprint.task.domain.MxzApiMessages;
 import cn.net.mxz.timeimprint.task.domain.MxzApiResponse;
 import cn.net.mxz.timeimprint.task.service.application.runtime.MxzRuntimeAdmission;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,8 @@ public class MxzShutdownWriteRejectFilter extends OncePerRequestFilter {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             var body = new MxzApiResponse<>(
                     MxzApiErrorCodes.RETRY_LATER,
-                    "shutting down; retry with same requestId",
+                    MxzApiMessages.error(
+                            MxzApiErrorCodes.RETRY_LATER, "shutting down; retry with same requestId"),
                     UUID.randomUUID().toString().replace("-", ""),
                     null);
             objectMapper.writeValue(response.getOutputStream(), body);

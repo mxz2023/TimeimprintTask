@@ -149,7 +149,7 @@ class MxzHttpBoundaryMysqlIT {
                         .GET()
                         .build());
         assertEnvelope(boom, 500, "INTERNAL_ERROR");
-        assertEquals("internal error", boom.body.path("message").asText());
+        assertEquals("服务内部错误，请稍后重试；响应不含内部细节", boom.body.path("message").asText());
         String raw = boom.rawBody.toLowerCase();
         assertFalse(raw.contains("probe_secret"));
         assertFalse(raw.contains("jdbc:"));

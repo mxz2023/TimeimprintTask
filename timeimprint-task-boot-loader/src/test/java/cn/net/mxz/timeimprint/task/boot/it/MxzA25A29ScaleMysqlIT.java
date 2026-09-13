@@ -73,7 +73,7 @@ class MxzA25A29ScaleMysqlIT {
         }
         JsonNode resp = postCreate("A25 over participants", participants, "ok", Map.of());
         assertEquals("INVALID_REQUEST", resp.path("code").asText(), resp.toString());
-        assertTrue(resp.path("message").asText().toLowerCase().contains("participant"), resp.toString());
+        assertTrue(resp.path("message").asText().contains("参与人"), resp.toString());
         Integer defs = jdbc.queryForObject("SELECT COUNT(*) FROM tt_task_definition WHERE title = ?", Integer.class, "A25 over participants");
         assertEquals(0, defs == null ? -1 : defs);
     }
@@ -94,8 +94,8 @@ class MxzA25A29ScaleMysqlIT {
                         now.plusSeconds(86400),
                         objectMapper));
         assertEquals("INVALID_REQUEST", ex.errorCode());
-        assertTrue(ex.getMessage().toLowerCase().contains("large")
-                || ex.getMessage().toLowerCase().contains("scenarioconfig"));
+        assertTrue(ex.getMessage().contains("scenarioConfig") || ex.getMessage().contains("上限"),
+                ex.getMessage());
     }
 
     private JsonNode postCreate(

@@ -29,13 +29,13 @@
 ```json
 {
   "code": "OK",
-  "message": "success",
+  "message": "已查询任务实例详情",
   "traceId": "01J7...",
   "data": {}
 }
 ```
 
-`code=OK`表示当前HTTP操作已成功提交，不等于外部通知已送达或用户已读。错误响应同样使用该信封，data为null；不得返回SQL、堆栈、凭据、executionToken或其他用户资源信息。
+`code`为稳定英文机器码（成功恒为`OK`，失败见第7节）。`message`必须为简体中文可读说明，面向调用方与AI编排：成功时说明本接口刚完成的动作及关键结果要点（例如创建了哪个定义、执行了哪个命令、revision/场景状态如何变化、是否幂等重放）；失败时说明拒绝原因与可执行的下一步（例如应改用`allowedCommands`中的命令、应先刷新revision）。禁止仅返回`OK`、`success`、`error`等无语义占位词。`code=OK`表示当前HTTP操作已成功提交，不等于外部通知已送达或用户已读。错误响应同样使用该信封，data为null；不得返回SQL、堆栈、凭据、executionToken或其他用户资源信息。
 
 ## 3. 公共请求与响应对象
 

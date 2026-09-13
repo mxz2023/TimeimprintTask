@@ -33,8 +33,8 @@ public interface ActionJobExecutionPort {
     void cancelRunning(
             long actionJobId, String executionToken, String outcomeCode, java.time.Instant completedAt);
 
-    /** Close EXTERNAL/local RUNNING Action by executionToken CAS. */
-    void completeWithToken(
+    /** Close EXTERNAL/local RUNNING Action by executionToken CAS. @return true if CAS matched. */
+    boolean completeWithToken(
             long actionJobId,
             String executionToken,
             String status,

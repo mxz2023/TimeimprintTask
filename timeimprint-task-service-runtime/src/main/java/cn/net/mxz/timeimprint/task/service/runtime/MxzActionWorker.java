@@ -95,15 +95,37 @@ public class MxzActionWorker {
     }
 
     private void executeLocal(long actionJobId) {
+        executeLocalInternal(actionJobId, false);
+    }
+
+    /**
+     * IT hook for A10: write LOCAL effect then complete with a mismatched token so CAS fails and
+     * the whole transaction (inbox + attempt + claim) rolls back.
+     */
+    public void executeLocalWithForcedCasFailure(long actionJobId) {
+        executeLocalInternal(actionJobId, true);
+    }
+
+    private void executeLocalInternal(long actionJobId, boolean forceCasMismatch) {
+        Instant now = clock.nowUtcSeconds();
+        Instant leaseUntil = now.plus(LEASE_SECONDS, ChronoUnit.SECONDS);
         tx.execute(() -> {
+            var peek = actionPort.findById(actionJobId);
+            if (peek.isEmpty()) return null;
+            // Lock order: definition → instance → Action → Attempt (claim inserts Attempt).
+            var defOpt = definitionRepository.findByIdForUpdate(peek.get().definitionId());
+            instanceRepository.findByIdForUpdate(peek.get().instanceId());
             var actionOpt = actionPort.findByIdForUpdate(actionJobId);
-            if (actionOpt.isEmpty()) return null;
+            if (defOpt.isEmpty() || actionOpt.isEmpty()) return null;
             var action = actionOpt.get();
             if (!"READY".equals(action.status()) && !"RETRY_WAIT".equals(action.status())) return null;
             if (!"LOCAL_TRANSACTIONAL".equals(action.executionMode())) return null;
 
-            if (isBarrierBlocked(action.definitionId(), action.definitionControlGeneration())) {
-                actionPort.markCancelled(actionJobId, "CONTROL_BARRIER", clock.nowUtcSeconds());
+            var def = defOpt.get();
+            if (action.definitionControlGeneration() != def.controlGeneration()
+                    || def.controlState() == ControlState.PAUSED
+                    || def.controlState() == ControlState.RETIRED) {
+                actionPort.markCancelled(actionJobId, "CONTROL_BARRIER", now);
                 return null;
             }
 
@@ -115,18 +137,35 @@ public class MxzActionWorker {
                 return null;
             }
 
-            String token = UUID.randomUUID().toString();
+            var tokenOpt = actionPort.claimForExecution(actionJobId, LEASE_OWNER, leaseUntil, now);
+            if (tokenOpt.isEmpty()) {
+                return null;
+            }
+            String token = tokenOpt.get();
+            action = actionPort.findByIdForUpdate(actionJobId).orElse(action);
+
             var execCtx = buildContext(action, token);
             var result = handlerOpt.get().execute(execCtx);
-            if (result.outcome() == ActionHandlerOutcome.SUCCEEDED) {
-                actionPort.markSucceeded(
-                        actionJobId, result.outcomeCode(), result.safeSummary(), clock.nowUtcSeconds());
-            } else {
-                log.warn(
-                        "Action worker: action {} failed: {} {}",
-                        actionJobId,
-                        result.outcomeCode(),
-                        result.safeSummary());
+            if (result.outcome() != ActionHandlerOutcome.SUCCEEDED) {
+                throw new IllegalStateException(
+                        "LOCAL handler failed: " + result.outcomeCode() + " " + result.safeSummary());
+            }
+
+            Instant done = clock.nowUtcSeconds();
+            actionPort.completeAttempt(
+                    actionJobId,
+                    token,
+                    "SUCCEEDED",
+                    null,
+                    result.outcomeCode(),
+                    result.safeSummary(),
+                    done);
+            String casToken = forceCasMismatch ? token + "-mismatch" : token;
+            boolean closed = actionPort.completeWithToken(
+                    actionJobId, casToken, "SUCCEEDED", result.outcomeCode(), result.safeSummary(), done);
+            if (!closed) {
+                // A10: effect already written in this TX — must roll back with the CAS miss.
+                throw new IllegalStateException("CAS_FAILED");
             }
             return null;
         });
@@ -254,8 +293,11 @@ public class MxzActionWorker {
                     result.outcomeCode(),
                     result.safeSummary(),
                     done);
-            actionPort.completeWithToken(
+            boolean closed = actionPort.completeWithToken(
                     actionJobId, token, status, result.outcomeCode(), result.safeSummary(), done);
+            if (!closed) {
+                throw new IllegalStateException("EXTERNAL result CAS failed");
+            }
             return null;
         });
     }

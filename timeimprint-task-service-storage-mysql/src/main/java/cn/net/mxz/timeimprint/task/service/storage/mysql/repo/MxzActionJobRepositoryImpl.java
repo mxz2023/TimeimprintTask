@@ -122,19 +122,22 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
     public void markSucceeded(long actionJobId, String outcomeCode, String summary, Instant completedAt) {
         var row = mapper.selectByIdForUpdate(actionJobId);
         if (row == null) {
-            return;
+            throw new MxzApplicationException("RESOURCE_NOT_FOUND", "actionJob");
         }
         String token = row.getExecutionToken();
         if (token == null) {
             token = UUID.randomUUID().toString();
-            mapper.claimAction(
+            int claimed = mapper.claimAction(
                     actionJobId,
                     "local-tx",
                     MxzStorageTime.toUtcLdt(completedAt).plusMinutes(1),
                     token,
                     MxzStorageTime.toUtcLdt(completedAt));
+            if (claimed != 1) {
+                throw new MxzApplicationException("STATE_CONFLICT", "action claim failed");
+            }
         }
-        mapper.completeAction(
+        int closed = mapper.completeAction(
                 actionJobId,
                 token,
                 "SUCCEEDED",
@@ -142,6 +145,9 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
                 summary,
                 MxzStorageTime.toUtcLdt(completedAt),
                 MxzStorageTime.toUtcLdt(completedAt));
+        if (closed != 1) {
+            throw new MxzApplicationException("STATE_CONFLICT", "action CAS failed");
+        }
     }
 
     @Override
@@ -188,7 +194,7 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
     }
 
     @Override
-    public void completeWithToken(
+    public boolean completeWithToken(
             long actionJobId,
             String executionToken,
             String status,
@@ -196,7 +202,7 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
             String summary,
             Instant completedAt) {
         LocalDateTime at = MxzStorageTime.toUtcLdt(completedAt);
-        mapper.completeAction(actionJobId, executionToken, status, outcomeCode, summary, at, at);
+        return mapper.completeAction(actionJobId, executionToken, status, outcomeCode, summary, at, at) == 1;
     }
 
     @Override

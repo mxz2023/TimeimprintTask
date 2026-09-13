@@ -251,6 +251,19 @@ Failsafe: Tests run: 3, Failures: 0
 - 调用中崩溃（已提交 `effectStartedAt`）：租约回收 → `UNKNOWN`，不自动重发、Worker 不再调用
 - 结果已提交：保持 `SUCCEEDED`，不在过期 RUNNING 集合中
 
+### 4.14 A10 LOCAL_TRANSACTIONAL CAS 失败整笔回滚
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA10LocalCasMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 1, Failures: 0
+```
+
+- LOCAL 路径：同事务 claim → 写 inbox → 闭合 Attempt → CAS 完结；CAS 失败抛错整笔回滚
+- 强制 token 失配后：Action 仍为 READY、无 Attempt、无 inbox；再次执行后恰好 1 条 inbox
+
 ---
 
 ## 5. 双进程与性能验收

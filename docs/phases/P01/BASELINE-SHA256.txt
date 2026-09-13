@@ -38,7 +38,6 @@ c43549bf6ee07011a62492cef2e4ff93dd9cb73d45f332e550f887c1d6b3ee3f  docs/capabilit
 9d721176d4ccce9339ab05cda187003f971b14d0e7db8b161c5ead6f731d9b46  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/snapshot/MxzTaskInstanceSnapshot.java
 9d7e40a7f2b282fed9b8d8a338fdef625cee2841865156cd61d87b562a453371  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/PlannedSignalIntent.java
 a04494fdb7b9aea26a3e2d640f90ee291b19191a67cbcb6eaa3cf3f3f127be19  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/TransitionPlan.java
-ac5ae450b46b2119e2d63580a039cd42a0cb0382912d189cce23606fc9847789  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/MxzServiceKernelMarker.java
 ba8bd9f9ea0debfadf9fe98a4a6e6604b464803771d7d53ad5fedbded5354edd  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/mutation/MxzJsonPayload.java
 ce156c95004be39aa80152c5e8b533e1307075bc3dc0edf350583fde70c18d35  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/revision/MxzRevisions.java
 daa320f3ba8da470722c3fd57c8f1d927a3bb807ec01adb38bc2df784577e9f1  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/package-info.java

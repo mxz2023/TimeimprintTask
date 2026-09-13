@@ -621,21 +621,6 @@ class MxzArchitectureRulesTest {{
 
         write(mod / "pom.xml", module_pom(artifact, deps or [], extra))
         write(src / "package-info.java", pkg_info(pkg, f"{artifact} module."))
-        # Ensure at least one compilable class for modules that need markers
-        simple = "".join(part.capitalize() for part in artifact.replace("timeimprint-task-", "").split("-"))
-        class_name = f"Mxz{simple}Marker"
-        write(
-            src / f"{class_name}.java",
-            f"""package {pkg};
-
-/**
- * {artifact} 模块占位类，保证 T01 可编译；后续任务替换为正式实现。
- */
-public final class {class_name} {{
-    private {class_name}() {{}}
-}}
-""",
-        )
 
     write(
         ROOT / ".gitignore",

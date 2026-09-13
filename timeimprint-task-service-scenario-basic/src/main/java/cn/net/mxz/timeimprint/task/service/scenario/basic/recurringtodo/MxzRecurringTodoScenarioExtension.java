@@ -10,13 +10,15 @@ import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioExtensionK
 import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioExtension;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.ScenarioDataMutation;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.ActionJobIntent;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.InstanceStateTransition;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionPlan;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionResourceType;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionTarget;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.state.LifecycleCategory;
-import java.nio.charset.StandardCharsets;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -38,11 +40,18 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
 
     public static final String SCENARIO_KEY = "recurring_todo";
     public static final int CONTRACT_VERSION = 1;
+    public static final String MUTATION_REPLACE_INSTANCE_SNAPSHOT = "REPLACE_INSTANCE_SNAPSHOT";
 
     // Default config values per S02 contract
     static final List<Integer> DEFAULT_CHASE_OFFSETS = List.of(60, 240, 720);
     static final int DEFAULT_NOTIFICATION_EXPIRE_MINUTES = 1440;
     static final int DEFAULT_MAX_SNOOZE_COUNT = 3;
+
+    private final ObjectMapper objectMapper;
+
+    public MxzRecurringTodoScenarioExtension(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public ScenarioExtensionKey registrationKey() {
@@ -62,7 +71,6 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
     public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
         if (context.scenarioConfig() instanceof MxzJsonPayload jp) {
             Map<String, Object> fields = jp.fields();
-            // Validate chaseOffsetsMinutes if present
             if (fields.containsKey("chaseOffsetsMinutes")) {
                 Object v = fields.get("chaseOffsetsMinutes");
                 if (v != null && !(v instanceof List)) {
@@ -94,7 +102,6 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
             return new HandlerResult.NoChange("already_not_planned:" + instSnapshot.scenarioState());
         }
 
-        // Parse scenario config for notification settings
         Map<String, Object> scenarioConfig = parseScenarioConfig(context.definitionSnapshot().scenarioConfigJson());
         List<Integer> chaseOffsets = getChaseOffsets(scenarioConfig);
         int expireMinutes = getExpireMinutes(scenarioConfig);
@@ -104,10 +111,8 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
                 : (instSnapshot.occurrenceAt() != null ? instSnapshot.occurrenceAt() : Instant.now());
         Instant expiresAt = dueAt.plus(expireMinutes, ChronoUnit.MINUTES);
 
-        String tenantId = context.definitionSnapshot().tenantId();
         String recipientId = extractRecipient(context);
 
-        // Build scenario snapshot for PENDING state
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("scenarioState", "PENDING");
         snapshot.put("dueAt", dueAt.toString());
@@ -119,15 +124,10 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
         snapshot.put("actionGeneration", 1);
 
         long definitionId = context.definitionSnapshot().definitionId();
-
-        // Build action intents: INITIAL + CHASE slots
         List<ActionJobIntent> actions = new ArrayList<>();
-
-        // INITIAL action at dueAt
         actions.add(buildActionIntent(definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1,
                 recipientId, dueAt, expiresAt));
 
-        // CHASE actions at offsets
         for (int i = 0; i < chaseOffsets.size(); i++) {
             Instant chaseAt = dueAt.plus(chaseOffsets.get(i), ChronoUnit.MINUTES);
             if (chaseAt.isBefore(expiresAt)) {
@@ -155,7 +155,7 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
                 actions,
                 List.of(),
                 List.of(),
-                List.of(),
+                List.of(replaceSnapshotMutation(snapshot)),
                 "signal_due:" + context.signalKey());
 
         return new HandlerResult.Applied(plan);
@@ -169,9 +169,15 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
         }
     }
 
-    // ── helpers ────────────────────────────────────────────────────────────────
+    static ScenarioDataMutation replaceSnapshotMutation(Map<String, Object> snapshot) {
+        return new ScenarioDataMutation(
+                SCENARIO_KEY,
+                MUTATION_REPLACE_INSTANCE_SNAPSHOT,
+                1,
+                new MxzJsonPayload(snapshot));
+    }
 
-    private ActionJobIntent buildActionIntent(
+    static ActionJobIntent buildActionIntent(
             long definitionId, long instanceId, String purpose, int slotIndex, int actionGeneration,
             String recipientId, Instant availableAt, Instant expiresAt) {
 
@@ -201,7 +207,7 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Integer> getChaseOffsets(Map<String, Object> cfg) {
+    static List<Integer> getChaseOffsets(Map<String, Object> cfg) {
         Object v = cfg.get("chaseOffsetsMinutes");
         if (v instanceof List<?> list) {
             return list.stream().map(e -> ((Number) e).intValue()).toList();
@@ -209,33 +215,30 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
         return DEFAULT_CHASE_OFFSETS;
     }
 
-    private int getExpireMinutes(Map<String, Object> cfg) {
+    static int getExpireMinutes(Map<String, Object> cfg) {
         Object v = cfg.get("notificationExpireAfterMinutes");
         if (v instanceof Number n) return n.intValue();
         return DEFAULT_NOTIFICATION_EXPIRE_MINUTES;
     }
 
-    private int getMaxSnoozeCount(Map<String, Object> cfg) {
+    static int getMaxSnoozeCount(Map<String, Object> cfg) {
         Object v = cfg.get("maxSnoozeCount");
         if (v instanceof Number n) return n.intValue();
         return DEFAULT_MAX_SNOOZE_COUNT;
     }
 
-    private Map<String, Object> parseScenarioConfig(String json) {
+    Map<String, Object> parseScenarioConfig(String json) {
         try {
-            // Simple JSON parsing without full ObjectMapper dependency
             if (json == null || json.isBlank() || "{}".equals(json.trim())) {
                 return Map.of();
             }
-            // Use Jackson if available in test; for production just return empty
-            return Map.of();
+            return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             return Map.of();
         }
     }
 
     private String extractRecipient(MxzSignalProcessContext context) {
-        // Default to "local-actor" for P01 local profile
         if (context.payload() instanceof MxzJsonPayload jp) {
             Object r = jp.fields().get("recipientId");
             if (r != null) return String.valueOf(r);

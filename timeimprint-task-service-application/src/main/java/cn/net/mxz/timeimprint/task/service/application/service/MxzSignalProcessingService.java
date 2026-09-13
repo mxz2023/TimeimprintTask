@@ -141,7 +141,7 @@ public class MxzSignalProcessingService {
                     }
                     var commit = committer.commit(new MxzTransitionCommitRequest(
                             expanded, def.definitionId(), inst.instanceId(), "SIGNAL", signal.signalKey()));
-                    // execute LOCAL_TRANSACTIONAL actions created by this transition
+                    // execute due LOCAL_TRANSACTIONAL actions created by this transition
                     var actions = actionJobExecutionPort.listByInstance(inst.instanceId());
                     for (var action : actions) {
                         if (!"READY".equals(action.status())) {
@@ -152,6 +152,9 @@ public class MxzSignalProcessingService {
                         }
                         if (action.transitionId() != commit.transitionId()) {
                             continue;
+                        }
+                        if (action.availableAt() != null && action.availableAt().isAfter(now)) {
+                            continue; // leave for Action Worker when availableAt arrives
                         }
                         var handler = extensionRegistry
                                 .actionHandlers()

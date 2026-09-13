@@ -113,9 +113,9 @@ recordedAtUtc: 2026-09-12
 
 ### 4.3 E09 实例级命令接口
 
-- `MxzInstanceCommandService` 实现complete/skip命令管道（dedup → 父级锁 → 子级锁 → 执行Handler → 提交 → 返回CommandResultView）
+- `MxzInstanceCommandService` 实现 complete/skip/snooze 命令管道（dedup → 父级锁 → 子级锁 → 执行Handler → 提交 → 返回CommandResultView）
 - `MxzTaskInstanceController#executeCommand` 实现E09端点
-- `MxzRecurringTodoCompleteHandler` 和 `MxzRecurringTodoSkipHandler` 已注册（`service-scenario-basic`）
+- `MxzRecurringTodoCompleteHandler` / `MxzRecurringTodoSkipHandler` / `MxzRecurringTodoSnoozeHandler` 已注册（`service-scenario-basic`）
 
 ### 4.4 S02 纵向闭环（MxzS02BasicMysqlIT）
 
@@ -123,6 +123,21 @@ recordedAtUtc: 2026-09-12
 | --- | --- | --- |
 | ONCE | 预览→创建→PLANNED→processSignal→PENDING→E09 complete→COMPLETED | PASS |
 | DAILY | 创建→PLANNED（取最早实例）→processSignal→PENDING→E09 skip→SKIPPED | PASS |
+
+### 4.5 快照 / snooze / 五规则预览补齐
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzS02BasicMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT,MxzT07FixtureMysqlIT,MxzDualClaimMysqlIT
+退出码: 0
+Failsafe: Tests run: 9, Failures: 0
+```
+
+- Signal 推进 PENDING 时写入 `scenario_snapshot_json`（`REPLACE_INSTANCE_SNAPSHOT`）
+- E09 snooze：旧 READY 批次 CANCELLED、新 `actionGeneration`、返回 `scenarioResult`；`s02SnoozeShiftsReadyActions` PASS
+- CAL-01—CAL-05 E02 预览矩阵：`MxzCalendarFiveRulesPreviewMysqlIT` PASS
+- Signal 同步路径只执行 `availableAt <= now` 的 LOCAL_TRANSACTIONAL；未到期 Action 留给 ActionWorker（S01 IT 已覆盖）
+- MANUAL-HTTP 日历字段与 `MxzCalendarConfigParser` 对齐（`startDate` / `weekday`）
 
 ---
 

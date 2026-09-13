@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.boot.MxzTimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.gateway.MxzTaskGateway;
+import cn.net.mxz.timeimprint.task.service.runtime.MxzActionWorker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
@@ -50,6 +51,9 @@ class MxzS01OnceMysqlIT {
     @Autowired
     MxzTaskGateway gateway;
 
+    @Autowired
+    MxzActionWorker actionWorker;
+
     private final HttpClient http = HttpClient.newHttpClient();
 
     @DynamicPropertySource
@@ -67,6 +71,7 @@ class MxzS01OnceMysqlIT {
     @Test
     void s01OnceVerticalLoop() throws Exception {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
+        // ONCE must be strictly after create; action runs later via ActionWorker when availableAt is due
         ZonedDateTime occurrence = ZonedDateTime.now(zone).plusMinutes(2).withNano(0);
         LocalDate date = occurrence.toLocalDate();
         LocalTime time = occurrence.toLocalTime().withNano(0);
@@ -135,6 +140,18 @@ class MxzS01OnceMysqlIT {
         JsonNode instAfter = get("/api/v1/task-instances/" + instanceId);
         assertEquals("TRIGGERED", instAfter.path("data").path("scenarioState").asText());
         assertEquals("TERMINAL", instAfter.path("data").path("lifecycleCategory").asText());
+
+        Integer readyActions = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM tt_action_job WHERE definition_id = ? AND status = 'READY'",
+                Integer.class,
+                Long.parseLong(definitionId));
+        assertEquals(1, readyActions, "future ONCE leaves LOCAL_TRANSACTIONAL action READY until availableAt");
+
+        jdbc.update(
+                "UPDATE tt_action_job SET available_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND, "
+                        + "next_attempt_at = UTC_TIMESTAMP(3) - INTERVAL 1 SECOND WHERE definition_id = ?",
+                Long.parseLong(definitionId));
+        actionWorker.pollAndExecute();
 
         Integer actionsAfter = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM tt_action_job WHERE definition_id = ? AND status = 'SUCCEEDED'",

@@ -159,6 +159,16 @@ class MxzS02RecurringTodoMysqlIT {
                 instanceId);
         assertTrue(actionCount != null && actionCount >= 1, "Expected at least 1 action job, got: " + actionCount);
 
+        String snapshotJson = jdbc.queryForObject(
+                "SELECT scenario_snapshot_json FROM tt_task_instance WHERE instance_id = ?",
+                String.class,
+                instanceId);
+        assertNotNull(snapshotJson);
+        JsonNode snapshot = objectMapper.readTree(snapshotJson);
+        assertEquals("PENDING", snapshot.path("scenarioState").asText(), snapshotJson);
+        assertEquals(0, snapshot.path("snoozeCount").asInt(), snapshotJson);
+        assertEquals(1, snapshot.path("actionGeneration").asInt(), snapshotJson);
+
         // ── 5. Execute complete command → COMPLETED ───────────────────────────
         String completeRequestId = UUID.randomUUID().toString();
         Map<String, Object> completeBody = Map.of(
@@ -182,6 +192,96 @@ class MxzS02RecurringTodoMysqlIT {
                 Integer.class,
                 instanceId);
         assertEquals(0, remainingReady, "Expected all remaining actions cancelled after complete");
+    }
+
+    @Test
+    void s02SnoozeShiftsReadyActions() throws Exception {
+        ZoneId zone = ZoneId.of("Asia/Shanghai");
+        ZonedDateTime occurrence = ZonedDateTime.now(zone).minusMinutes(1).withNano(0);
+        LocalDate date = occurrence.toLocalDate();
+        LocalTime time = occurrence.toLocalTime().withNano(0);
+
+        Map<String, Object> triggerBinding = Map.of(
+                "bindingKey", "primary",
+                "providerKey", "calendar",
+                "schemaVersion", 1,
+                "config",
+                Map.of(
+                        "type", "DAILY",
+                        "startDate", date.toString(),
+                        "localTime", TIME_FMT.format(time),
+                        "zoneId", "Asia/Shanghai"));
+
+        String requestId = UUID.randomUUID().toString();
+        Map<String, Object> createBody = Map.of(
+                "requestId", requestId,
+                "scenarioKey", "recurring_todo",
+                "scenarioSchemaVersion", 1,
+                "title", "S02 snooze IT",
+                "description", "snooze shifts READY chase actions",
+                "scenarioConfig",
+                Map.of(
+                        "chaseOffsetsMinutes", List.of(5, 10),
+                        "notificationExpireAfterMinutes", 1440,
+                        "maxSnoozeCount", 3),
+                "participants",
+                List.of(Map.of("principalType", "USER", "principalId", "local-actor", "roleCode", "OWNER")),
+                "triggerBindings", List.of(triggerBinding));
+        JsonNode created = post("/api/v1/task-definitions", createBody);
+        assertEquals("OK", created.path("code").asText(), "create: " + created);
+        long definitionId = Long.parseLong(created.path("data").path("definitionId").asText());
+
+        Long instanceId = jdbc.queryForObject(
+                "SELECT instance_id FROM tt_task_instance WHERE definition_id = ? ORDER BY occurrence_at ASC LIMIT 1",
+                Long.class,
+                definitionId);
+        assertNotNull(instanceId);
+        Long signalId = jdbc.queryForObject(
+                "SELECT signal_id FROM tt_task_signal WHERE definition_id = ? AND instance_id = ? LIMIT 1",
+                Long.class,
+                definitionId,
+                instanceId);
+        assertNotNull(signalId);
+        gateway.processSignal(signalId);
+
+        Integer readyBefore = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM tt_action_job WHERE instance_id = ? AND status IN ('READY','RETRY_WAIT')",
+                Integer.class,
+                instanceId);
+        assertTrue(readyBefore != null && readyBefore >= 1, "need movable actions before snooze");
+
+        java.time.Instant snoozeUntil = java.time.Instant.now().plusSeconds(20 * 60).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        JsonNode snoozed = post(
+                "/api/v1/task-instances/" + instanceId + "/commands/snooze",
+                Map.of(
+                        "requestId", UUID.randomUUID().toString(),
+                        "expectedRevision", 1,
+                        "commandSchemaVersion", 1,
+                        "payload", Map.of("snoozeUntil", snoozeUntil.toString())));
+        assertEquals("OK", snoozed.path("code").asText(), "snooze: " + snoozed);
+        assertTrue(snoozed.path("data").path("changed").asBoolean());
+        assertEquals(1, snoozed.path("data").path("scenarioResult").path("snoozeCount").asInt(), snoozed.toString());
+        assertEquals(2, snoozed.path("data").path("scenarioResult").path("actionGeneration").asInt(), snoozed.toString());
+        assertTrue(snoozed.path("data").path("scenarioResult").path("remainingReminderAts").size() >= 1);
+
+        String snapshotJson = jdbc.queryForObject(
+                "SELECT scenario_snapshot_json FROM tt_task_instance WHERE instance_id = ?",
+                String.class,
+                instanceId);
+        JsonNode snapshot = objectMapper.readTree(snapshotJson);
+        assertEquals(1, snapshot.path("snoozeCount").asInt(), snapshotJson);
+        assertEquals(2, snapshot.path("actionGeneration").asInt(), snapshotJson);
+
+        Integer cancelled = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM tt_action_job WHERE instance_id = ? AND status = 'CANCELLED'",
+                Integer.class,
+                instanceId);
+        assertTrue(cancelled != null && cancelled >= 1, "old generation should be cancelled");
+        Integer readyAfter = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM tt_action_job WHERE instance_id = ? AND status IN ('READY','RETRY_WAIT')",
+                Integer.class,
+                instanceId);
+        assertEquals(readyBefore, readyAfter, "same number of movable actions after snooze");
     }
 
     private JsonNode post(String path, Object body) throws Exception {

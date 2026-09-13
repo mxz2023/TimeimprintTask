@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Daily;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.EveryNDays;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Monthly;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Once;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Occurrence;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Weekly;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -35,11 +37,27 @@ class MxzCalendarOccurrenceCalculatorTest {
     }
 
     @Test
-    void dailyStrictlyAfter() {
-        Daily daily = new Daily(LocalDate.of(2026, 9, 10), LocalTime.of(10, 0, 0), MxzCalendarOccurrenceCalculator.BUSINESS_ZONE);
-        Instant after = Instant.parse("2026-09-12T02:00:00Z"); // 10:00 Asia/Shanghai
-        List<Occurrence> list = MxzCalendarOccurrenceCalculator.preview(daily, after, 2);
-        assertEquals(2, list.size());
-        assertEquals("20260913T020000Z", list.get(0).occurrenceKey());
+    void weeklyAndEveryNDaysPreview() {
+        Weekly weekly = new Weekly(
+                LocalDate.of(2026, 9, 7), // Monday
+                5, // Friday
+                LocalTime.of(9, 0, 0),
+                MxzCalendarOccurrenceCalculator.BUSINESS_ZONE);
+        Instant after = Instant.parse("2026-09-07T00:00:00Z");
+        List<Occurrence> fridays = MxzCalendarOccurrenceCalculator.preview(weekly, after, 2);
+        assertEquals(2, fridays.size());
+        assertEquals("20260911T010000Z", fridays.get(0).occurrenceKey());
+        assertEquals("20260918T010000Z", fridays.get(1).occurrenceKey());
+
+        EveryNDays every = new EveryNDays(
+                LocalDate.of(2026, 9, 1),
+                3,
+                LocalTime.of(9, 0, 0),
+                MxzCalendarOccurrenceCalculator.BUSINESS_ZONE);
+        List<Occurrence> everyList = MxzCalendarOccurrenceCalculator.preview(every, after, 3);
+        assertEquals(3, everyList.size());
+        assertEquals("20260907T010000Z", everyList.get(0).occurrenceKey());
+        assertEquals("20260910T010000Z", everyList.get(1).occurrenceKey());
+        assertEquals("20260913T010000Z", everyList.get(2).occurrenceKey());
     }
 }

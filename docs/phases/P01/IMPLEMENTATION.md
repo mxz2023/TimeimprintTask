@@ -26,7 +26,7 @@ T00 文档准备（READY）
 | T02 | PASS | S01 ONCE 真HTTP+真MySQL闭环：`MxzS01OnceMysqlIT` PASS |
 | T03 | PASS | 12表Mapper/提交器/锁序/租约领取已落地；kernel ArchUnit与Flyway information_schema断言 PASS |
 | T04 | PASS | 本地ActorContext、E02/E03/E04/E06/E07/E09/E10—E13/I01及统一TransitionPlan提交管道已验证 |
-| T05 | PASS | 五种日历算法单测 + S01 ONCE闭环 + Signal/Action/Planner Worker；完整五规则业务矩阵仍在持续补齐 |
+| T05 | PASS | 五种日历算法单测 + S01 ONCE闭环 + Signal/Action/Planner Worker；E02五规则预览矩阵 `MxzCalendarFiveRulesPreviewMysqlIT` PASS |
 | T06 | PASS | S02 recurring_todo：`MxzS02BasicMysqlIT`/`MxzS02RecurringTodoMysqlIT` PASS（complete/skip） |
 | T07 | PASS | 三夹具 + kernel/DDL零变更断言 + `MxzDualClaimMysqlIT`（SKIP LOCKED互斥）PASS；完整双JVM进程仍待扩展 |
 | T08 | IN_PROGRESS | DELIVERY已创建；双进程局部与S01/S02证据已记录；A01—A42全矩阵与性能门槛仍为NOT_RUN |

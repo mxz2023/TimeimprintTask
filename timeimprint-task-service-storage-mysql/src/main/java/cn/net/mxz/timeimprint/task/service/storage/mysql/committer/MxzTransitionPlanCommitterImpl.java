@@ -210,14 +210,30 @@ public class MxzTransitionPlanCommitterImpl implements TransitionPlanCommitter {
             String newState = instTransition.toScenarioState();
             LocalDateTime terminalAt = "TERMINAL".equals(newLifecycle) ? now : null;
 
+            String snapshotJson = instRow.getScenarioSnapshotJson();
+            byte[] snapshotHash = instRow.getSnapshotHash();
+            if (request.instanceSnapshotJson() != null && !request.instanceSnapshotJson().isBlank()) {
+                snapshotJson = request.instanceSnapshotJson();
+                snapshotHash = MxzSha256.digestUtf8(snapshotJson);
+            } else {
+                for (ScenarioDataMutation mutation : plan.scenarioDataMutations()) {
+                    if ("REPLACE_INSTANCE_SNAPSHOT".equals(mutation.mutationKey())
+                            && mutation.payload() instanceof MxzJsonPayload jp) {
+                        snapshotJson = toJson(jp);
+                        snapshotHash = MxzSha256.digestUtf8(snapshotJson);
+                        break;
+                    }
+                }
+            }
+
             int updated = instanceMapper.updateRevision(
                     request.instanceId(),
                     instRow.getRevision(),
                     instRow.getRevision() + 1,
                     newLifecycle,
                     newState,
-                    instRow.getScenarioSnapshotJson(),
-                    instRow.getSnapshotHash(),
+                    snapshotJson,
+                    snapshotHash,
                     terminalAt,
                     now);
             if (updated == 0) {
@@ -329,6 +345,9 @@ public class MxzTransitionPlanCommitterImpl implements TransitionPlanCommitter {
                     ? MxzRowMapper.toInstance(instanceMapper.selectById(request.instanceId()))
                     : null;
             for (ScenarioDataMutation mutation : plan.scenarioDataMutations()) {
+                if ("REPLACE_INSTANCE_SNAPSHOT".equals(mutation.mutationKey())) {
+                    continue; // handled during instance update
+                }
                 var key = new ScenarioDataMaterializerKey(
                         mutation.scenarioKey(), mutation.mutationKey(), mutation.schemaVersion());
                 var materializer = materializers.get(key);

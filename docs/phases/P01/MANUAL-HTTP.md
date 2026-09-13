@@ -337,12 +337,12 @@ curl -sS "${HDR[@]}" -X POST "$BASE/api/v1/task-instances/$INST_ID/commands/skip
 | 类型 | 示例 config |
 | --- | --- |
 | ONCE | `{"type":"ONCE","localDate":"2026-09-13","localTime":"10:00:00","zoneId":"Asia/Shanghai"}` |
-| DAILY | `{"type":"DAILY","localTime":"09:00:00","zoneId":"Asia/Shanghai","startLocalDate":"2026-09-08"}` |
-| WEEKLY | `{"type":"WEEKLY","daysOfWeek":["FRIDAY"],"localTime":"09:00:00","zoneId":"Asia/Shanghai","startLocalDate":"2026-09-08"}` |
-| MONTHLY | `{"type":"MONTHLY","dayOfMonth":31,"localTime":"09:00:00","zoneId":"Asia/Shanghai","startLocalDate":"2026-09-01"}` |
-| EVERY_N_DAYS | `{"type":"EVERY_N_DAYS","intervalDays":3,"localTime":"09:00:00","zoneId":"Asia/Shanghai","anchorLocalDate":"2026-09-01"}` |
+| DAILY | `{"type":"DAILY","startDate":"2026-09-08","localTime":"09:00:00","zoneId":"Asia/Shanghai"}` |
+| WEEKLY | `{"type":"WEEKLY","startDate":"2026-09-08","weekday":5,"localTime":"09:00:00","zoneId":"Asia/Shanghai"}` |
+| MONTHLY | `{"type":"MONTHLY","startDate":"2026-09-01","dayOfMonth":31,"localTime":"09:00:00","zoneId":"Asia/Shanghai"}` |
+| EVERY_N_DAYS | `{"type":"EVERY_N_DAYS","startDate":"2026-09-01","intervalDays":3,"localTime":"09:00:00","zoneId":"Asia/Shanghai"}` |
 
-字段名以 calendar 能力契约与实现校验为准；非法组合应返回 `INVALID_REQUEST` 且不落库。
+字段名以 [CAP01](../../capabilities/CAP01-calendar.md) 与 `MxzCalendarConfigParser` 为准：`ONCE` 用 `localDate`；循环规则用 `startDate`；`WEEKLY` 的 `weekday` 为 1=周一…7=周日。非法组合应返回 `INVALID_REQUEST` 且不落库。
 
 ---
 

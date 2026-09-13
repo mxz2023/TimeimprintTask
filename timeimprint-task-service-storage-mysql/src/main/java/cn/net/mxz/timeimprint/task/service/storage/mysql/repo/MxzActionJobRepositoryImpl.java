@@ -218,6 +218,75 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
                 MxzStorageTime.toUtcLdt(finishedAt));
     }
 
+    @Override
+    public List<Long> listExpiredRunningIds(int limit) {
+        return mapper.selectExpiredRunningIds(limit);
+    }
+
+    @Override
+    public boolean recoverExpiredLease(long actionJobId, Instant now) {
+        var row = mapper.selectByIdForUpdate(actionJobId);
+        if (row == null || !"RUNNING".equals(row.getStatus()) || row.getExecutionToken() == null) {
+            return false;
+        }
+        String token = row.getExecutionToken();
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+
+        var attempts = attemptMapper.selectByActionJobId(actionJobId);
+        ActionAttemptRow open = null;
+        for (ActionAttemptRow a : attempts) {
+            if (token.equals(a.getExecutionToken()) && a.getFinishedAt() == null) {
+                open = a;
+                break;
+            }
+        }
+        boolean effectStarted = open != null && open.getEffectStartedAt() != null;
+        boolean external = "EXTERNAL".equals(row.getExecutionMode());
+
+        if (external && effectStarted) {
+            attemptMapper.completeAttempt(
+                    actionJobId, token, "UNKNOWN", "LEASE", "LEASE_EXPIRED",
+                    "EXTERNAL lease expired after effectStartedAt", nowLdt);
+            return mapper.recoverToTerminal(
+                            actionJobId,
+                            token,
+                            "UNKNOWN",
+                            "LEASE_EXPIRED",
+                            "EXTERNAL lease expired after effectStartedAt",
+                            nowLdt,
+                            nowLdt)
+                    == 1;
+        }
+
+        attemptMapper.completeAttempt(
+                actionJobId, token, "RETRYABLE_FAILURE", "LEASE", "LEASE_EXPIRED",
+                "lease expired before confirmed effect", nowLdt);
+        int attemptCount = row.getAttemptCount() == null ? 0 : row.getAttemptCount();
+        int maxAttempts = row.getMaxAttempts() == null ? 5 : row.getMaxAttempts();
+        if (attemptCount >= maxAttempts) {
+            return mapper.recoverToTerminal(
+                            actionJobId,
+                            token,
+                            "DEAD",
+                            "LEASE_EXPIRED",
+                            "attempts exhausted after lease expiry",
+                            nowLdt,
+                            nowLdt)
+                    == 1;
+        }
+        Instant next = now.plusSeconds(backoffSeconds(attemptCount));
+        return mapper.recoverToRetryWait(
+                        actionJobId, token, MxzStorageTime.toUtcLdt(next), nowLdt)
+                == 1;
+    }
+
+    /** Technical backoff after attempt N failure: 5/30/120/600 seconds. */
+    static long backoffSeconds(int attemptCount) {
+        int[] delays = {5, 30, 120, 600};
+        int idx = Math.min(Math.max(attemptCount, 1), delays.length) - 1;
+        return delays[idx];
+    }
+
     private static Long parseCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
             return null;

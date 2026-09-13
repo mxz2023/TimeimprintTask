@@ -51,6 +51,16 @@ public interface ActionJobExecutionPort {
             String summary,
             java.time.Instant finishedAt);
 
+    /** RUNNING rows whose lease_until is before DB UTC. */
+    List<Long> listExpiredRunningIds(int limit);
+
+    /**
+     * Recover one expired RUNNING lease.
+     * EXTERNAL+effectStartedAt → UNKNOWN; otherwise RETRY_WAIT/DEAD.
+     * @return true if this call recovered the row
+     */
+    boolean recoverExpiredLease(long actionJobId, java.time.Instant now);
+
     Optional<MxzActionJobRecord> findById(long actionJobId);
 
     /** List READY action jobs due for execution (for worker polling, no lock). */

@@ -117,10 +117,53 @@
 
     <select id="selectReadyDueIds" resultType="java.lang.Long">
         SELECT action_job_id FROM tt_action_job
-        WHERE status = 'READY' AND (available_at IS NULL OR available_at &lt;= #{now})
-        ORDER BY available_at ASC, action_job_id ASC
+        WHERE status IN ('READY', 'RETRY_WAIT')
+          AND (available_at IS NULL OR available_at &lt;= #{now})
+          AND (next_attempt_at IS NULL OR next_attempt_at &lt;= #{now})
+        ORDER BY next_attempt_at ASC, available_at ASC, action_job_id ASC
         LIMIT #{limit}
     </select>
+
+    <select id="selectExpiredRunningIds" resultType="java.lang.Long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status = 'RUNNING'
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+        ORDER BY lease_until ASC, action_job_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="recoverToRetryWait">
+        UPDATE tt_action_job SET
+            status = 'RETRY_WAIT',
+            next_attempt_at = #{nextAttemptAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
+
+    <update id="recoverToTerminal">
+        UPDATE tt_action_job SET
+            status = #{status},
+            outcome_code = #{outcomeCode},
+            outcome_summary = #{outcomeSummary},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
 
     <update id="cancelByControlGeneration">
         UPDATE tt_action_job SET

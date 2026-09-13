@@ -237,6 +237,20 @@ Failsafe: Tests run: 2, Failures: 0
 - pause 先：READY EXTERNAL 转 `CANCELLED/CONTROL_BARRIER`，无调用、无 `effectStartedAt`
 - `effectStartedAt` 先：pause 后仍完成调用并 `SUCCEEDED`，Attempt 保留开始证据
 
+### 4.13 A09 EXTERNAL 崩溃与租约回收
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA09ExternalCrashMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 3, Failures: 0
+```
+
+- 调用前崩溃（RUNNING 且无 `effectStartedAt`）：租约回收 → `RETRY_WAIT` / Attempt=`RETRYABLE_FAILURE`，可再次执行并成功；旧 token CAS 不能覆盖
+- 调用中崩溃（已提交 `effectStartedAt`）：租约回收 → `UNKNOWN`，不自动重发、Worker 不再调用
+- 结果已提交：保持 `SUCCEEDED`，不在过期 RUNNING 集合中
+
 ---
 
 ## 5. 双进程与性能验收

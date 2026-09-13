@@ -25,6 +25,24 @@ public interface ActionJobMapper {
                                           @Param("executionToken") String executionToken,
                                           @Param("claimedAt") LocalDateTime claimedAt);
 
+    /** List RUNNING actions whose lease expired (DB UTC), SKIP LOCKED. */
+    List<Long> selectExpiredRunningIds(@Param("limit") int limit);
+
+    /** Transition expired RUNNING → RETRY_WAIT (clear lease/token). */
+    int recoverToRetryWait(@Param("actionJobId") long actionJobId,
+                           @Param("executionToken") String executionToken,
+                           @Param("nextAttemptAt") LocalDateTime nextAttemptAt,
+                           @Param("updatedAt") LocalDateTime updatedAt);
+
+    /** Transition expired RUNNING → UNKNOWN/DEAD (clear lease/token). */
+    int recoverToTerminal(@Param("actionJobId") long actionJobId,
+                          @Param("executionToken") String executionToken,
+                          @Param("status") String status,
+                          @Param("outcomeCode") String outcomeCode,
+                          @Param("outcomeSummary") String outcomeSummary,
+                          @Param("completedAt") LocalDateTime completedAt,
+                          @Param("updatedAt") LocalDateTime updatedAt);
+
     int claimAction(@Param("actionJobId") long actionJobId,
                     @Param("leaseOwner") String leaseOwner,
                     @Param("leaseUntil") LocalDateTime leaseUntil,

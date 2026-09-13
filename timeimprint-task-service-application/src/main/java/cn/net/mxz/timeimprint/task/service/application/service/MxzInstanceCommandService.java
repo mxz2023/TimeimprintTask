@@ -94,24 +94,31 @@ public class MxzInstanceCommandService {
         byte[] hash = MxzSha256.digestUtf8(requestId + ":" + commandKey + ":" + payloadJson);
 
         return tx.execute(() -> {
-            var completed = commandDedupRepository.findCompletedResponseJson(
+            var existing = commandDedupRepository.find(
                     actor.tenantKey(), actor.principalId(), op, requestId);
-            if (completed.isPresent()) {
-                var inst = instanceRepository.findById(instanceId)
-                        .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
-                return new InstanceCommandResult(instanceId, inst.definitionId(), inst.revision(), false,
-                        inst.scenarioState(), Map.of());
-            }
-            boolean acquired = commandDedupRepository.tryBegin(
-                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
-            if (!acquired) {
-                var again = commandDedupRepository.findCompletedResponseJson(
-                        actor.tenantKey(), actor.principalId(), op, requestId);
-                if (again.isPresent()) {
+            if (existing.isPresent()) {
+                assertSameRequestHash(existing.get().requestHash(), hash);
+                if ("COMPLETED".equals(existing.get().processStatus())) {
                     var inst = instanceRepository.findById(instanceId)
                             .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
                     return new InstanceCommandResult(instanceId, inst.definitionId(), inst.revision(), false,
                             inst.scenarioState(), Map.of());
+                }
+                throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
+            }
+            boolean acquired = commandDedupRepository.tryBegin(
+                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
+            if (!acquired) {
+                var again = commandDedupRepository.find(
+                        actor.tenantKey(), actor.principalId(), op, requestId);
+                if (again.isPresent()) {
+                    assertSameRequestHash(again.get().requestHash(), hash);
+                    if ("COMPLETED".equals(again.get().processStatus())) {
+                        var inst = instanceRepository.findById(instanceId)
+                                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "instance"));
+                        return new InstanceCommandResult(instanceId, inst.definitionId(), inst.revision(), false,
+                                inst.scenarioState(), Map.of());
+                    }
                 }
                 throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
@@ -241,6 +248,12 @@ public class MxzInstanceCommandService {
             return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             throw new MxzApplicationException("INVALID_REQUEST", "invalid payload json");
+        }
+    }
+
+    private void assertSameRequestHash(byte[] stored, byte[] incoming) {
+        if (stored != null && !java.util.Arrays.equals(stored, incoming)) {
+            throw new MxzApplicationException("IDEMPOTENCY_CONFLICT", "same requestId different payload");
         }
     }
 }

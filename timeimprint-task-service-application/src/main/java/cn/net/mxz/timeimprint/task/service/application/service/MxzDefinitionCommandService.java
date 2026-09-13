@@ -111,24 +111,31 @@ public class MxzDefinitionCommandService {
         byte[] hash = MxzSha256.digestUtf8(requestId + ":update:" + payload);
 
         return tx.execute(() -> {
-            var completed = commandDedupRepository.findCompletedResponseJson(
+            var existing = commandDedupRepository.find(
                     actor.tenantKey(), actor.principalId(), op, requestId);
-            if (completed.isPresent()) {
-                var def = definitionRepository
-                        .findById(definitionId)
-                        .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
-                return new CommandResult("update", definitionId, def.revision(), false);
-            }
-            boolean acquired = commandDedupRepository.tryBegin(
-                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
-            if (!acquired) {
-                var again = commandDedupRepository.findCompletedResponseJson(
-                        actor.tenantKey(), actor.principalId(), op, requestId);
-                if (again.isPresent()) {
+            if (existing.isPresent()) {
+                assertSameRequestHash(existing.get().requestHash(), hash);
+                if ("COMPLETED".equals(existing.get().processStatus())) {
                     var def = definitionRepository
                             .findById(definitionId)
                             .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
                     return new CommandResult("update", definitionId, def.revision(), false);
+                }
+                throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
+            }
+            boolean acquired = commandDedupRepository.tryBegin(
+                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
+            if (!acquired) {
+                var again = commandDedupRepository.find(
+                        actor.tenantKey(), actor.principalId(), op, requestId);
+                if (again.isPresent()) {
+                    assertSameRequestHash(again.get().requestHash(), hash);
+                    if ("COMPLETED".equals(again.get().processStatus())) {
+                        var def = definitionRepository
+                                .findById(definitionId)
+                                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+                        return new CommandResult("update", definitionId, def.revision(), false);
+                    }
                 }
                 throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
@@ -211,24 +218,31 @@ public class MxzDefinitionCommandService {
         byte[] hash = MxzSha256.digestUtf8(requestId + ":" + commandKey);
 
         return tx.execute(() -> {
-            var completed = commandDedupRepository.findCompletedResponseJson(
+            var existing = commandDedupRepository.find(
                     actor.tenantKey(), actor.principalId(), op, requestId);
-            if (completed.isPresent()) {
-                var def = definitionRepository
-                        .findById(definitionId)
-                        .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
-                return new CommandResult(commandKey, definitionId, def.revision(), false);
-            }
-            boolean acquired = commandDedupRepository.tryBegin(
-                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
-            if (!acquired) {
-                var again = commandDedupRepository.findCompletedResponseJson(
-                        actor.tenantKey(), actor.principalId(), op, requestId);
-                if (again.isPresent()) {
+            if (existing.isPresent()) {
+                assertSameRequestHash(existing.get().requestHash(), hash);
+                if ("COMPLETED".equals(existing.get().processStatus())) {
                     var def = definitionRepository
                             .findById(definitionId)
                             .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
                     return new CommandResult(commandKey, definitionId, def.revision(), false);
+                }
+                throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
+            }
+            boolean acquired = commandDedupRepository.tryBegin(
+                    actor.tenantKey(), actor.principalId(), op, requestId, hash);
+            if (!acquired) {
+                var again = commandDedupRepository.find(
+                        actor.tenantKey(), actor.principalId(), op, requestId);
+                if (again.isPresent()) {
+                    assertSameRequestHash(again.get().requestHash(), hash);
+                    if ("COMPLETED".equals(again.get().processStatus())) {
+                        var def = definitionRepository
+                                .findById(definitionId)
+                                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+                        return new CommandResult(commandKey, definitionId, def.revision(), false);
+                    }
                 }
                 throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
@@ -477,6 +491,12 @@ public class MxzDefinitionCommandService {
             default -> throw new MxzApplicationException(
                     "COMMAND_NOT_SUPPORTED", "definition command '" + commandKey + "' not supported");
         };
+    }
+
+    private void assertSameRequestHash(byte[] stored, byte[] incoming) {
+        if (stored != null && !java.util.Arrays.equals(stored, incoming)) {
+            throw new MxzApplicationException("IDEMPOTENCY_CONFLICT", "same requestId different payload");
+        }
     }
 
     private record ParsedUpdate(

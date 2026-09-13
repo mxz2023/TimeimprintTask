@@ -129,6 +129,26 @@
           AND status IN ('READY', 'RETRY_WAIT')
     </update>
 
+    <update id="cancelReadyByDefinition">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE definition_id = #{definitionId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <update id="cancelReadyById">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
     <select id="selectList" resultMap="RM">
         SELECT * FROM tt_action_job
         WHERE 1=1

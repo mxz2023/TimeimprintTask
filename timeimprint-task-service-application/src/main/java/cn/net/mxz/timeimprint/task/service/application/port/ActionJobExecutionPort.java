@@ -13,6 +13,9 @@ public interface ActionJobExecutionPort {
 
     void markSucceeded(long actionJobId, String outcomeCode, String summary, java.time.Instant completedAt);
 
+    /** Permanent cancel for READY/RETRY_WAIT when control barrier rejects execution. */
+    void markCancelled(long actionJobId, String outcomeCode, java.time.Instant completedAt);
+
     Optional<MxzActionJobRecord> findById(long actionJobId);
 
     /** List READY action jobs due for execution (for worker polling, no lock). */

@@ -49,11 +49,23 @@ public interface ActionJobMapper {
                                   @Param("completedAt") LocalDateTime completedAt,
                                   @Param("updatedAt") LocalDateTime updatedAt);
 
-    /** Cancel all READY/RETRY_WAIT actions for an instance (e.g. complete/skip). */
+    /** Cancel all READY/RETRY_WAIT actions for a given instance (e.g. complete/skip). */
     int cancelReadyByInstance(@Param("instanceId") long instanceId,
                               @Param("outcomeCode") String outcomeCode,
                               @Param("completedAt") LocalDateTime completedAt,
                               @Param("updatedAt") LocalDateTime updatedAt);
+
+    /** Cancel unstarted actions for a definition (lazy Worker / cleanup batch). */
+    int cancelReadyByDefinition(@Param("definitionId") long definitionId,
+                                @Param("outcomeCode") String outcomeCode,
+                                @Param("completedAt") LocalDateTime completedAt,
+                                @Param("updatedAt") LocalDateTime updatedAt);
+
+    /** Cancel one READY/RETRY_WAIT action (controlGeneration / control-state barrier). */
+    int cancelReadyById(@Param("actionJobId") long actionJobId,
+                        @Param("outcomeCode") String outcomeCode,
+                        @Param("completedAt") LocalDateTime completedAt,
+                        @Param("updatedAt") LocalDateTime updatedAt);
 
     /** List actions with optional filters for diagnostic query (I03). */
     List<ActionJobRow> selectList(@Param("definitionId") Long definitionId,

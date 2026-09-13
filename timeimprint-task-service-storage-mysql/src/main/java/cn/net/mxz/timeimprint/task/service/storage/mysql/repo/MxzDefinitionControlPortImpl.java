@@ -56,6 +56,8 @@ public class MxzDefinitionControlPortImpl implements DefinitionControlPort {
 
     @Override
     public void cancelWindowAndSignals(long definitionId, Instant now) {
+        // Per 06: pause/retire txn ends WAITING + planned Signals only.
+        // Unstarted Actions lose eligibility via controlGeneration; Worker cancels lazily.
         LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
         String cancelledJson = "{\"scenarioState\":\"CANCELLED\"}";
         byte[] cancelledHash = MxzSha256.digestUtf8(cancelledJson);

@@ -209,6 +209,20 @@ Failsafe: Tests run: 1, Failures: 0
 - 暂停跨多个 DAILY 周期后再 resume：新 WAITING 仅含 resume 时刻之后的 occurrence，不补发暂停区间
 - 暂停前已 PENDING 的实例保持 PENDING，Action 数量不被 resume 重建
 
+### 4.11 A07 / A13 / A28 控制屏障与幂等冲突
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA07A13A28MysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 3, Failures: 0
+```
+
+- A07：pause 先提交则后续 Signal 为 `IGNORED` 且不迁移；Signal 先 Applied 后 pause 保留 PENDING、Transition 与 Action 行
+- A13：同 `requestId` 不同 snooze 摘要 → `IDEMPOTENCY_CONFLICT`；同 revision 并发 complete 仅一条 `changed=true`
+- A28：pause/resume 递增 `controlGeneration`；旧代次 READY 经 ActionWorker 屏障转 `CANCELLED/CONTROL_BARRIER`；新 WAITING 为新代次；已 SUCCEEDED 收件与 PENDING 保留
+
 ---
 
 ## 5. 双进程与性能验收

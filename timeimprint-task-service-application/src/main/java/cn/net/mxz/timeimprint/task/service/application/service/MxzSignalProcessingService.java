@@ -22,6 +22,7 @@ import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.ActionJobIntent;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionPlan;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -84,6 +85,17 @@ public class MxzSignalProcessingService {
             var def = definitionRepository
                     .findByIdForUpdate(signal.definitionId())
                     .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+            Instant now = clock.nowUtcSeconds();
+            if (signal.definitionControlGeneration() != def.controlGeneration()) {
+                signalRepository.markIgnored(
+                        signalId, "CONTROL_GENERATION_MISMATCH", "stale control generation", now);
+                return null;
+            }
+            if (def.controlState() == ControlState.PAUSED || def.controlState() == ControlState.RETIRED) {
+                signalRepository.markIgnored(
+                        signalId, "CONTROL_STATE_BLOCKED", "definition " + def.controlState(), now);
+                return null;
+            }
             if (signal.instanceId() == null) {
                 throw new MxzApplicationException("INVALID_REQUEST", "calendar signal requires instance");
             }
@@ -120,7 +132,6 @@ public class MxzSignalProcessingService {
                     signal.signalKey(),
                     signal.schemaVersion(),
                     new MxzJsonPayload(payloadFields)));
-            Instant now = clock.nowUtcSeconds();
             switch (result) {
                 case HandlerResult.NoChange nc -> {
                     signalRepository.markIgnored(signalId, "NO_CHANGE", String.valueOf(nc.result()), now);

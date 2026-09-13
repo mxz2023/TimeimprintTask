@@ -11,6 +11,7 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.ActionAttemptMap
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.ActionJobMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.row.ActionJobRow;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -140,6 +141,12 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
                 summary,
                 MxzStorageTime.toUtcLdt(completedAt),
                 MxzStorageTime.toUtcLdt(completedAt));
+    }
+
+    @Override
+    public void markCancelled(long actionJobId, String outcomeCode, Instant completedAt) {
+        LocalDateTime at = MxzStorageTime.toUtcLdt(completedAt);
+        mapper.cancelReadyById(actionJobId, outcomeCode, at, at);
     }
 
     private static Long parseCursor(String cursor) {

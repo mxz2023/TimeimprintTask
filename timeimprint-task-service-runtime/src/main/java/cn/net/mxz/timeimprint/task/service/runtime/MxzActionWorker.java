@@ -2,13 +2,14 @@ package cn.net.mxz.timeimprint.task.service.runtime;
 
 import cn.net.mxz.timeimprint.task.common.BusinessClock;
 import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPort;
+import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
-import cn.net.mxz.timeimprint.task.service.application.service.MxzSignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
  * Background worker: claims READY action jobs and executes LOCAL_TRANSACTIONAL handlers.
  *
  * For each due action:
- * 1. Load the full action record.
+ * 1. Load the full action record and re-check definition control barrier.
  * 2. If LOCAL_TRANSACTIONAL: execute handler and mark SUCCEEDED/FAILED in one transaction.
  */
 @Component
@@ -34,22 +35,22 @@ public class MxzActionWorker {
     private static final int CLAIM_BATCH = 20;
 
     private final ActionJobExecutionPort actionPort;
+    private final TaskDefinitionRepository definitionRepository;
     private final ExtensionRegistry extensionRegistry;
-    private final MxzSignalProcessingService signalProcessingService;
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
 
     public MxzActionWorker(
             ActionJobExecutionPort actionPort,
+            TaskDefinitionRepository definitionRepository,
             ExtensionRegistry extensionRegistry,
-            MxzSignalProcessingService signalProcessingService,
             TransactionBoundary tx,
             BusinessClock clock,
             ObjectMapper objectMapper) {
         this.actionPort = actionPort;
+        this.definitionRepository = definitionRepository;
         this.extensionRegistry = extensionRegistry;
-        this.signalProcessingService = signalProcessingService;
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
@@ -71,13 +72,27 @@ public class MxzActionWorker {
         }
     }
 
-    private void executeAction(long actionJobId) {
+    /** Visible for IT: run one action through the same barrier + execute path as the poller. */
+    public void executeAction(long actionJobId) {
         tx.execute(() -> {
             var actionOpt = actionPort.findByIdForUpdate(actionJobId);
             if (actionOpt.isEmpty()) return null;
             var action = actionOpt.get();
-            if (!"READY".equals(action.status())) return null;
+            if (!"READY".equals(action.status()) && !"RETRY_WAIT".equals(action.status())) return null;
             if (!"LOCAL_TRANSACTIONAL".equals(action.executionMode())) return null;
+
+            var defOpt = definitionRepository.findById(action.definitionId());
+            if (defOpt.isEmpty()) {
+                actionPort.markCancelled(actionJobId, "DEFINITION_MISSING", clock.nowUtcSeconds());
+                return null;
+            }
+            var def = defOpt.get();
+            if (action.definitionControlGeneration() != def.controlGeneration()
+                    || def.controlState() == ControlState.PAUSED
+                    || def.controlState() == ControlState.RETIRED) {
+                actionPort.markCancelled(actionJobId, "CONTROL_BARRIER", clock.nowUtcSeconds());
+                return null;
+            }
 
             var handlerKey = new ActionHandlerKey(action.handlerKey(), action.schemaVersion());
             var handlerOpt = extensionRegistry.actionHandlers().find(handlerKey);

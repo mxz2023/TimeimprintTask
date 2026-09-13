@@ -14,7 +14,7 @@
 | 下一任务 | 补齐A01—A42全矩阵与性能门槛后提交人工验收；见[DELIVERY](DELIVERY.md) |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY.md](DELIVERY.md) |
-| 手动HTTP联调 | [MANUAL-HTTP.md](MANUAL-HTTP.md)（curl；以04为准，本文不替代契约） |
+| 手动HTTP联调 | [MANUAL-HTTP.md](MANUAL-HTTP.md)（curl；E01—E13/I01—I07 已挂载；以04为准） |
 
 READY只表示当前没有已知的阻塞性文档分歧并具备实施条件，不表示设计绝对无误、环境可用、代码完成或测试通过。当前总体状态为VERIFYING：核心闭环与mysql-it证据已写入DELIVERY，全量验收矩阵与性能门槛仍待补齐。
 

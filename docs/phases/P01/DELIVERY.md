@@ -164,6 +164,21 @@ Failsafe: Tests run: 4, Failures: 0
 - A02：同 requestId 重放返回同一 definitionId；同键不同摘要 `IDEMPOTENCY_CONFLICT`；并发同键收敛为一条定义且无 PROCESSING 残留
 - A23：PAUSE/RETIRE 后 PENDING 仍可 complete/skip，snooze → `STATE_CONFLICT`；WAITING → `CANCELLED`（非 SKIPPED）
 
+### 4.8 A01 / A37 日历边界与配置校验
+
+```
+命令: ./mvnw -q -pl timeimprint-task-service-capability-calendar test \
+  -Dtest=MxzCalendarOccurrenceCalculatorTest,MxzCalendarConfigParserTest
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA01A37CalendarMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT
+退出码: 0
+Failsafe: Tests run: 3, Failures: 0
+```
+
+- A01：after 严格排除、月末/闰年钳制、EVERY_N_DAYS 锚点不漂移、JVM 默认时区不影响结果（单测）
+- A37：schemaVersion 1 字段白名单；缺字段/多余字段/非法 weekday·zone·localTime → `INVALID_REQUEST`；E02 预览与 E03 创建同 `occurrenceKey`
+- 未覆盖：definition update 完整替换与 `scheduleGeneration` 递增（待后续）
+
 ---
 
 ## 5. 双进程与性能验收

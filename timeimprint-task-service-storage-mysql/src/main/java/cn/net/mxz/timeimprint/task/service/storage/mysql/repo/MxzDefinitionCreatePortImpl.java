@@ -112,7 +112,16 @@ public class MxzDefinitionCreatePortImpl implements DefinitionCreatePort {
             throw new MxzApplicationException("INVALID_REQUEST", "expected calendar/primary binding");
         }
         Map<String, Object> configMap = parseMap(tb.configJson());
-        var rule = MxzCalendarConfigParser.parse(configMap);
+        final cn.net.mxz.timeimprint.task.service.capability.calendar.MxzCalendarOccurrenceCalculator.Rule rule;
+        try {
+            rule = MxzCalendarConfigParser.parse(configMap);
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
+            if (msg.startsWith("INVALID_REQUEST:")) {
+                msg = msg.substring("INVALID_REQUEST:".length()).trim();
+            }
+            throw new MxzApplicationException("INVALID_REQUEST", msg);
+        }
         var occurrences = MxzCalendarOccurrenceCalculator.preview(rule, now, 100);
         List<MxzCalendarOccurrenceCalculator.Occurrence> window = new ArrayList<>();
         for (var occ : occurrences) {

@@ -51,7 +51,16 @@ public class MxzPreviewService {
         Map<String, Object> binding = triggerBindings.get(0);
         @SuppressWarnings("unchecked")
         Map<String, Object> config = (Map<String, Object>) binding.get("config");
-        var rule = MxzCalendarConfigParser.parse(config);
+        final MxzCalendarOccurrenceCalculator.Rule rule;
+        try {
+            rule = MxzCalendarConfigParser.parse(config);
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
+            if (msg.startsWith("INVALID_REQUEST:")) {
+                msg = msg.substring("INVALID_REQUEST:".length()).trim();
+            }
+            throw new MxzApplicationException("INVALID_REQUEST", msg);
+        }
         var occs = MxzCalendarOccurrenceCalculator.preview(rule, after, limit).stream()
                 .map(o -> new Occurrence(o.occurrenceKey(), o.occurrenceAt(), o.occurrenceAt()))
                 .toList();

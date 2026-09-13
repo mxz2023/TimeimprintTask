@@ -51,7 +51,12 @@ public class MxzReminderScenarioExtension implements ScenarioExtension {
 
     @Override
     public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
-        // S01 scenarioConfig must be empty object {} - validated at HTTP layer
+        if (!(context.scenarioConfig() instanceof MxzJsonPayload jp)) {
+            throw new IllegalArgumentException("scenarioConfig must be object");
+        }
+        if (!jp.fields().isEmpty()) {
+            throw new IllegalArgumentException("reminder scenarioConfig must be empty object");
+        }
     }
 
     @Override

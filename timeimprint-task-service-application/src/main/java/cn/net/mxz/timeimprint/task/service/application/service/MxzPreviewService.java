@@ -42,9 +42,18 @@ public class MxzPreviewService {
             Instant after,
             int limit) {
         var ext = extensionRegistry.scenarioExtensions().require(new ScenarioExtensionKey(scenarioKey, 1));
+        if (scenarioSchemaVersion != 1) {
+            throw new MxzApplicationException(
+                    "UNSUPPORTED_SCHEMA_VERSION", "scenarioSchemaVersion " + scenarioSchemaVersion);
+        }
         Map<String, Object> scenarioFields = parse(scenarioConfigJson);
-        ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
-                scenarioKey, scenarioSchemaVersion, new MxzJsonPayload(scenarioFields)));
+        try {
+            ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
+                    scenarioKey, scenarioSchemaVersion, new MxzJsonPayload(scenarioFields)));
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage() == null ? "invalid scenarioConfig" : ex.getMessage();
+            throw new MxzApplicationException("INVALID_REQUEST", msg);
+        }
         if (triggerBindings.size() != 1) {
             throw new MxzApplicationException("INVALID_REQUEST", "exactly one trigger binding required");
         }

@@ -143,13 +143,20 @@ public class MxzDefinitionCommandService {
             }
 
             ParsedUpdate parsed = parseUpdatePayload(payload, def.scenarioKey(), def.scenarioSchemaVersion());
+            Map<String, Object> rawScenarioConfig =
+                    objectMapper.convertValue(payload.get("scenarioConfig"), Map.class);
             var ext = extensionRegistry
                     .scenarioExtensions()
                     .require(new ScenarioExtensionKey(def.scenarioKey(), 1));
-            ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
-                    def.scenarioKey(),
-                    parsed.scenarioSchemaVersion(),
-                    new MxzJsonPayload(parsed.scenarioConfig())));
+            try {
+                ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
+                        def.scenarioKey(),
+                        parsed.scenarioSchemaVersion(),
+                        new MxzJsonPayload(rawScenarioConfig)));
+            } catch (IllegalArgumentException ex) {
+                String msg = ex.getMessage() == null ? "invalid scenarioConfig" : ex.getMessage();
+                throw new MxzApplicationException("INVALID_REQUEST", msg);
+            }
             validateParticipants(actor.principalId(), parsed.participants());
             validateCalendarBinding(parsed.triggerBindings());
 

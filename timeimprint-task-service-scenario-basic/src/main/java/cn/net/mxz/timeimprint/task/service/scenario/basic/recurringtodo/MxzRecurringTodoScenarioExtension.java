@@ -26,6 +26,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,14 +70,89 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
 
     @Override
     public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
-        if (context.scenarioConfig() instanceof MxzJsonPayload jp) {
-            Map<String, Object> fields = jp.fields();
-            if (fields.containsKey("chaseOffsetsMinutes")) {
-                Object v = fields.get("chaseOffsetsMinutes");
-                if (v != null && !(v instanceof List)) {
-                    throw new IllegalArgumentException("chaseOffsetsMinutes must be an array");
-                }
+        if (!(context.scenarioConfig() instanceof MxzJsonPayload jp)) {
+            throw new IllegalArgumentException("scenarioConfig must be object");
+        }
+        expandDefaults(jp.fields());
+    }
+
+    /**
+     * Expand omitted S02 defaults and validate schemaVersion 1 rules.
+     * Explicit null / unknown fields / illegal ranges are rejected.
+     */
+    public static Map<String, Object> expandDefaults(Map<String, Object> raw) {
+        if (raw == null) {
+            throw new IllegalArgumentException("scenarioConfig required");
+        }
+        for (String key : raw.keySet()) {
+            if (!Set.of(
+                            "chaseOffsetsMinutes",
+                            "notificationExpireAfterMinutes",
+                            "maxSnoozeCount")
+                    .contains(key)) {
+                throw new IllegalArgumentException("unknown scenarioConfig field: " + key);
             }
+            if (raw.get(key) == null) {
+                throw new IllegalArgumentException(key + " cannot be null");
+            }
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put(
+                "chaseOffsetsMinutes",
+                raw.containsKey("chaseOffsetsMinutes")
+                        ? raw.get("chaseOffsetsMinutes")
+                        : List.copyOf(DEFAULT_CHASE_OFFSETS));
+        out.put(
+                "notificationExpireAfterMinutes",
+                raw.containsKey("notificationExpireAfterMinutes")
+                        ? raw.get("notificationExpireAfterMinutes")
+                        : DEFAULT_NOTIFICATION_EXPIRE_MINUTES);
+        out.put(
+                "maxSnoozeCount",
+                raw.containsKey("maxSnoozeCount") ? raw.get("maxSnoozeCount") : DEFAULT_MAX_SNOOZE_COUNT);
+        validateExpanded(out);
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    static void validateExpanded(Map<String, Object> cfg) {
+        Object expireObj = cfg.get("notificationExpireAfterMinutes");
+        if (!(expireObj instanceof Number)) {
+            throw new IllegalArgumentException("notificationExpireAfterMinutes must be int");
+        }
+        int expire = ((Number) expireObj).intValue();
+        if (expire < 60 || expire > 10080) {
+            throw new IllegalArgumentException("notificationExpireAfterMinutes must be 60..10080");
+        }
+        Object maxObj = cfg.get("maxSnoozeCount");
+        if (!(maxObj instanceof Number)) {
+            throw new IllegalArgumentException("maxSnoozeCount must be int");
+        }
+        int maxSnooze = ((Number) maxObj).intValue();
+        if (maxSnooze < 0 || maxSnooze > 3) {
+            throw new IllegalArgumentException("maxSnoozeCount must be 0..3");
+        }
+        Object offsetsObj = cfg.get("chaseOffsetsMinutes");
+        if (!(offsetsObj instanceof List<?> list)) {
+            throw new IllegalArgumentException("chaseOffsetsMinutes must be an array");
+        }
+        if (list.size() > 3) {
+            throw new IllegalArgumentException("chaseOffsetsMinutes length must be 0..3");
+        }
+        int prev = 0;
+        for (Object item : list) {
+            if (!(item instanceof Number)) {
+                throw new IllegalArgumentException("chaseOffsetsMinutes items must be int");
+            }
+            int v = ((Number) item).intValue();
+            if (v < 1 || v >= expire) {
+                throw new IllegalArgumentException(
+                        "chaseOffsetsMinutes items must be >=1 and < notificationExpireAfterMinutes");
+            }
+            if (v <= prev) {
+                throw new IllegalArgumentException("chaseOffsetsMinutes must be strictly increasing");
+            }
+            prev = v;
         }
     }
 

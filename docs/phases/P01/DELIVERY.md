@@ -180,6 +180,21 @@ Failsafe: Tests run: 5, Failures: 0
 - A37：schemaVersion 1 字段白名单；缺字段/多余字段/非法 weekday·zone·localTime → `INVALID_REQUEST`；E02 预览与 E03 创建同 `occurrenceKey`
 - A37 / A24：E06 `update` 六字段完整替换；`description=null` 清空；规范化无变化 → NoChange（revision/scheduleGeneration 不变）；仅日历配置变化 → `scheduleGeneration+1` 且旧 WAITING→CANCELLED 并重建窗口；标题变化不升 scheduleGeneration；ACTIVE 快照不被覆盖
 
+### 4.9 A17 / A18 / A21 与 M01—M10 相对时间纵向切片
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA17A18A21MysqlIT,MxzMMatrixMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 8, Failures: 0
+```
+
+- A17：同 Signal 重复处理后仅 1 条 inbox；mark-read 重放保留首次 `readAt`
+- A18：`scenarioSchemaVersion!=1` → `UNSUPPORTED_SCHEMA_VERSION`；过去 ONCE / 未知日历字段 / reminder 非空 scenarioConfig → `INVALID_REQUEST` 且不落定义
+- A21：S02 缺省展开为 60/240/720、1440、3，Signal 后 1 INITIAL+3 CHASE；非法偏移/有效期/snooze/未知字段拒绝且不落数据
+- M01—M10（相对时间切片，非固定 2026-09-08 业务钟）：S01 五规则窗口间距与 ONCE 耗尽入箱；S02 默认催办时点、双 PENDING 不互阻、WEEKLY/MONTHLY31/EVERY_N_DAYS 创建与间距断言
+
 ---
 
 ## 5. 双进程与性能验收

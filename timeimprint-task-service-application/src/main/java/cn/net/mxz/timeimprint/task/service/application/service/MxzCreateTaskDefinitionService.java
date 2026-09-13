@@ -95,11 +95,24 @@ public class MxzCreateTaskDefinitionService {
                 }
                 throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
+            if (scenarioSchemaVersion != 1) {
+                throw new MxzApplicationException(
+                        "UNSUPPORTED_SCHEMA_VERSION", "scenarioSchemaVersion " + scenarioSchemaVersion);
+            }
             var ext = extensionRegistry.scenarioExtensions().require(new ScenarioExtensionKey(scenarioKey, 1));
             Map<String, Object> cfg = parse(scenarioConfigJson);
-            ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
-                    scenarioKey, scenarioSchemaVersion, new MxzJsonPayload(cfg)));
+            try {
+                ext.validateDefinitionConfig(new MxzDefinitionConfigValidationContext(
+                        scenarioKey, scenarioSchemaVersion, new MxzJsonPayload(cfg)));
+            } catch (IllegalArgumentException ex) {
+                String msg = ex.getMessage() == null ? "invalid scenarioConfig" : ex.getMessage();
+                throw new MxzApplicationException("INVALID_REQUEST", msg);
+            }
             validateParticipants(actor.principalId(), participants);
+            String persistedConfigJson = scenarioConfigJson;
+            if ("recurring_todo".equals(scenarioKey)) {
+                persistedConfigJson = writeJson(expandRecurringTodoDefaults(cfg));
+            }
             Instant now = clock.nowUtcSeconds();
             var cmd = new MxzCreateDefinitionCommand(
                     actor.tenantKey(),
@@ -110,7 +123,7 @@ public class MxzCreateTaskDefinitionService {
                     scenarioSchemaVersion,
                     title,
                     description,
-                    scenarioConfigJson,
+                    persistedConfigJson,
                     participants,
                     triggerBindings,
                     now,
@@ -179,6 +192,30 @@ public class MxzCreateTaskDefinitionService {
         }
         if (!hasOwner) {
             throw new MxzApplicationException("INVALID_REQUEST", "OWNER required");
+        }
+    }
+
+    private Map<String, Object> expandRecurringTodoDefaults(Map<String, Object> raw) {
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put(
+                "chaseOffsetsMinutes",
+                raw.containsKey("chaseOffsetsMinutes")
+                        ? raw.get("chaseOffsetsMinutes")
+                        : List.of(60, 240, 720));
+        out.put(
+                "notificationExpireAfterMinutes",
+                raw.containsKey("notificationExpireAfterMinutes")
+                        ? raw.get("notificationExpireAfterMinutes")
+                        : 1440);
+        out.put("maxSnoozeCount", raw.containsKey("maxSnoozeCount") ? raw.get("maxSnoozeCount") : 3);
+        return out;
+    }
+
+    private String writeJson(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception e) {
+            throw new MxzApplicationException("INVALID_REQUEST", "invalid scenarioConfig");
         }
     }
 

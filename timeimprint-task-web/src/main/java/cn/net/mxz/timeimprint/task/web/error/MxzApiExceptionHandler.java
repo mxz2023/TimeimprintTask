@@ -6,9 +6,13 @@ import cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationE
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class MxzApiExceptionHandler {
@@ -20,11 +24,14 @@ public class MxzApiExceptionHandler {
             case "UNAUTHENTICATED" -> HttpStatus.UNAUTHORIZED;
             case "FORBIDDEN" -> HttpStatus.FORBIDDEN;
             case "RETRY_LATER" -> HttpStatus.SERVICE_UNAVAILABLE;
-            case "IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT", "STATE_CONFLICT" -> HttpStatus.CONFLICT;
+            case "REQUEST_TOO_LARGE" -> HttpStatus.PAYLOAD_TOO_LARGE;
+            case "UNSUPPORTED_MEDIA_TYPE" -> HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+            case "IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT", "STATE_CONFLICT", "COMMAND_NOT_SUPPORTED" ->
+                HttpStatus.CONFLICT;
             default -> HttpStatus.BAD_REQUEST;
         };
         return ResponseEntity.status(status)
-                .body(new MxzApiResponse<>(ex.errorCode(), ex.getMessage(), trace(), null));
+                .body(new MxzApiResponse<>(ex.errorCode(), safeMessage(ex.getMessage()), trace(), null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -33,11 +40,48 @@ public class MxzApiExceptionHandler {
                 .body(new MxzApiResponse<>(MxzApiErrorCodes.INVALID_REQUEST, "validation failed", trace(), null));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<MxzApiResponse<Void>> handleUnreadable(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest()
+                .body(new MxzApiResponse<>(MxzApiErrorCodes.INVALID_REQUEST, "invalid json", trace(), null));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<MxzApiResponse<Void>> handleMedia(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new MxzApiResponse<>(
+                        MxzApiErrorCodes.UNSUPPORTED_MEDIA_TYPE, "unsupported media type", trace(), null));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<MxzApiResponse<Void>> handleMethod(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.badRequest()
+                .body(new MxzApiResponse<>(MxzApiErrorCodes.INVALID_REQUEST, "method not allowed", trace(), null));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<MxzApiResponse<Void>> handleMissing(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new MxzApiResponse<>(MxzApiErrorCodes.RESOURCE_NOT_FOUND, "not found", trace(), null));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<MxzApiResponse<Void>> handleOther(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new MxzApiResponse<>(
                         MxzApiErrorCodes.INTERNAL_ERROR, "internal error", trace(), null));
+    }
+
+    private static String safeMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "error";
+        }
+        // Strip accidental stack/SQL fragments from business messages.
+        String trimmed = message.length() > 512 ? message.substring(0, 512) : message;
+        if (trimmed.contains("\tat ") || trimmed.toLowerCase().contains("jdbc:") || trimmed.contains("password")) {
+            return "error";
+        }
+        return trimmed;
     }
 
     private static String trace() {

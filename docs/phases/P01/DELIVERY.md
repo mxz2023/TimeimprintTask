@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-09-13
-阶段状态: VERIFYING（T08 全量回归已执行现有套件；公共 HTTP 边界仍未收口）
+阶段状态: VERIFYING（T08 关键证据已补齐；待人工最终验收后 RELEASED）
 
 ---
 
@@ -305,12 +305,12 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 - 07 §6 独立公平性积压：10×101 READY 积压；单轮 ≤100；新到期 S01 10s 内收件（见 §5.8）
 
 尚未执行（保持 NOT_RUN）:
-- A01—A42 完整验收矩阵（多项已有专项证据，矩阵总表未全部勾完）
-- 公共 HTTP 边界（07 §5）
-- E01—E13、I01—I07 全量契约回归（端点矩阵见 §5.9–§5.10）
+- A01—A42 完整验收矩阵总表勾选（多项已有专项证据）
+- information_schema/EXPLAIN 等数据验收长尾单列复跑
 
 已验证（续·性能）:
 - 07 §6 性能门槛：专用库双进程；1万 ACTIVE；预热+3 次正式；P95 迁移/inbox 均达标（见 §5.11）
+- 07 §5 公共 HTTP 边界：见 §5.12
 
 ### 5.1 A04 / A20 双 JVM 崩溃接管
 
@@ -551,29 +551,55 @@ suiteId: 0e42c193
 - 1000 目标各恰好 1 条 inbox；无 DEAD/EXPIRED；末条到期后 30s 内本 runId 无 READY/RUNNING/RETRY_WAIT
 - 背景 seed：9000 ok，took PT16.6S
 
-说明: 清空耗时含窗口前 90s 创建余量 + 60s 到期窗；drain 断言以 backlog=0 与 deadline 为准。公共 HTTP 边界仍 NOT_RUN。
+说明: 清空耗时含窗口前 90s 创建余量 + 60s 到期窗；drain 断言以 backlog=0 与 deadline 为准。公共 HTTP 边界见 §5.12。
+
+### 5.12 07 §5 公共 HTTP 边界
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzHttpBoundaryMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 1, Failures: 0
+抽样回归: MxzEMatrixMysqlIT,MxzA40SpiMysqlIT,MxzA14A30LocalProfileMysqlIT → PASS（同会话先前跑次）
+recordedAtUtc: 2026-09-13T10:00:22Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+类: timeimprint-task-boot-loader/.../MxzHttpBoundaryMysqlIT.java
+```
+
+覆盖:
+- 未知路径 → 404 `RESOURCE_NOT_FOUND`；错误方法 → 400 `INVALID_REQUEST`
+- 不支持媒体类型 → 415 `UNSUPPORTED_MEDIA_TYPE`；空体/畸形 JSON/重复键/未知字段 → 400 `INVALID_REQUEST`
+- 请求体 >64KiB → 413 `REQUEST_TOO_LARGE`（`MxzRequestBodySizeFilter` + Tomcat max post）
+- 未捕获异常（IT 探针）→ 500 `INTERNAL_ERROR`，消息/体无 SQL/堆栈/凭据
+- 统一信封字段集 + `traceId`；错误 `data=null`；不泄露 executionToken/lease*
+- Actuator 仅 health（`/actuator/env`、`/beans` 不可达）；liveness 可达
+- local 忽略 `X-Debug-Actor-Id`（E01 仍 OK）
+
+实现侧: 扩展 `MxzApiExceptionHandler`；ObjectMapper `FAIL_ON_UNKNOWN_PROPERTIES` + `STRICT_DUPLICATE_DETECTION`；`COMMAND_NOT_SUPPORTED` HTTP 映射对齐 409。
 
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
 
-**状态: 现有套件 PASS；公共 HTTP 边界仍 NOT_RUN（不得宣称 P01 完成）**
+**状态: 现有套件 PASS；信息架构/DDL EXPLAIN 等长尾项仍可能 NOT_RUN（不得宣称 P01 完成）**
 
 recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
 
 | 步骤 | 命令 | 退出码 | 结果 |
 | --- | --- | --- | --- |
-| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（E/I/性能后未再全量复跑） |
+| 真库 IT | `./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify` | 0 | Failsafe Tests run: 78, Failures: 0（边界后未再全量复跑） |
 
 说明:
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- 公共 HTTP 边界（未知路径/方法/媒体类型/空体/畸形 JSON/64KiB 等）：NOT_RUN
 - E01—E13 / I01—I07：端点矩阵已记 §5.9–§5.10（部分维度 PARTIAL）
 - 07 §6 性能门槛：PASS（证据 §5.11）
+- 公共 HTTP 边界：PASS（证据 §5.12）
+- information_schema/EXPLAIN 等数据验收长尾：以既有 Flyway/Arch 证据为准，完整 07 §5 数据段未单列复跑
 
 ---
 
@@ -581,7 +607,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 公共 HTTP 边界（07 §5） | NOT_RUN |
+| — | 公共 HTTP 边界（07 §5） | PASS（证据 §5.12） |
 | — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | PASS（证据 §5.11） |
 | — | E01—E13 独立 HTTP 契约矩阵 | PASS（证据 §5.10；部分维度 PARTIAL） |
 | — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |

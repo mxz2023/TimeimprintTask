@@ -22,6 +22,9 @@ server:
   address: ${SERVER_ADDRESS:127.0.0.1}
   port: ${SERVER_PORT:18080}
   shutdown: graceful
+  tomcat:
+    max-http-form-post-size: 65536
+    max-swallow-size: 65536
 
 timeimprint:
   local:

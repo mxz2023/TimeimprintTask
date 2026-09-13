@@ -124,34 +124,24 @@ public class MxzTaskGateway {
     }
 
     public TaskDefinitionView create(CreateTaskDefinitionRequest req) {
-        try {
-            var participants = req.participants().stream()
-                    .map(p -> new MxzCreateDefinitionCommand.ParticipantInput(
-                            p.principalType(), p.principalId(), p.roleCode()))
-                    .toList();
-            var bindings = req.triggerBindings().stream()
-                    .map(b -> new MxzCreateDefinitionCommand.TriggerBindingInput(
-                            b.bindingKey(), b.providerKey(), b.schemaVersion(), b.config().toString()))
-                    .toList();
-            var created = createService.create(
-                    req.requestId(),
-                    req.scenarioKey(),
-                    req.scenarioSchemaVersion(),
-                    req.title(),
-                    req.description(),
-                    req.scenarioConfig().toString(),
-                    participants,
-                    bindings);
-            return toDefinitionView(queryService.getDefinition(created.definition().definitionId()));
-        } catch (MxzApplicationException ex) {
-            if ("IDEMPOTENCY_REPLAY".equals(ex.errorCode())) {
-                // best-effort: parse definitionId from stored json
-                String msg = ex.getMessage();
-                long id = Long.parseLong(msg.replaceAll("(?s).*\"definitionId\":(\\d+).*", "$1"));
-                return toDefinitionView(queryService.getDefinition(id));
-            }
-            throw ex;
-        }
+        var participants = req.participants().stream()
+                .map(p -> new MxzCreateDefinitionCommand.ParticipantInput(
+                        p.principalType(), p.principalId(), p.roleCode()))
+                .toList();
+        var bindings = req.triggerBindings().stream()
+                .map(b -> new MxzCreateDefinitionCommand.TriggerBindingInput(
+                        b.bindingKey(), b.providerKey(), b.schemaVersion(), b.config().toString()))
+                .toList();
+        var created = createService.create(
+                req.requestId(),
+                req.scenarioKey(),
+                req.scenarioSchemaVersion(),
+                req.title(),
+                req.description(),
+                req.scenarioConfig().toString(),
+                participants,
+                bindings);
+        return toDefinitionView(queryService.getDefinition(created.definition().definitionId()));
     }
 
     public TaskDefinitionView getDefinition(long definitionId) {

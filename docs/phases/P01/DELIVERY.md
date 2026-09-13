@@ -152,6 +152,18 @@ Failsafe: Tests run: 9, Failures: 0
 - A05：complete 同 requestId 重放 / 不同 requestId 同终态 NoChange；相反终态 `STATE_CONFLICT`；skip 原因必填与长度；并发 complete 仅一方变更
 - A36：S02 PLANNED→PENDING→COMPLETED/SKIPPED；pause 将 WAITING 置 `TERMINAL/CANCELLED`（非 SKIPPED）且 `terminalAt` 有值；S01 PLANNED→TRIGGERED 且拒绝 complete
 
+### 4.7 A02 / A23 创建幂等与暂停退役命令边界
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA02A23CreatePauseMysqlIT,MxzS01OnceMysqlIT
+退出码: 0
+Failsafe: Tests run: 4, Failures: 0
+```
+
+- A02：同 requestId 重放返回同一 definitionId；同键不同摘要 `IDEMPOTENCY_CONFLICT`；并发同键收敛为一条定义且无 PROCESSING 残留
+- A23：PAUSE/RETIRE 后 PENDING 仍可 complete/skip，snooze → `STATE_CONFLICT`；WAITING → `CANCELLED`（非 SKIPPED）
+
 ---
 
 ## 5. 双进程与性能验收

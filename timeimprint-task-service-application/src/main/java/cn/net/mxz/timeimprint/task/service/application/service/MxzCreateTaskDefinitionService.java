@@ -9,6 +9,7 @@ import cn.net.mxz.timeimprint.task.service.application.model.MxzCreatedDefinitio
 import cn.net.mxz.timeimprint.task.service.application.port.CommandDedupRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.DefinitionCreatePort;
 import cn.net.mxz.timeimprint.task.service.application.port.MxzTransitionCommitRequest;
+import cn.net.mxz.timeimprint.task.service.application.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.port.TransitionPlanCommitter;
 import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
@@ -31,6 +32,7 @@ public class MxzCreateTaskDefinitionService {
     private final ActorContextProvider actorContextProvider;
     private final ExtensionRegistry extensionRegistry;
     private final DefinitionCreatePort definitionCreatePort;
+    private final TaskDefinitionRepository definitionRepository;
     private final CommandDedupRepository commandDedupRepository;
     private final TransitionPlanCommitter committer;
     private final TransactionBoundary tx;
@@ -41,6 +43,7 @@ public class MxzCreateTaskDefinitionService {
             ActorContextProvider actorContextProvider,
             ExtensionRegistry extensionRegistry,
             DefinitionCreatePort definitionCreatePort,
+            TaskDefinitionRepository definitionRepository,
             CommandDedupRepository commandDedupRepository,
             TransitionPlanCommitter committer,
             TransactionBoundary tx,
@@ -49,6 +52,7 @@ public class MxzCreateTaskDefinitionService {
         this.actorContextProvider = actorContextProvider;
         this.extensionRegistry = extensionRegistry;
         this.definitionCreatePort = definitionCreatePort;
+        this.definitionRepository = definitionRepository;
         this.commandDedupRepository = commandDedupRepository;
         this.committer = committer;
         this.tx = tx;
@@ -69,19 +73,25 @@ public class MxzCreateTaskDefinitionService {
         String op = "POST /api/v1/task-definitions";
         byte[] hash = MxzSha256.digestUtf8(requestId + ":" + scenarioKey + ":" + title);
         return tx.execute(() -> {
-            var completed = commandDedupRepository.findCompletedResponseJson(
+            var existing = commandDedupRepository.find(
                     actor.tenantKey(), actor.principalId(), op, requestId);
-            if (completed.isPresent()) {
-                // minimal duplicated marker; caller reloads by parsing not required for T02
-                throw new MxzApplicationException("IDEMPOTENCY_REPLAY", completed.get());
+            if (existing.isPresent()) {
+                assertSameRequestHash(existing.get().requestHash(), hash);
+                if ("COMPLETED".equals(existing.get().processStatus())) {
+                    return replayCompleted(existing.get().responseJson());
+                }
+                throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
             boolean acquired = commandDedupRepository.tryBegin(
                     actor.tenantKey(), actor.principalId(), op, requestId, hash);
             if (!acquired) {
-                var again = commandDedupRepository.findCompletedResponseJson(
+                var again = commandDedupRepository.find(
                         actor.tenantKey(), actor.principalId(), op, requestId);
                 if (again.isPresent()) {
-                    throw new MxzApplicationException("IDEMPOTENCY_REPLAY", again.get());
+                    assertSameRequestHash(again.get().requestHash(), hash);
+                    if ("COMPLETED".equals(again.get().processStatus())) {
+                        return replayCompleted(again.get().responseJson());
+                    }
                 }
                 throw new MxzApplicationException("RETRY_LATER", "dedup in progress");
             }
@@ -130,6 +140,27 @@ public class MxzCreateTaskDefinitionService {
                     "{\"definitionId\":" + result.definition().definitionId() + "}");
             return result;
         });
+    }
+
+    private MxzCreatedDefinitionResult replayCompleted(String responseJson) {
+        try {
+            long definitionId = objectMapper.readTree(responseJson).path("definitionId").asLong();
+            var def = definitionRepository
+                    .findById(definitionId)
+                    .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
+            return new MxzCreatedDefinitionResult(
+                    def, List.of(), List.of(), List.of(), 0, true, responseJson);
+        } catch (MxzApplicationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MxzApplicationException("INTERNAL_ERROR", "idempotent replay failed");
+        }
+    }
+
+    private void assertSameRequestHash(byte[] stored, byte[] incoming) {
+        if (stored != null && !java.util.Arrays.equals(stored, incoming)) {
+            throw new MxzApplicationException("IDEMPOTENCY_CONFLICT", "same requestId different payload");
+        }
     }
 
     private void validateParticipants(

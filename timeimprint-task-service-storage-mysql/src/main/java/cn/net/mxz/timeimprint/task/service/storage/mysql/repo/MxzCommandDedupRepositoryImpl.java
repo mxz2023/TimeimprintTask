@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.storage.mysql.repo;
 
 import cn.net.mxz.timeimprint.task.service.application.port.CommandDedupRepository;
+import cn.net.mxz.timeimprint.task.service.application.port.CommandDedupRepository.MxzCommandDedupSnapshot;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzStorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.CommandDedupMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.row.CommandDedupRow;
@@ -20,11 +21,20 @@ public class MxzCommandDedupRepositoryImpl implements CommandDedupRepository {
     @Override
     public Optional<String> findCompletedResponseJson(
             String tenantId, String actorId, String operation, String requestId) {
+        return find(tenantId, actorId, operation, requestId)
+                .filter(s -> "COMPLETED".equals(s.processStatus()))
+                .map(MxzCommandDedupSnapshot::responseJson);
+    }
+
+    @Override
+    public Optional<MxzCommandDedupSnapshot> find(
+            String tenantId, String actorId, String operation, String requestId) {
         var row = mapper.selectByKey(tenantId, actorId, operation, requestId);
-        if (row == null || !"COMPLETED".equals(row.getProcessStatus())) {
+        if (row == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(row.getResponseJson());
+        return Optional.of(new MxzCommandDedupSnapshot(
+                row.getProcessStatus(), row.getRequestHash(), row.getResponseJson()));
     }
 
     @Override

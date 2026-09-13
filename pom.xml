@@ -244,7 +244,11 @@
                                 </goals>
                                 <configuration>
                                     <groups>mysql-it</groups>
-                                    <excludedGroups>dual-process-it</excludedGroups>
+                                    <!-- Full-suite IT: keep Hikari small so many Spring contexts do not exhaust MySQL max_connections. -->
+                                    <systemPropertyVariables>
+                                        <spring.datasource.hikari.maximum-pool-size>4</spring.datasource.hikari.maximum-pool-size>
+                                        <spring.datasource.hikari.minimum-idle>0</spring.datasource.hikari.minimum-idle>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>
@@ -267,6 +271,10 @@
                                 </goals>
                                 <configuration>
                                     <groups>dual-process-it</groups>
+                                    <systemPropertyVariables>
+                                        <spring.datasource.hikari.maximum-pool-size>4</spring.datasource.hikari.maximum-pool-size>
+                                        <spring.datasource.hikari.minimum-idle>0</spring.datasource.hikari.minimum-idle>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>

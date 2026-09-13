@@ -103,6 +103,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <!-- 07: profile 缺测不得静默跳过；仅 boot-loader 有 IT。 -->
+                    <failIfNoTests>true</failIfNoTests>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

@@ -3,8 +3,8 @@
 > 本文记录P01已经验证的实现证据。只有经过真实命令执行、退出码为零且测试通过的条目才能记录于此。
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
-recordedAtUtc: 2026-09-12
-阶段状态: IMPLEMENTING (T07+T08完成验证)
+recordedAtUtc: 2026-09-13
+阶段状态: VERIFYING（T08 全量回归已执行现有套件；A01—A42 全矩阵与性能门槛仍未收口）
 
 ---
 
@@ -287,27 +287,54 @@ Failsafe: Tests run: 3, Failures: 0
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
-测试: MxzDualClaimMysqlIT#concurrentClaimsDoNotDuplicateSignal PASS
+Failsafe: Tests run: 1, Failures: 0（MxzDualClaimMysqlIT）
 ```
 
-已验证：
+已验证:
 - 并发 SKIP LOCKED 领取互斥（同一 Signal 不被两个 claim 同时拿走）
 
-尚未执行（保持 NOT_RUN）：
-- 完整双 JVM 进程崩溃接管 / 优雅停机
+尚未执行（保持 NOT_RUN）:
+- 完整双 JVM 进程崩溃接管 / 优雅停机（A04 / A20 / A39）
 - M01—M10 性能门槛
 - A01—A42 完整验收矩阵
-- E01—E13、I01—I07 全量回归
+- E01—E13、I01—I07 全量契约回归
 
 ---
 
-## 6. 遗留问题与阻塞项
+## 6. T08 · 07 第7章全量回归（现有套件）
+
+**状态: 现有套件 PASS；契约全矩阵仍 NOT_RUN（不得宣称 P01 完成）**
+
+recordedAtUtc: 2026-09-13T05:06:58Z
+JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
+
+| 步骤 | 命令 | 退出码 | 结果 |
+| --- | --- | --- | --- |
+| 单元 | `./mvnw -q test` | 0 | PASS |
+| 打包 | `./mvnw -q package` | 0 | PASS |
+| 真库 IT | `./mvnw -Pmysql-it verify` | 0 | Failsafe Tests run: 41, Failures: 0 |
+| 双进程 IT | `./mvnw -Pmysql-it,dual-process-it verify`（boot-loader） | 0 | Failsafe Tests run: 1（DualClaim）, Failures: 0 |
+
+说明:
+- 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行（上表已分步执行）。
+- 首次全量 `mysql-it` 曾 FAIL：`A02` 固定 title 与历史脏数据冲突（expected 1 was 4）；后期 IT 因 Hikari 多上下文耗尽连接（Too many connections）。已用唯一次运行 title、IT 侧 `maximum-pool-size=4` 与会话 `max_connections=500` 解除后重跑 PASS。
+- `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
+
+仍不得标 PASS / VERIFIED 的契约项（摘录）:
+- A03 / A04 / A06 / A11 / A14 / A16 / A19 / A20 / A22 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
+- 07 §6 性能与接管时间窗：NOT_RUN
+- 真正双 JVM 崩溃接管：NOT_RUN
+
+---
+
+## 7. 遗留问题与阻塞项
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 完整双JVM进程 IT | NOT_RUN |
-| — | Performance gate / A01—A42 全矩阵 | NOT_RUN |
-| — | P01 人工最终验收与 RELEASED | 待用户确认 |
+| — | 完整双JVM进程崩溃接管（A04/A20）与优雅停机（A39） | NOT_RUN |
+| — | Performance gate / A01—A42 全矩阵收口 | NOT_RUN |
+| — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
+| — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 
 ---
 

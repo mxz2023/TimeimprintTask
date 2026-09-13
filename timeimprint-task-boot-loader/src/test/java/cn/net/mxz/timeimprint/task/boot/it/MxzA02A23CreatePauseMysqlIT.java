@@ -73,8 +73,9 @@ class MxzA02A23CreatePauseMysqlIT {
 
     @Test
     void a02CreateReplayConflictAndConcurrentSameRequestId() throws Exception {
+        String run = UUID.randomUUID().toString().substring(0, 8);
         String requestId = UUID.randomUUID().toString();
-        Map<String, Object> body = createBody(requestId, "A02 first", onceFutureBinding());
+        Map<String, Object> body = createBody(requestId, "A02 first " + run, onceFutureBinding());
         JsonNode first = post("/api/v1/task-definitions", body);
         assertEquals("OK", first.path("code").asText(), first.toString());
         String definitionId = first.path("data").path("definitionId").asText();
@@ -89,12 +90,13 @@ class MxzA02A23CreatePauseMysqlIT {
                 Long.parseLong(definitionId));
         assertEquals(1, defCount);
 
-        Map<String, Object> conflictBody = createBody(requestId, "A02 different title", onceFutureBinding());
+        Map<String, Object> conflictBody = createBody(requestId, "A02 different title " + run, onceFutureBinding());
         JsonNode conflict = post("/api/v1/task-definitions", conflictBody);
         assertEquals("IDEMPOTENCY_CONFLICT", conflict.path("code").asText(), conflict.toString());
 
         String concurrentId = UUID.randomUUID().toString();
-        Map<String, Object> concurrentBody = createBody(concurrentId, "A02 concurrent", onceFutureBinding());
+        String concurrentTitle = "A02 concurrent " + run;
+        Map<String, Object> concurrentBody = createBody(concurrentId, concurrentTitle, onceFutureBinding());
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
             Callable<JsonNode> job = () -> post("/api/v1/task-definitions", concurrentBody);
@@ -110,7 +112,7 @@ class MxzA02A23CreatePauseMysqlIT {
             Integer rows = jdbc.queryForObject(
                     "SELECT COUNT(*) FROM tt_task_definition WHERE title = ?",
                     Integer.class,
-                    "A02 concurrent");
+                    concurrentTitle);
             assertEquals(1, rows);
         } finally {
             pool.shutdownNow();

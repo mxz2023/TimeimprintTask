@@ -25,7 +25,6 @@ import org.springframework.test.context.DynamicPropertySource;
  * 最小双竞争领取：两个并发 claim 不得领取同一 Signal（SKIP LOCKED）。
  */
 @SpringBootTest(classes = MxzTimeImprintTaskApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Tag("mysql-it")
 @Tag("dual-process-it")
 class MxzDualClaimMysqlIT {
 

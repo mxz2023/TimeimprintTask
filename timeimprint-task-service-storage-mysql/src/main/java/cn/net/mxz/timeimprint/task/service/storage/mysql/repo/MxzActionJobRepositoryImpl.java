@@ -9,6 +9,7 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzRowMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzStorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.ActionAttemptMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.ActionJobMapper;
+import cn.net.mxz.timeimprint.task.service.storage.mysql.row.ActionAttemptRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.row.ActionJobRow;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -147,6 +148,74 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
     public void markCancelled(long actionJobId, String outcomeCode, Instant completedAt) {
         LocalDateTime at = MxzStorageTime.toUtcLdt(completedAt);
         mapper.cancelReadyById(actionJobId, outcomeCode, at, at);
+    }
+
+    @Override
+    public Optional<String> claimForExecution(
+            long actionJobId, String leaseOwner, Instant leaseUntil, Instant now) {
+        String token = UUID.randomUUID().toString();
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+        int claimed = mapper.claimAction(
+                actionJobId, leaseOwner, MxzStorageTime.toUtcLdt(leaseUntil), token, nowLdt);
+        if (claimed != 1) {
+            return Optional.empty();
+        }
+        Integer max = attemptMapper.selectMaxAttemptNo(actionJobId);
+        int attemptNo = (max == null ? 0 : max) + 1;
+        ActionAttemptRow attempt = new ActionAttemptRow();
+        attempt.setActionJobId(actionJobId);
+        attempt.setAttemptNo(attemptNo);
+        attempt.setExecutionToken(token);
+        attempt.setStartedAt(nowLdt);
+        attemptMapper.insert(attempt);
+        return Optional.of(token);
+    }
+
+    @Override
+    public boolean markEffectStarted(long actionJobId, String executionToken, Instant now) {
+        return attemptMapper.markEffectStarted(
+                        actionJobId, executionToken, MxzStorageTime.toUtcLdt(now))
+                == 1;
+    }
+
+    @Override
+    public void cancelRunning(
+            long actionJobId, String executionToken, String outcomeCode, Instant completedAt) {
+        LocalDateTime at = MxzStorageTime.toUtcLdt(completedAt);
+        mapper.cancelRunning(actionJobId, executionToken, outcomeCode, at, at);
+        attemptMapper.completeAttempt(
+                actionJobId, executionToken, "CONTROL_BARRIER", null, outcomeCode, outcomeCode, at);
+    }
+
+    @Override
+    public void completeWithToken(
+            long actionJobId,
+            String executionToken,
+            String status,
+            String outcomeCode,
+            String summary,
+            Instant completedAt) {
+        LocalDateTime at = MxzStorageTime.toUtcLdt(completedAt);
+        mapper.completeAction(actionJobId, executionToken, status, outcomeCode, summary, at, at);
+    }
+
+    @Override
+    public void completeAttempt(
+            long actionJobId,
+            String executionToken,
+            String outcome,
+            String errorClass,
+            String errorCode,
+            String summary,
+            Instant finishedAt) {
+        attemptMapper.completeAttempt(
+                actionJobId,
+                executionToken,
+                outcome,
+                errorClass,
+                errorCode,
+                summary,
+                MxzStorageTime.toUtcLdt(finishedAt));
     }
 
     private static Long parseCursor(String cursor) {

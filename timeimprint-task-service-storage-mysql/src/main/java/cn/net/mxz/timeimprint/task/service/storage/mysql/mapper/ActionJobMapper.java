@@ -31,6 +31,13 @@ public interface ActionJobMapper {
                     @Param("executionToken") String executionToken,
                     @Param("updatedAt") LocalDateTime updatedAt);
 
+    /** Cancel RUNNING under a specific executionToken (barrier before EXTERNAL call). */
+    int cancelRunning(@Param("actionJobId") long actionJobId,
+                      @Param("executionToken") String executionToken,
+                      @Param("outcomeCode") String outcomeCode,
+                      @Param("completedAt") LocalDateTime completedAt,
+                      @Param("updatedAt") LocalDateTime updatedAt);
+
     int completeAction(@Param("actionJobId") long actionJobId,
                        @Param("executionToken") String executionToken,
                        @Param("status") String status,

@@ -223,6 +223,20 @@ Failsafe: Tests run: 3, Failures: 0
 - A13：同 `requestId` 不同 snooze 摘要 → `IDEMPOTENCY_CONFLICT`；同 revision 并发 complete 仅一条 `changed=true`
 - A28：pause/resume 递增 `controlGeneration`；旧代次 READY 经 ActionWorker 屏障转 `CANCELLED/CONTROL_BARRIER`；新 WAITING 为新代次；已 SUCCEEDED 收件与 PENDING 保留
 
+### 4.12 A08 pause 与 EXTERNAL Action
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA08ExternalPauseMysqlIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 2, Failures: 0
+```
+
+- EXTERNAL 路径：claim → 短事务写 `effectStartedAt`（重验 controlGeneration/PAUSED）→ 事务外调用 → 结果事务闭合；后续 pause 不撤销已开始调用
+- pause 先：READY EXTERNAL 转 `CANCELLED/CONTROL_BARRIER`，无调用、无 `effectStartedAt`
+- `effectStartedAt` 先：pause 后仍完成调用并 `SUCCEEDED`，Attempt 保留开始证据
+
 ---
 
 ## 5. 双进程与性能验收

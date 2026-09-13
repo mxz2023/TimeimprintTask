@@ -38,6 +38,16 @@
             safe_summary = #{safeSummary},
             finished_at = #{finishedAt}
         WHERE action_job_id = #{actionJobId} AND execution_token = #{executionToken}
+          AND finished_at IS NULL
+    </update>
+
+    <update id="markEffectStarted">
+        UPDATE tt_action_attempt SET
+            effect_started_at = #{effectStartedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND execution_token = #{executionToken}
+          AND effect_started_at IS NULL
+          AND finished_at IS NULL
     </update>
 
     <select id="selectMaxAttemptNo" resultType="java.lang.Integer">

@@ -21,5 +21,9 @@ public interface ActionAttemptMapper {
                         @Param("safeSummary") String safeSummary,
                         @Param("finishedAt") LocalDateTime finishedAt);
 
+    int markEffectStarted(@Param("actionJobId") long actionJobId,
+                          @Param("executionToken") String executionToken,
+                          @Param("effectStartedAt") LocalDateTime effectStartedAt);
+
     Integer selectMaxAttemptNo(@Param("actionJobId") long actionJobId);
 }

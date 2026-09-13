@@ -247,12 +247,8 @@ class MxzA07A13A28MysqlIT {
                 "SELECT COUNT(*) FROM tt_inbox WHERE instance_id = ?", Integer.class, pendingId);
         assertTrue(inboxBefore != null && inboxBefore >= 1);
 
-        // Force remaining chase due so a stale Worker would otherwise execute after resume.
-        jdbc.update(
-                "UPDATE tt_action_job SET available_at = UTC_TIMESTAMP() - INTERVAL 1 SECOND, "
-                        + "next_attempt_at = UTC_TIMESTAMP() - INTERVAL 1 SECOND "
-                        + "WHERE action_job_id = ?",
-                oldReadyAction);
+        // Do not advance chase available_at: background poller must not race before pause.
+        // Explicit executeAction below still re-checks the control barrier.
 
         pause(definitionId);
         long genAfterPause =

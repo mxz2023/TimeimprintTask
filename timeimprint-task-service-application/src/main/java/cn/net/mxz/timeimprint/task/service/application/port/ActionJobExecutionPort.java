@@ -16,6 +16,41 @@ public interface ActionJobExecutionPort {
     /** Permanent cancel for READY/RETRY_WAIT when control barrier rejects execution. */
     void markCancelled(long actionJobId, String outcomeCode, java.time.Instant completedAt);
 
+    /**
+     * Claim READY/RETRY_WAIT → RUNNING, insert open Attempt, return executionToken.
+     * Empty if not claimable.
+     */
+    java.util.Optional<String> claimForExecution(
+            long actionJobId, String leaseOwner, java.time.Instant leaseUntil, java.time.Instant now);
+
+    /**
+     * EXTERNAL pre-call: set Attempt.effectStartedAt when still null.
+     * Caller must have already verified parent control barrier in the same transaction.
+     */
+    boolean markEffectStarted(long actionJobId, String executionToken, java.time.Instant now);
+
+    /** Cancel RUNNING Action that has not completed (barrier after claim / before or without effect). */
+    void cancelRunning(
+            long actionJobId, String executionToken, String outcomeCode, java.time.Instant completedAt);
+
+    /** Close EXTERNAL/local RUNNING Action by executionToken CAS. */
+    void completeWithToken(
+            long actionJobId,
+            String executionToken,
+            String status,
+            String outcomeCode,
+            String summary,
+            java.time.Instant completedAt);
+
+    void completeAttempt(
+            long actionJobId,
+            String executionToken,
+            String outcome,
+            String errorClass,
+            String errorCode,
+            String summary,
+            java.time.Instant finishedAt);
+
     Optional<MxzActionJobRecord> findById(long actionJobId);
 
     /** List READY action jobs due for execution (for worker polling, no lock). */

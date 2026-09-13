@@ -88,6 +88,20 @@
         WHERE action_job_id = #{actionJobId} AND status IN ('READY', 'RETRY_WAIT')
     </update>
 
+    <update id="cancelRunning">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
     <update id="completeAction">
         UPDATE tt_action_job SET
             status = #{status},

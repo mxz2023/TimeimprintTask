@@ -18,4 +18,10 @@ public interface TriggerPlannerPort {
      * @param maxPerBinding  max new occurrences per binding
      */
     void planDueBindings(Instant now, int bindingBatch, int maxPerBinding);
+
+    /**
+     * Plan a single binding in its own short transaction (definition → binding lock order).
+     * Used by concurrent planning tests and by {@link #planDueBindings}.
+     */
+    void planBinding(long triggerBindingId, Instant now, int maxPerBinding);
 }

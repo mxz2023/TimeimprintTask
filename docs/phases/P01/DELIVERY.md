@@ -295,6 +295,7 @@ Failsafe: Tests run: 3, Failures: 0
 - 并发 SKIP LOCKED 领取互斥（同一 Signal 不被两个 claim 同时拿走）
 - A04 / A20：真二 JVM 领取后 `destroyForcibly`，租约回收接管；旧 token CAS=0；Signal 仅一条 `source_type=SIGNAL` 迁移；Action 恰好 1 条 inbox
 - A16 / A22：退避/Policy 退还/EXPIRED 与 OWNER·RECIPIENT·超限规则（见 §5.2）
+- A03 / A11：并发规划唯一事实与改时间规则屏障（见 §5.3）
 
 尚未执行（保持 NOT_RUN）:
 - 优雅停机（A39）与接管时间窗 SLA（07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛）
@@ -332,6 +333,22 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - A22：无 RECIPIENT 时通知 OWNER；显式 RECIPIENT 不隐式含 OWNER；>10 人 Signal `IGNORED` 且无 Action
 - 实现要点：`MxzRecipientRules`；S01/S02 Signal 发出 `PENDING_EXPAND` 模板由平台按接收人展开；`completeRetryableFailure` / `releasePolicyBlocked` / `expireIfDue`；claim 要求 `attempt_count < max_attempts`
 
+### 5.3 A03 / A11 并发规划与改时屏障
+
+```
+命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA03A11MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 2, Failures: 0
+抽样回归: MxzA03A11MysqlIT,MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzDefinitionUpdateMysqlIT,MxzA07A13A28MysqlIT,MxzA12ResumeMysqlIT,MxzA16A22MysqlIT → Tests run: 13, Failures: 0
+recordedAtUtc: 2026-09-13T05:37:50Z
+JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
+```
+
+- A03：两线程并发 `planBinding` 同一 occurrence → 仅 1 instance / 1 signal、规划期无 Action；游标单调；Signal 迁移后唯一 Action
+- A11：日历 update 与旧未来 Signal Worker 并发；PENDING 历史快照保留；旧 WAITING/READY 取消或 Signal-first 保留；`scheduleGeneration` +1 并重建新窗口；旧 IGNORED Signal 不能再次迁移
+- 实现要点：Planner 每绑定 `REQUIRES_NEW` 短事务；锁序 definition → binding；修复自调用导致事务未生效
+
 ---
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
@@ -354,7 +371,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A03 / A06 / A11 / A14 / A19 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
+- A06 / A14 / A19 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
 - 07 §6 性能与接管时间窗 SLA：NOT_RUN
 - 优雅停机 A39：NOT_RUN
 

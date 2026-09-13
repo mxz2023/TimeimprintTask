@@ -22,17 +22,16 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Implements the Trigger Planner logic:
- * scans calendar trigger bindings that are due for window extension and
- * generates new WAITING instances + planned READY signals.
- *
- * Per binding: lock definition → binding, calculate occurrences after cursor,
- * insert instances + signals, update cursor.
+ * Trigger Planner: unlocked candidate scan, then per-binding short TX with
+ * definition → trigger binding lock order (06). Self-invocation of
+ * {@code @Transactional} is avoided via an explicit REQUIRES_NEW template (A03).
  */
 @Repository
 public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
@@ -45,6 +44,7 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
     private final TaskSignalMapper signalMapper;
     private final TaskTransitionMapper transitionMapper;
     private final ObjectMapper objectMapper;
+    private final TransactionTemplate requiresNew;
 
     public MxzTriggerPlannerPortImpl(
             TriggerBindingMapper bindingMapper,
@@ -52,63 +52,85 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
             TaskInstanceMapper instanceMapper,
             TaskSignalMapper signalMapper,
             TaskTransitionMapper transitionMapper,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            PlatformTransactionManager transactionManager) {
         this.bindingMapper = bindingMapper;
         this.definitionMapper = definitionMapper;
         this.instanceMapper = instanceMapper;
         this.signalMapper = signalMapper;
         this.transitionMapper = transitionMapper;
         this.objectMapper = objectMapper;
+        this.requiresNew = new TransactionTemplate(transactionManager);
+        this.requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Override
     public void planDueBindings(Instant now, int bindingBatch, int maxPerBinding) {
         var nowLdt = MxzStorageTime.toUtcLdt(now);
-        // Find due bindings (next_fire_at <= now, not exhausted, binding_state = ACTIVE)
+        // Unlocked / auto-commit candidate scan; each binding gets its own short TX (06).
         List<Long> ids = bindingMapper.selectDueTriggerIds("calendar", nowLdt, bindingBatch);
         for (Long bindingId : ids) {
             try {
-                planSingleBinding(bindingId, now, maxPerBinding);
+                planBinding(bindingId, now, maxPerBinding);
             } catch (Exception e) {
                 log.warn("Planner: error for binding {}: {}", bindingId, e.getMessage());
             }
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void planSingleBinding(long bindingId, Instant now, int maxPerBinding) {
-        // Lock: definition → binding
-        var binding = bindingMapper.selectByIdForUpdate(bindingId);
-        if (binding == null || Boolean.TRUE.equals(binding.getExhausted())) return;
-        if (!"ACTIVE".equals(binding.getBindingState())) return;
+    @Override
+    public void planBinding(long triggerBindingId, Instant now, int maxPerBinding) {
+        requiresNew.executeWithoutResult(status -> planOneLocked(triggerBindingId, now, maxPerBinding));
+    }
 
-        var def = definitionMapper.selectByIdForUpdate(binding.getDefinitionId());
-        if (def == null || !"ACTIVE".equals(def.getControlState())) return;
+    private void planOneLocked(long bindingId, Instant now, int maxPerBinding) {
+        // Peek binding without lock to learn definitionId, then lock definition → binding (06).
+        var peek = bindingMapper.selectById(bindingId);
+        if (peek == null || Boolean.TRUE.equals(peek.getExhausted())) {
+            return;
+        }
+        if (!"ACTIVE".equals(peek.getBindingState())) {
+            return;
+        }
+
+        var def = definitionMapper.selectByIdForUpdate(peek.getDefinitionId());
+        if (def == null || !"ACTIVE".equals(def.getControlState())) {
+            return;
+        }
+
+        var binding = bindingMapper.selectByIdForUpdate(bindingId);
+        if (binding == null || Boolean.TRUE.equals(binding.getExhausted())) {
+            return;
+        }
+        if (!"ACTIVE".equals(binding.getBindingState())) {
+            return;
+        }
+        if (!binding.getDefinitionId().equals(def.getDefinitionId())) {
+            return;
+        }
 
         long definitionId = def.getDefinitionId();
         long controlGen = def.getControlGeneration();
         long schedGen = binding.getScheduleGeneration() == null ? 1L : binding.getScheduleGeneration();
         String bindingKey = binding.getBindingKey();
 
-        // Parse calendar rule
         Map<String, Object> configMap = parseMap(binding.getConfigJson());
         MxzCalendarOccurrenceCalculator.Rule rule = MxzCalendarConfigParser.parse(configMap);
 
-        // Determine cursor: use nextFireAt as "already planned up to"
         Instant cursor = binding.getNextFireAt() != null
                 ? MxzStorageTime.toInstant(binding.getNextFireAt()).minus(1, ChronoUnit.SECONDS)
                 : now;
 
-        // Calculate next occurrences after cursor, within 7-day window
         Instant windowEnd = now.plus(7, ChronoUnit.DAYS);
         var occurrences = MxzCalendarOccurrenceCalculator.preview(rule, cursor, maxPerBinding);
 
         int generated = 0;
         Instant lastOccurrence = null;
         for (var occ : occurrences) {
-            if (occ.occurrenceAt().isAfter(windowEnd)) break;
+            if (occ.occurrenceAt().isAfter(windowEnd)) {
+                break;
+            }
 
-            // Skip if signal already exists (idempotent)
             String signalKey = MxzCalendarTriggerProvider.signalKey(
                     definitionId, bindingKey, schedGen, controlGen, occ.occurrenceKey());
             var existing = signalMapper.selectBySourceKey(def.getTenantId(), "calendar", signalKey);
@@ -118,7 +140,6 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
                 continue;
             }
 
-            // Check if instance already exists (via unique key)
             String snapshotJson = "{\"occurrenceKey\":\"" + occ.occurrenceKey() + "\"}";
             TaskInstanceRow inst = new TaskInstanceRow();
             inst.setDefinitionId(definitionId);
@@ -141,12 +162,13 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
 
             try {
                 instanceMapper.insert(inst);
-            } catch (Exception e) {
-                // Unique key conflict: instance already exists, skip
+            } catch (DataIntegrityViolationException e) {
+                // Concurrent planner lost the unique race; treat as already planned.
+                lastOccurrence = occ.occurrenceAt();
+                generated++;
                 continue;
             }
 
-            // Insert initial transition
             var tr = new TaskTransitionRow();
             tr.setDefinitionId(definitionId);
             tr.setInstanceId(inst.getInstanceId());
@@ -165,7 +187,6 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
             tr.setCreatedAt(MxzStorageTime.toUtcLdt(now));
             transitionMapper.insert(tr);
 
-            // Insert planned signal
             String payloadJson = buildPayloadJson(occ, bindingKey);
             TaskSignalRow signal = new TaskSignalRow();
             signal.setTenantId(def.getTenantId());
@@ -188,14 +209,22 @@ public class MxzTriggerPlannerPortImpl implements TriggerPlannerPort {
             signal.setNextAttemptAt(MxzStorageTime.toUtcLdt(occ.occurrenceAt()));
             signal.setCreatedAt(MxzStorageTime.toUtcLdt(now));
             signal.setUpdatedAt(MxzStorageTime.toUtcLdt(now));
-            signalMapper.insert(signal);
+            try {
+                signalMapper.insert(signal);
+            } catch (DataIntegrityViolationException e) {
+                // Instance inserted but signal raced; unique key guarantees single signal.
+                lastOccurrence = occ.occurrenceAt();
+                generated++;
+                continue;
+            }
 
             lastOccurrence = occ.occurrenceAt();
             generated++;
-            if (generated >= maxPerBinding) break;
+            if (generated >= maxPerBinding) {
+                break;
+            }
         }
 
-        // Update cursor
         boolean exhausted = occurrences.isEmpty() || generated < maxPerBinding;
         if ("ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")))) {
             exhausted = true;

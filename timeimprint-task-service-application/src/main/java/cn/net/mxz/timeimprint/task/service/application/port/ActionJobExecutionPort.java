@@ -84,6 +84,12 @@ public interface ActionJobExecutionPort {
     /** List READY action jobs due for execution (for worker polling, no lock). */
     List<Long> listReadyDueIds(java.time.Instant now, int limit);
 
+    /**
+     * Fairness share: due READY/RETRY_WAIT ordered by newest {@code available_at} first
+     * (06 §10 time-slice for fresh work alongside oldest-first drain).
+     */
+    List<Long> listReadyDueIdsNewestFirst(java.time.Instant now, int limit);
+
     /** List action jobs with optional filters (for I03 diagnostic). */
     List<MxzActionJobRecord> listFiltered(Long definitionId, Long instanceId,
             String status, String handlerKey, int limit, String cursor);

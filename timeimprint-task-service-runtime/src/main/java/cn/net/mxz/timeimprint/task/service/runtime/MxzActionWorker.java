@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,6 @@ import org.springframework.stereotype.Component;
 public class MxzActionWorker {
 
     private static final Logger log = LoggerFactory.getLogger(MxzActionWorker.class);
-    private static final int CLAIM_BATCH = 20;
     /** Default lease; must match {@code LEASE_SECONDS} config (03). */
     private static final int LEASE_SECONDS = 30;
     /**
@@ -63,6 +63,7 @@ public class MxzActionWorker {
     private final BusinessClock clock;
     private final ObjectMapper objectMapper;
     private final MxzRuntimeAdmission admission;
+    private final int claimBatchSize;
 
     public MxzActionWorker(
             ActionJobExecutionPort actionPort,
@@ -72,7 +73,8 @@ public class MxzActionWorker {
             TransactionBoundary tx,
             BusinessClock clock,
             ObjectMapper objectMapper,
-            MxzRuntimeAdmission admission) {
+            MxzRuntimeAdmission admission,
+            @Value("${CLAIM_BATCH_SIZE:50}") int claimBatchSize) {
         this.actionPort = actionPort;
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
@@ -81,6 +83,7 @@ public class MxzActionWorker {
         this.clock = clock;
         this.objectMapper = objectMapper;
         this.admission = admission;
+        this.claimBatchSize = MxzSignalWorker.clampClaimBatch(claimBatchSize);
     }
 
     @Scheduled(fixedDelay = 2000, initialDelay = 6000)
@@ -89,8 +92,7 @@ public class MxzActionWorker {
             return;
         }
         try {
-            List<Long> ids = actionPort.listReadyDueIds(clock.nowUtcSeconds(), CLAIM_BATCH);
-            for (Long actionJobId : ids) {
+            for (Long actionJobId : selectFairDueIds()) {
                 if (!admission.acceptingClaims()) {
                     return;
                 }
@@ -103,6 +105,37 @@ public class MxzActionWorker {
         } catch (Exception e) {
             log.warn("Action worker: poll error: {}", e.getMessage());
         }
+    }
+
+    /** Visible for IT: one poll cycle; returns candidate count (≤ claim batch). */
+    public int pollOnceForTests() {
+        List<Long> ids = selectFairDueIds();
+        for (Long actionJobId : ids) {
+            executeAction(actionJobId);
+        }
+        return ids.size();
+    }
+
+    public int claimBatchSize() {
+        return claimBatchSize;
+    }
+
+    /**
+     * 06 §10 fairness: half the batch prefers newest due work; remainder drains oldest-first.
+     * Total candidates ≤ {@code CLAIM_BATCH_SIZE} (clamped 1—100).
+     */
+    private List<Long> selectFairDueIds() {
+        Instant now = clock.nowUtcSeconds();
+        int freshShare = Math.max(1, claimBatchSize / 2);
+        List<Long> fresh = actionPort.listReadyDueIdsNewestFirst(now, freshShare);
+        java.util.LinkedHashSet<Long> merged = new java.util.LinkedHashSet<>(fresh);
+        for (Long id : actionPort.listReadyDueIds(now, claimBatchSize)) {
+            if (merged.size() >= claimBatchSize) {
+                break;
+            }
+            merged.add(id);
+        }
+        return List.copyOf(merged);
     }
 
     /** Visible for IT: run one action through the same path as the poller. */

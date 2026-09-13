@@ -1,6 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.application.runtime;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,6 +12,13 @@ public class MxzRuntimeAdmission {
 
     private final AtomicBoolean acceptingWrites = new AtomicBoolean(true);
     private final AtomicBoolean acceptingClaims = new AtomicBoolean(true);
+
+    public MxzRuntimeAdmission(
+            @Value("${timeimprint.test.suspend-claims-at-start:false}") boolean suspendClaimsAtStart) {
+        if (suspendClaimsAtStart) {
+            acceptingClaims.set(false);
+        }
+    }
 
     public boolean acceptingWrites() {
         return acceptingWrites.get();

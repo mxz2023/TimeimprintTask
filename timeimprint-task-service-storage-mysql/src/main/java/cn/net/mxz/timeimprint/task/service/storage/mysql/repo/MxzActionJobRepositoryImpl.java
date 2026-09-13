@@ -56,6 +56,11 @@ public class MxzActionJobRepositoryImpl implements ActionJobRepository, ActionJo
     }
 
     @Override
+    public List<Long> listReadyDueIdsNewestFirst(Instant now, int limit) {
+        return mapper.selectReadyDueIdsNewestFirst(MxzStorageTime.toUtcLdt(now), limit);
+    }
+
+    @Override
     public List<MxzActionJobRecord> listFiltered(Long definitionId, Long instanceId,
             String status, String handlerKey, int limit, String cursor) {
         Long cursorId = parseCursor(cursor);

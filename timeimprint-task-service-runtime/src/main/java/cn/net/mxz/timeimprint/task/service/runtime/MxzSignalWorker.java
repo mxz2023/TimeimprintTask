@@ -7,6 +7,7 @@ import cn.net.mxz.timeimprint.task.service.application.service.MxzSignalProcessi
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,22 +24,24 @@ import org.springframework.stereotype.Component;
 public class MxzSignalWorker {
 
     private static final Logger log = LoggerFactory.getLogger(MxzSignalWorker.class);
-    private static final int CLAIM_BATCH = 20;
 
     private final TaskSignalRepository signalRepository;
     private final MxzSignalProcessingService processingService;
     private final BusinessClock clock;
     private final MxzRuntimeAdmission admission;
+    private final int claimBatchSize;
 
     public MxzSignalWorker(
             TaskSignalRepository signalRepository,
             MxzSignalProcessingService processingService,
             BusinessClock clock,
-            MxzRuntimeAdmission admission) {
+            MxzRuntimeAdmission admission,
+            @Value("${CLAIM_BATCH_SIZE:50}") int claimBatchSize) {
         this.signalRepository = signalRepository;
         this.processingService = processingService;
         this.clock = clock;
         this.admission = admission;
+        this.claimBatchSize = clampClaimBatch(claimBatchSize);
     }
 
     @Scheduled(fixedDelay = 2000, initialDelay = 5000)
@@ -47,7 +50,7 @@ public class MxzSignalWorker {
             return;
         }
         try {
-            List<Long> ids = signalRepository.listReadyDueIds(clock.nowUtcSeconds(), CLAIM_BATCH);
+            List<Long> ids = signalRepository.listReadyDueIds(clock.nowUtcSeconds(), claimBatchSize);
             for (Long signalId : ids) {
                 if (!admission.acceptingClaims()) {
                     return;
@@ -61,5 +64,28 @@ public class MxzSignalWorker {
         } catch (Exception e) {
             log.warn("Signal worker: poll error: {}", e.getMessage());
         }
+    }
+
+    /** Visible for IT: one poll cycle; returns candidate count (≤ claim batch). */
+    public int pollOnceForTests() {
+        List<Long> ids = signalRepository.listReadyDueIds(clock.nowUtcSeconds(), claimBatchSize);
+        for (Long signalId : ids) {
+            processingService.processSignal(signalId);
+        }
+        return ids.size();
+    }
+
+    public int claimBatchSize() {
+        return claimBatchSize;
+    }
+
+    static int clampClaimBatch(int configured) {
+        if (configured < 1) {
+            return 1;
+        }
+        if (configured > 100) {
+            return 100;
+        }
+        return configured;
     }
 }

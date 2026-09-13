@@ -170,6 +170,15 @@
         LIMIT #{limit}
     </select>
 
+    <select id="selectReadyDueIdsNewestFirst" resultType="java.lang.Long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status IN ('READY', 'RETRY_WAIT')
+          AND (available_at IS NULL OR available_at &lt;= #{now})
+          AND (next_attempt_at IS NULL OR next_attempt_at &lt;= #{now})
+        ORDER BY available_at DESC, action_job_id DESC
+        LIMIT #{limit}
+    </select>
+
     <select id="selectExpiredRunningIds" resultType="java.lang.Long">
         SELECT action_job_id FROM tt_action_job
         WHERE status = 'RUNNING'

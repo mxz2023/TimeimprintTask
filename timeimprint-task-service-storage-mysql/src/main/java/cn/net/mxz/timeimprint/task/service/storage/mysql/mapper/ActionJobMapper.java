@@ -90,6 +90,9 @@ public interface ActionJobMapper {
     /** Scan READY action IDs due for execution (no lock, for worker polling). */
     List<Long> selectReadyDueIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
 
+    /** Fairness share: newest available_at among due READY/RETRY_WAIT. */
+    List<Long> selectReadyDueIdsNewestFirst(@Param("now") LocalDateTime now, @Param("limit") int limit);
+
     /** Cancel READY/RETRY_WAIT actions for a given instance/controlGeneration. */
     int cancelByControlGeneration(@Param("instanceId") long instanceId,
                                   @Param("definitionControlGeneration") long definitionControlGeneration,

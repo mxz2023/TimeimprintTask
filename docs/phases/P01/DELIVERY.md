@@ -287,9 +287,9 @@ Failsafe: Tests run: 3, Failures: 0
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
-Failsafe: Tests run: 4, Failures: 0
-（MxzTakeoverSlaDualProcessIT + MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
-recordedAtUtc: 2026-09-13T08:20:45Z
+Failsafe: Tests run: 5, Failures: 0
+（MxzTakeoverSlaDualProcessIT + MxzFairnessBacklogDualProcessIT + MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
+recordedAtUtc: 2026-09-13T08:39:59Z
 ```
 
 已验证:
@@ -302,9 +302,10 @@ recordedAtUtc: 2026-09-13T08:20:45Z
 已验证（续）:
 - A39：local/test 非回环地址启动失败；liveness 不依赖 DB；停机 admission 拒绝写（503 RETRY_LATER）并停止 claim；宽限后租约回收 → RETRY_WAIT，旧 token CAS=0（见 §5.6）
 - 07 §6 独立接管真时钟 SLA：子进程领取后被杀，父进程调度在原租约到期后 `2 × scan(2000ms) + 10s` 内接管；恰好 1 条 inbox；旧 token CAS=0（见 §5.7）
+- 07 §6 独立公平性积压：10×101 READY 积压；单轮 ≤100；新到期 S01 10s 内收件（见 §5.8）
 
 尚未执行（保持 NOT_RUN）:
-- 07 §6 性能门槛（1万定义 / 1000 到期 / P95）与公平性积压测试
+- 07 §6 性能门槛（1万定义 / 1000 到期 / P95；预热+3 次正式跑）
 - A01—A42 完整验收矩阵
 - E01—E13、I01—I07 全量契约回归
 
@@ -398,7 +399,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - 测试侧 `spring.task.scheduling.enabled=false`；IN_APP inbox 对唯一键冲突幂等成功；IT 按 `action_job_id` 定点执行，避免脏库 READY 队列饿死
 
 仍 NOT_RUN / 未收口:
-- 07 §6 性能门槛与公平性积压
+- 07 §6 性能门槛（1万/1000/P95）
 - E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
 
 ### 5.6 A39 回环绑定、健康边界与优雅停机
@@ -438,8 +439,24 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - 父进程调度 reaper → RETRY_WAIT（含退避）→ ActionWorker 接管执行；断言 SUCCEEDED 落在 deadline 内、inbox=1、旧 token CAS=0
 - 附带稳定：`MxzDualClaimMysqlIT` 改为同事务 SELECT SKIP LOCKED + UPDATE RUNNING，并对齐 MySQL UTC
 
+### 5.8 07 §6 独立公平性积压
+
+```
+命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzFairnessBacklogDualProcessIT \
+  -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 1, Failures: 0
+全量 dual-process-it: Tests run: 5, Failures: 0
+recordedAtUtc: 2026-09-13T08:39:59Z
+```
+
+- `CLAIM_BATCH_SIZE` 接入 Signal/Action Worker（钳制 1—100）；单轮 `pollOnceForTests` ≤100 且满批
+- Action 领取时间片公平：半批 `available_at DESC`（新到期）+ 半批最旧 `next_attempt_at ASC`
+- 构造 10 定义 × 101 READY 积压后，新到期 S01 在 10 秒内产生恰好 1 条 inbox（显式 poll，关闭 `@Scheduled` 避免跨测试上下文抢库）
+
 仍 NOT_RUN / 未收口:
-- 07 §6 性能门槛与公平性积压测试
+- 07 §6 性能门槛（1万/1000/P95）
 - E01—E13 / I01—I07 独立全量契约矩阵（端点有纵向 smoke，非矩阵）
 
 ---
@@ -460,7 +477,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- 07 §6 性能门槛与公平性积压：NOT_RUN
+- 07 §6 性能门槛（1万定义/1000到期/P95）：NOT_RUN
 - E01—E13 / I01—I07 独立全量契约矩阵：NOT_RUN
 
 ---
@@ -469,7 +486,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 07 §6 性能门槛（1万/1000/P95）与公平性积压 | NOT_RUN |
+| — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
 

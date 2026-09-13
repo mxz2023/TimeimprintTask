@@ -52,5 +52,19 @@ public interface TaskSignalMapper {
     /** Return IDs of READY/RETRY_WAIT signals due for processing. */
     List<Long> selectReadyDueIds(@Param("now") LocalDateTime now, @Param("limit") int limit);
 
+    List<Long> selectExpiredRunningIds(@Param("limit") int limit);
+
+    int recoverToRetryWait(@Param("signalId") long signalId,
+                           @Param("executionToken") String executionToken,
+                           @Param("nextAttemptAt") LocalDateTime nextAttemptAt,
+                           @Param("updatedAt") LocalDateTime updatedAt);
+
+    int recoverToDead(@Param("signalId") long signalId,
+                      @Param("executionToken") String executionToken,
+                      @Param("resultCode") String resultCode,
+                      @Param("resultSummary") String resultSummary,
+                      @Param("processedAt") LocalDateTime processedAt,
+                      @Param("updatedAt") LocalDateTime updatedAt);
+
     int countByParent(@Param("parentSignalId") long parentSignalId);
 }

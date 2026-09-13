@@ -7,6 +7,7 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.MxzStorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.TaskSignalMapper;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.row.TaskSignalRow;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,53 +56,122 @@ public class MxzTaskSignalRepositoryImpl implements TaskSignalRepository {
     }
 
     @Override
-    public void markSucceeded(long signalId, String resultCode, String summary, Instant processedAt) {
+    public Optional<String> claimForProcessing(
+            long signalId, String leaseOwner, Instant leaseUntil, Instant now) {
         var row = mapper.selectByIdForUpdate(signalId);
         if (row == null) {
-            return;
+            return Optional.empty();
         }
-        String token = row.getExecutionToken() == null ? UUID.randomUUID().toString() : row.getExecutionToken();
-        if (row.getExecutionToken() == null) {
-            mapper.claimSignal(
-                    signalId,
-                    "sync",
-                    MxzStorageTime.toUtcLdt(processedAt).plusMinutes(1),
-                    token,
-                    MxzStorageTime.toUtcLdt(processedAt));
+        String status = row.getProcessStatus();
+        if (!"READY".equals(status) && !"RETRY_WAIT".equals(status)) {
+            return Optional.empty();
         }
-        mapper.completeSignal(
+        String token = UUID.randomUUID().toString();
+        int claimed = mapper.claimSignal(
                 signalId,
+                leaseOwner,
+                MxzStorageTime.toUtcLdt(leaseUntil),
                 token,
-                "SUCCEEDED",
-                resultCode,
-                summary,
-                MxzStorageTime.toUtcLdt(processedAt),
-                MxzStorageTime.toUtcLdt(processedAt));
+                MxzStorageTime.toUtcLdt(now));
+        return claimed == 1 ? Optional.of(token) : Optional.empty();
+    }
+
+    @Override
+    public boolean completeWithToken(
+            long signalId,
+            String executionToken,
+            String processStatus,
+            String resultCode,
+            String summary,
+            Instant processedAt) {
+        return mapper.completeSignal(
+                        signalId,
+                        executionToken,
+                        processStatus,
+                        resultCode,
+                        summary,
+                        MxzStorageTime.toUtcLdt(processedAt),
+                        MxzStorageTime.toUtcLdt(processedAt))
+                == 1;
+    }
+
+    @Override
+    public void markSucceeded(long signalId, String resultCode, String summary, Instant processedAt) {
+        closeWithClaimIfNeeded(signalId, "SUCCEEDED", resultCode, summary, processedAt);
     }
 
     @Override
     public void markIgnored(long signalId, String resultCode, String summary, Instant processedAt) {
+        closeWithClaimIfNeeded(signalId, "IGNORED", resultCode, summary, processedAt);
+    }
+
+    private void closeWithClaimIfNeeded(
+            long signalId, String processStatus, String resultCode, String summary, Instant processedAt) {
         var row = mapper.selectByIdForUpdate(signalId);
         if (row == null) {
             return;
         }
-        String token = row.getExecutionToken() == null ? UUID.randomUUID().toString() : row.getExecutionToken();
-        if (row.getExecutionToken() == null) {
-            mapper.claimSignal(
+        String token = row.getExecutionToken();
+        if (token == null) {
+            token = UUID.randomUUID().toString();
+            int claimed = mapper.claimSignal(
                     signalId,
                     "sync",
                     MxzStorageTime.toUtcLdt(processedAt).plusMinutes(1),
                     token,
                     MxzStorageTime.toUtcLdt(processedAt));
+            if (claimed != 1) {
+                throw new cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException(
+                        "STATE_CONFLICT", "signal claim failed");
+            }
         }
-        mapper.completeSignal(
+        int closed = mapper.completeSignal(
                 signalId,
                 token,
-                "IGNORED",
+                processStatus,
                 resultCode,
                 summary,
                 MxzStorageTime.toUtcLdt(processedAt),
                 MxzStorageTime.toUtcLdt(processedAt));
+        if (closed != 1) {
+            throw new cn.net.mxz.timeimprint.task.service.application.exception.MxzApplicationException(
+                    "STATE_CONFLICT", "signal CAS failed");
+        }
+    }
+
+    @Override
+    public List<Long> listExpiredRunningIds(int limit) {
+        return mapper.selectExpiredRunningIds(limit);
+    }
+
+    @Override
+    public boolean recoverExpiredLease(long signalId, Instant now) {
+        var row = mapper.selectByIdForUpdate(signalId);
+        if (row == null || !"RUNNING".equals(row.getProcessStatus()) || row.getExecutionToken() == null) {
+            return false;
+        }
+        String token = row.getExecutionToken();
+        LocalDateTime nowLdt = MxzStorageTime.toUtcLdt(now);
+        int attemptCount = row.getAttemptCount() == null ? 0 : row.getAttemptCount();
+        int maxAttempts = row.getMaxAttempts() == null ? 5 : row.getMaxAttempts();
+        if (attemptCount >= maxAttempts) {
+            return mapper.recoverToDead(
+                            signalId,
+                            token,
+                            "LEASE_EXPIRED",
+                            "attempts exhausted after lease expiry",
+                            nowLdt,
+                            nowLdt)
+                    == 1;
+        }
+        Instant next = now.plusSeconds(backoffSeconds(attemptCount));
+        return mapper.recoverToRetryWait(signalId, token, MxzStorageTime.toUtcLdt(next), nowLdt) == 1;
+    }
+
+    static long backoffSeconds(int attemptCount) {
+        int[] delays = {5, 30, 120, 600};
+        int idx = Math.min(Math.max(attemptCount, 1), delays.length) - 1;
+        return delays[idx];
     }
 
     @Override

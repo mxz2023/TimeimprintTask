@@ -287,17 +287,33 @@ Failsafe: Tests run: 3, Failures: 0
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
-Failsafe: Tests run: 1, Failures: 0（MxzDualClaimMysqlIT）
+Failsafe: Tests run: 3, Failures: 0
+（MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
 ```
 
 已验证:
 - 并发 SKIP LOCKED 领取互斥（同一 Signal 不被两个 claim 同时拿走）
+- A04 / A20：真二 JVM 领取后 `destroyForcibly`，租约回收接管；旧 token CAS=0；Signal 仅一条 `source_type=SIGNAL` 迁移；Action 恰好 1 条 inbox
 
 尚未执行（保持 NOT_RUN）:
-- 完整双 JVM 进程崩溃接管 / 优雅停机（A04 / A20 / A39）
+- 优雅停机（A39）与接管时间窗 SLA（07 §6 独立接管测试的 `2 × scan interval + 10秒` 真时钟门槛）
 - M01—M10 性能门槛
 - A01—A42 完整验收矩阵
 - E01—E13、I01—I07 全量契约回归
+
+### 5.1 A04 / A20 双 JVM 崩溃接管
+
+```
+命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
+  -Dit.test=MxzA04A20DualProcessIT -Dfailsafe.failIfNoSpecifiedTests=false
+退出码: 0
+Failsafe: Tests run: 2, Failures: 0
+抽样回归: MxzS01OnceMysqlIT,MxzA07A13A28MysqlIT,MxzA09ExternalCrashMysqlIT,MxzA15TxRetryMysqlIT → Tests run: 10, Failures: 0
+```
+
+- Signal：短事务领取提交 RUNNING+token；子进程 `MxzClaimAndHoldMain` 领取后被杀；`MxzSignalLeaseReaper` → RETRY_WAIT；父进程 `processSignal` 接管；旧 token `completeWithToken` 为 false；一条 SIGNAL 迁移
+- Action：同上路径经 `MxzActionLeaseReaper` + `ActionWorker`；最终 1 条 inbox；旧 token 无权回写
+- 实现要点：`processSignal` 改为 claim 与处理两段事务；Signal 完成 CAS 要求 RUNNING+token；新增 `MxzSignalLeaseReaper`
 
 ---
 
@@ -321,9 +337,9 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - `MxzDualClaimMysqlIT` 仅保留 `@Tag("dual-process-it")`，避免与 `mysql-it` 的 `excludedGroups` 合并成 0 tests。
 
 仍不得标 PASS / VERIFIED 的契约项（摘录）:
-- A03 / A04 / A06 / A11 / A14 / A16 / A19 / A20 / A22 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
-- 07 §6 性能与接管时间窗：NOT_RUN
-- 真正双 JVM 崩溃接管：NOT_RUN
+- A03 / A06 / A11 / A14 / A16 / A19 / A22 / A25—A27 / A29—A35 / A38—A42：无专项证据或未覆盖
+- 07 §6 性能与接管时间窗 SLA：NOT_RUN
+- 优雅停机 A39：NOT_RUN
 
 ---
 
@@ -331,7 +347,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 
 | 编号 | 问题 | 状态 |
 | --- | --- | --- |
-| — | 完整双JVM进程崩溃接管（A04/A20）与优雅停机（A39） | NOT_RUN |
+| — | 优雅停机（A39）与 07 §6 接管时间窗 SLA | NOT_RUN |
 | — | Performance gate / A01—A42 全矩阵收口 | NOT_RUN |
 | — | E01—E13 / I01—I07 独立全量契约矩阵 | NOT_RUN |
 | — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |

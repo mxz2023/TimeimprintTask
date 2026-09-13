@@ -26,6 +26,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -33,12 +34,15 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MxzSignalProcessingService {
+
+    private static final int LEASE_SECONDS = 30;
 
     private final TaskSignalRepository signalRepository;
     private final TaskDefinitionRepository definitionRepository;
@@ -75,13 +79,32 @@ public class MxzSignalProcessingService {
     }
 
     public void processSignal(long signalId) {
+        String token = tx.execute(() -> tryClaim(signalId));
+        if (token == null) {
+            return;
+        }
         tx.execute(() -> {
-            var signal = signalRepository
-                    .findByIdForUpdate(signalId)
-                    .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "signal"));
-            if ("SUCCEEDED".equals(signal.processStatus()) || "IGNORED".equals(signal.processStatus())) {
-                return null;
-            }
+            processClaimed(signalId, token);
+            return null;
+        });
+    }
+
+    private String tryClaim(long signalId) {
+        Instant now = clock.nowUtcSeconds();
+        String owner = Optional.ofNullable(System.getenv("INSTANCE_ID")).orElse("signal-worker");
+        Instant leaseUntil = now.plus(LEASE_SECONDS, ChronoUnit.SECONDS);
+        return signalRepository.claimForProcessing(signalId, owner, leaseUntil, now).orElse(null);
+    }
+
+    private void processClaimed(long signalId, String expectedToken) {
+        var signal = signalRepository
+                .findByIdForUpdate(signalId)
+                .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "signal"));
+        if (!"RUNNING".equals(signal.processStatus())
+                || signal.executionToken() == null
+                || !expectedToken.equals(signal.executionToken())) {
+            throw new MxzApplicationException("STATE_CONFLICT", "signal token lost");
+        }
             var def = definitionRepository
                     .findByIdForUpdate(signal.definitionId())
                     .orElseThrow(() -> new MxzApplicationException("RESOURCE_NOT_FOUND", "definition"));
@@ -89,12 +112,12 @@ public class MxzSignalProcessingService {
             if (signal.definitionControlGeneration() != def.controlGeneration()) {
                 signalRepository.markIgnored(
                         signalId, "CONTROL_GENERATION_MISMATCH", "stale control generation", now);
-                return null;
+                return;
             }
             if (def.controlState() == ControlState.PAUSED || def.controlState() == ControlState.RETIRED) {
                 signalRepository.markIgnored(
                         signalId, "CONTROL_STATE_BLOCKED", "definition " + def.controlState(), now);
-                return null;
+                return;
             }
             if (signal.instanceId() == null) {
                 throw new MxzApplicationException("INVALID_REQUEST", "calendar signal requires instance");
@@ -119,7 +142,7 @@ public class MxzSignalProcessingService {
             if (recipients.isEmpty()) {
                 // Fixture/poison rows without OWNER/RECIPIENT must not stay READY forever.
                 signalRepository.markIgnored(signalId, "NO_RECIPIENTS", "no recipients", clock.nowUtcSeconds());
-                return null;
+                return;
             }
             payloadFields.putIfAbsent("recipientType", "USER");
             payloadFields.putIfAbsent("recipientId", recipients.get(0));
@@ -196,8 +219,6 @@ public class MxzSignalProcessingService {
                     signalRepository.markSucceeded(signalId, "APPLIED", "transition " + commit.transitionId(), now);
                 }
             }
-            return null;
-        });
     }
 
     private TransitionPlan expandRecipients(

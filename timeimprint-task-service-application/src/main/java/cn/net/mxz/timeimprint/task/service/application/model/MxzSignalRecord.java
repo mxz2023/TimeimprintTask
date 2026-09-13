@@ -25,4 +25,5 @@ public record MxzSignalRecord(
         int redriveNo,
         String leaseOwner,
         Instant leaseUntil,
+        String executionToken,
         String resultSummary) {}

@@ -91,7 +91,9 @@
             lease_until = NULL,
             execution_token = NULL,
             updated_at = #{updatedAt}
-        WHERE signal_id = #{signalId} AND execution_token = #{executionToken}
+        WHERE signal_id = #{signalId}
+          AND process_status = 'RUNNING'
+          AND execution_token = #{executionToken}
     </update>
 
     <update id="ignoreByBindingGeneration">
@@ -112,6 +114,47 @@
         ORDER BY next_attempt_at ASC, signal_id ASC
         LIMIT #{limit}
     </select>
+
+    <select id="selectExpiredRunningIds" resultType="java.lang.Long">
+        SELECT signal_id FROM tt_task_signal
+        WHERE process_status = 'RUNNING'
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+        ORDER BY lease_until ASC, signal_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="recoverToRetryWait">
+        UPDATE tt_task_signal SET
+            process_status = 'RETRY_WAIT',
+            next_attempt_at = #{nextAttemptAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE signal_id = #{signalId}
+          AND process_status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
+
+    <update id="recoverToDead">
+        UPDATE tt_task_signal SET
+            process_status = 'DEAD',
+            result_code = #{resultCode},
+            result_summary = #{resultSummary},
+            processed_at = #{processedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE signal_id = #{signalId}
+          AND process_status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
 
     <select id="countByParent" resultType="int">
         SELECT COUNT(*) FROM tt_task_signal WHERE parent_signal_id = #{parentSignalId}

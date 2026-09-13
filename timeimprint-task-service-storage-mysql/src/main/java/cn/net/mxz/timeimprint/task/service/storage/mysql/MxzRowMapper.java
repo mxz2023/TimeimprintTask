@@ -107,6 +107,7 @@ public final class MxzRowMapper {
                 r.getRedriveNo() == null ? 0 : r.getRedriveNo(),
                 r.getLeaseOwner(),
                 MxzStorageTime.toInstant(r.getLeaseUntil()),
+                r.getExecutionToken(),
                 r.getResultSummary());
     }
 

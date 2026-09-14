@@ -66,12 +66,46 @@ curl -sS "$BASE/actuator/health/readiness"
 
 ### 1.3 查 ID（可选 SQL）
 
+手工联调时，路径参数里的 ID 多数可从 **上一步 HTTP 的 `data`** 拿到；下表 SQL 用于对照库表、或 HTTP 未带回时补查。这些 ID 都是 MySQL **`BIGINT UNSIGNED AUTO_INCREMENT` 主键**（插入时由库生成），HTTP JSON 里以**字符串**返回（如 `"definitionId":"11406"`）。
+
+| 变量（手册下文） | 库表.列 | 是什么 | 怎么产生 | 常用在哪 |
+| --- | --- | --- | --- | --- |
+| `DEF_ID` | `tt_task_definition.definition_id`（实例行上也有同名外键） | 任务**定义**主键 | [E03](../../04-API.md) 创建成功后写入；响应 `data.definitionId` | E04/E05/E06、E08 过滤、诊断 |
+| `INST_ID` | `tt_task_instance.instance_id` | 某次发生对应的任务**实例**主键 | E03（或日历规划）按 occurrence **物化实例**时写入；E08 列表 / 本 SQL | E07/E09、`process` 后看状态 |
+| `SIG_ID` | `tt_task_signal.signal_id` | 待处理/已处理的 **Signal** 主键 | 日历计划：E03 创建时写入计划 Signal；也可 [I01](../../04-API.md) 投递；响应或本 SQL | 辅助 `…/process`、I02/I06 |
+| `INBOX_ID` | `tt_inbox.inbox_id` | 站内**收件**主键 | `in_app_notification` Action 执行成功后插入；E10 列表 `data.items[].inboxId` | E11/E13 |
+
+生成链路（S01/S02 日历主路径）：
+
+```text
+E03 创建定义
+  → 库生成 DEF_ID
+  → 按日历 occurrence 物化实例 → 库生成 INST_ID
+  → 写入计划 Signal（常为 READY）→ 库生成 SIG_ID
+process Signal / Worker
+  → 场景迁移（S01→TRIGGERED；S02→PENDING）
+  → 提交 TransitionPlan → 产生 Action（另有 action_job_id）
+  → IN_APP 成功 → 写入 inbox → 库生成 INBOX_ID
+```
+
+对照查询（各取最近 5 条）：
+
 ```bash
 docker exec -it tit-mysql-t01 mysql -utit -ptit_local timeimprint_task_local -e "
-SELECT definition_id, instance_id, scenario_state, lifecycle_category FROM tt_task_instance ORDER BY instance_id DESC LIMIT 5;
-SELECT signal_id, definition_id, process_status, provider_key FROM tt_task_signal ORDER BY signal_id DESC LIMIT 5;
-SELECT inbox_id, definition_id, read_at FROM tt_inbox ORDER BY inbox_id DESC LIMIT 5;"
+-- 实例：拿 INST_ID，并看到所属 DEF_ID 与场景状态
+SELECT definition_id AS DEF_ID, instance_id AS INST_ID, scenario_state, lifecycle_category
+FROM tt_task_instance ORDER BY instance_id DESC LIMIT 5;
+
+-- Signal：拿 SIG_ID（process 前常为 READY）
+SELECT signal_id AS SIG_ID, definition_id AS DEF_ID, process_status, provider_key
+FROM tt_task_signal ORDER BY signal_id DESC LIMIT 5;
+
+-- 收件：拿 INBOX_ID（需 Action 成功后才有行）
+SELECT inbox_id AS INBOX_ID, definition_id AS DEF_ID, read_at
+FROM tt_inbox ORDER BY inbox_id DESC LIMIT 5;"
 ```
+
+优先用 HTTP：E03 → `DEF_ID`；E08 → `INST_ID`；E10 → `INBOX_ID`。`SIG_ID` 公开 API 不列表，用上表或 I03 相关诊断补查。
 
 注意：若本库同时跑过 `-Pmysql-it`，可能残留 `webhook_action` 或空 payload Action，本地 Worker 会刷 WARN。手工联调脏数据可取消：
 

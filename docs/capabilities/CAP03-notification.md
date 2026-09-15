@@ -7,18 +7,18 @@
 | 能力编号 | CAP03 |
 | 目标模块 | `timeimprint-task-service-capability-notification` |
 | planningPosition | P01 |
-| contractStatus | READY_FOR_IMPLEMENTATION |
-| implementationStatus | NOT_STARTED |
+| contractStatus | RELEASED |
+| implementationStatus | VERIFIED |
 | P01使用场景 | [S01](../scenarios/S01-reminder.md)、[S02](../scenarios/S02-recurring-todo.md) |
-| DELIVERY证据 | 无；P01尚未实施 |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `p01` |
 
 ## 能力项
 
 | 能力项 | 内容 | 排期位置 | 契约状态 | 实现状态 | 关联 |
 | --- | --- | --- | --- | --- | --- |
-| NOT-01 | 版本化通知意图与接收人投影 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| NOT-02 | IN_APP渠道和站内收件 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| NOT-03 | Action Job、Attempt、失效和受控重试映射 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
+| NOT-01 | 版本化通知意图与接收人投影 | P01 | RELEASED | VERIFIED | S01、S02 |
+| NOT-02 | IN_APP渠道和站内收件 | P01 | RELEASED | VERIFIED | S01、S02 |
+| NOT-03 | Action Job、Attempt、失效和受控重试映射 | P01 | RELEASED | VERIFIED | S01、S02 |
 | NOT-04 | 提醒节制、静默、频控、汇总与降级 | BACKLOG | OUTLINE | NOT_STARTED | C09 |
 | NOT-05 | 飞书、京ME、邮件等多IM渠道 | BACKLOG | OUTLINE | NOT_STARTED | C12 |
 | NOT-06 | 委托和多接收人增强 | BACKLOG | OUTLINE | NOT_STARTED | C16，主要协作规则归collaboration |

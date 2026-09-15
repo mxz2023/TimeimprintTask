@@ -103,4 +103,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前阶段为[P01第一期](phases/P01/README.md)；总体状态、工程状态和下一动作只在P01 README维护。具体T01—T08见[P01实施任务](phases/P01/IMPLEMENTATION.md)。规划详情保存在场景/能力目录，09只维护排序关系；当前不得提前创建P02/P03空目录或虚构范围。
+当前没有 CURRENT 阶段。[P01第一期](phases/P01/README.md) 已 RELEASED（2026-09-15 人工验收；Git 标签 `p01`；证据[DELIVERY](phases/P01/DELIVERY.md)）。P01 的 README / IMPLEMENTATION / DELIVERY 冻结，不再改写。规划详情保存在场景/能力目录，09只维护排序关系；须从 NEXT_REVIEW 选择范围并经用户确认后才能创建下一阶段，不得提前创建P02/P03空目录或虚构范围。

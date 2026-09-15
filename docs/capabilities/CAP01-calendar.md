@@ -7,10 +7,10 @@
 | 能力编号 | CAP01 |
 | 目标模块 | `timeimprint-task-service-capability-calendar` |
 | planningPosition | P01 |
-| contractStatus | READY_FOR_IMPLEMENTATION |
-| implementationStatus | NOT_STARTED |
+| contractStatus | RELEASED |
+| implementationStatus | VERIFIED |
 | P01使用场景 | [S01](../scenarios/S01-reminder.md)、[S02](../scenarios/S02-recurring-todo.md) |
-| DELIVERY证据 | 无；P01尚未实施 |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `p01` |
 
 能力域整体状态取当前已批准能力项的状态，不表示下表所有未来能力已经READY或实现。
 
@@ -18,11 +18,11 @@
 
 | 能力项 | 内容 | 排期位置 | 契约状态 | 实现状态 | 关联 |
 | --- | --- | --- | --- | --- | --- |
-| CAL-01 | ONCE一次性时间 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| CAL-02 | DAILY每日 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| CAL-03 | WEEKLY每周 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| CAL-04 | MONTHLY每月，缺失日期取月末 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
-| CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
+| CAL-01 | ONCE一次性时间 | P01 | RELEASED | VERIFIED | S01、S02 |
+| CAL-02 | DAILY每日 | P01 | RELEASED | VERIFIED | S01、S02 |
+| CAL-03 | WEEKLY每周 | P01 | RELEASED | VERIFIED | S01、S02 |
+| CAL-04 | MONTHLY每月，缺失日期取月末 | P01 | RELEASED | VERIFIED | S01、S02 |
+| CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-06 | 扩展周期：每年、季度、每N时间单位、月末 | BACKLOG | OUTLINE | NOT_STARTED | C01、S03 |
 | CAL-07 | 工作日与节假日日历 | BACKLOG | OUTLINE | NOT_STARTED | C02 |
 | CAL-08 | 业务时间计时 | BACKLOG | OUTLINE | NOT_STARTED | C03、S09 |

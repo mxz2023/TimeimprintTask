@@ -4,15 +4,13 @@
 
 ## 当前阶段
 
-| 阶段 | 角色 | 已完成 | 状态与下一动作 |
-| --- | --- | --- | --- |
-| P01 第一期稳定核心与基础场景 | CURRENT | 工程可运行；S01/S02与夹具mysql-it已有证据；见[P01 DELIVERY](P01/DELIVERY.md) | 只见[P01 README](P01/README.md) |
-
-任何时刻只能有一个CURRENT阶段；当前唯一CURRENT阶段是P01。阶段索引不复制总体状态和下一动作，避免与阶段README形成两个维护点。
+当前没有 CURRENT 阶段。下一阶段须从[场景索引](../scenarios/README.md)、[能力索引](../capabilities/README.md)和[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围，经规则细化与用户确认后创建。
 
 ## 已发布阶段
 
-当前没有已发布阶段，也没有可作为实现事实引用的DELIVERY或Git发布标签。文档设计过程不是产品交付历史。
+| 阶段 | 状态 | 交付与标签 |
+| --- | --- | --- |
+| P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`p01`](P01/README.md)；人工验收 2026-09-15 |
 
 ## 未来阶段
 

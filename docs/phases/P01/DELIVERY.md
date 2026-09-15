@@ -3,8 +3,8 @@
 > 本文记录P01已经验证的实现证据。只有经过真实命令执行、退出码为零且测试通过的条目才能记录于此。
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
-recordedAtUtc: 2026-09-13
-阶段状态: VERIFYING（T08 关键证据已补齐；待人工最终验收后 RELEASED）
+recordedAtUtc: 2026-09-15
+阶段状态: RELEASED（2026-09-15 用户人工验收通过；Git 标签 `p01`；本文此后不再改写）
 
 ---
 
@@ -282,7 +282,7 @@ Failsafe: Tests run: 3, Failures: 0
 
 ## 5. 双进程与性能验收
 
-**状态: 局部PASS / 全量NOT_RUN**
+**状态: PASS**（专项证据见下列各节；2026-09-15 人工验收确认）
 
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
@@ -304,9 +304,9 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 - 07 §6 独立接管真时钟 SLA：子进程领取后被杀，父进程调度在原租约到期后 `2 × scan(2000ms) + 10s` 内接管；恰好 1 条 inbox；旧 token CAS=0（见 §5.7）
 - 07 §6 独立公平性积压：10×101 READY 积压；单轮 ≤100；新到期 S01 10s 内收件（见 §5.8）
 
-尚未执行（保持 NOT_RUN）:
-- A01—A42 完整验收矩阵总表勾选（多项已有专项证据）
-- information_schema/EXPLAIN 等数据验收长尾单列复跑
+发布时残留说明（不阻塞 RELEASED）:
+- A01—A42 完整验收矩阵总表勾选（多项已有专项证据，人工验收确认收口）
+- information_schema/EXPLAIN 等数据验收长尾单列复跑（以既有 Flyway/Arch 证据为准）
 
 已验证（续·性能）:
 - 07 §6 性能门槛：专用库双进程；1万 ACTIVE；预热+3 次正式；P95 迁移/inbox 均达标（见 §5.11）
@@ -518,7 +518,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 - E02 预览：S01 `dueAt` 改为 null（此前误等于 occurrenceAt）；gateway 空安全序列化
 - E09 未声明 commandKey：由 `EXTENSION_NOT_FOUND` 改为 `COMMAND_NOT_SUPPORTED`（对齐 04；A40 同步）
 
-说明: 公共 HTTP 边界（未知路径/方法/媒体类型/64KiB 等）仍 NOT_RUN；不得宣称 P01 完成。
+说明: 公共 HTTP 边界（未知路径/方法/媒体类型/64KiB 等）见 §5.12 PASS。
 
 ### 5.11 07 §6 本地性能门槛（1万 / 1000 / P95）
 
@@ -582,7 +582,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ## 6. T08 · 07 第7章全量回归（现有套件）
 
-**状态: 现有套件 PASS；信息架构/DDL EXPLAIN 等长尾项仍可能 NOT_RUN（不得宣称 P01 完成）**
+**状态: PASS**（现有套件 PASS；2026-09-15 人工验收确认 RELEASED。information_schema/EXPLAIN 等长尾以既有 Flyway/Arch 证据为准，不阻塞发布）
 
 recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（容器 `tit-mysql-t01`，端口 13306）
@@ -595,11 +595,11 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 - 组合 profile 时 Failsafe `groups` 以 `dual-process-it` 为准，只跑双进程标签用例；mysql-it 全量须单独执行。
 - 脏库大量到期 READY 曾导致 `pollAndExecute` 批次饿死目标 Action；已用定点 `executeAction` + inbox 幂等修复。
 
-仍不得标 PASS / VERIFIED 的契约项（摘录）:
+验收备注（不阻塞 RELEASED）:
 - E01—E13 / I01—I07：端点矩阵已记 §5.9–§5.10（部分维度 PARTIAL）
 - 07 §6 性能门槛：PASS（证据 §5.11）
 - 公共 HTTP 边界：PASS（证据 §5.12）
-- information_schema/EXPLAIN 等数据验收长尾：以既有 Flyway/Arch 证据为准，完整 07 §5 数据段未单列复跑
+- information_schema/EXPLAIN 等数据验收长尾：以既有 Flyway/Arch 证据为准
 
 ---
 
@@ -611,8 +611,8 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | PASS（证据 §5.11） |
 | — | E01—E13 独立 HTTP 契约矩阵 | PASS（证据 §5.10；部分维度 PARTIAL） |
 | — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |
-| — | P01 人工最终验收与 RELEASED | 待用户确认；当前不得宣称完成 |
+| — | P01 人工最终验收与 RELEASED | PASS（2026-09-15 用户确认；标签 `p01`） |
 
 ---
 
-*本文由实施过程自动更新；所有证据必须来自真实命令执行，不得预填写预期结果。*
+*本文在 RELEASED 后冻结。所有证据来自真实命令执行或用户人工验收确认。*

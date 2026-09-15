@@ -8,12 +8,12 @@
 | scenarioKey | `reminder` |
 | 首次交付阶段 | P01 |
 | planningPosition | P01 |
-| contractStatus | READY_FOR_IMPLEMENTATION |
-| implementationStatus | NOT_STARTED |
+| contractStatus | RELEASED |
+| implementationStatus | VERIFIED |
 | 配置schemaVersion | 1 |
 | 所属模块 | `timeimprint-task-service-scenario-basic` |
 | 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
-| DELIVERY证据 | 无；P01尚未实施 |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `p01` |
 
 ## 1. 用途与边界
 

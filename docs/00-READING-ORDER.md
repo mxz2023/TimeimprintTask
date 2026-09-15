@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.2，最后收敛日期为2026-09-12。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，但必须完成后续同类场景可以复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.2把全部已规划场景和能力域迁入永久目录并增加三维状态，没有扩大P01范围或宣称任何工程已经实现。
+当前文档基线版本为2.2，最后收敛日期为2026-09-12。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.2把全部已规划场景和能力域迁入永久目录并增加三维状态。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `p01`）。
 
 ## 1. 阅读顺序
 
@@ -20,13 +20,14 @@
 | 09 | [SCENARIO-ROADMAP](09-SCENARIO-ROADMAP.md) | 当前、下一评审、长期规划及跨项演进关系 |
 | 10 | [TECHNICAL-REVIEW](10-TECHNICAL-REVIEW.md) | 设计理由、已处理问题和实施期验证风险 |
 | 阶段 | [阶段索引](phases/README.md) | 已发布、当前和未来阶段的唯一索引 |
-| 当前 | [P01阶段入口](phases/P01/README.md) | 第一期范围、状态、下一动作和必读文档 |
+| 已发布 | [P01阶段入口](phases/P01/README.md) | 第一期 RELEASED；交付见[DELIVERY](phases/P01/DELIVERY.md)，标签 `p01` |
+| 当前 | 无 CURRENT | 下一阶段从 NEXT_REVIEW 选择后创建；见[阶段索引](phases/README.md) |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
 | 附录 | [HUMAN-GLOSSARY](HUMAN-GLOSSARY.md) | 英文术语、字段和状态的中文释义 |
 
-首次参与项目的开发者或编码AI必须先读完00—10、场景/能力索引、阶段索引和CURRENT阶段README。开始某个实施任务前，再读取当前阶段IMPLEMENTATION、目标场景文件及全部依赖能力文件。不能只依据会话摘要、历史记录或单份文档编码。
+首次参与项目的开发者或编码AI必须先读完00—10、场景/能力索引与阶段索引；若存在 CURRENT 阶段则再读其 README。开始某个实施任务前，再读取当前阶段IMPLEMENTATION、目标场景文件及全部依赖能力文件。无 CURRENT 时不得编码。不能只依据会话摘要、历史记录或单份文档编码。
 
 ## 2. 权威边界
 
@@ -58,7 +59,7 @@
 | 首期产品形态 | 本地固定身份、API优先的可运行后端，不把GUI或生产多租户身份作为首期交付条件 | 01、04 |
 | 核心模型 | TaskDefinition → TaskInstance → Signal → TransitionPlan → Action Job | 01、02 |
 | 首期场景 | S01 reminder、S02 recurring_todo及五种calendar规则 | [场景契约](scenarios/README.md)、01、04 |
-| 首期能力状态 | calendar基础项、notification站内信已具备可编码契约，但均为NOT_STARTED；其他能力域为OUTLINE | [能力索引](capabilities/README.md) |
+| 首期能力状态 | calendar CAL-01—CAL-05、notification NOT-01—NOT-03 已 VERIFIED；其他能力域/能力项仍为 OUTLINE | [能力索引](capabilities/README.md) |
 | 后续规划 | S03/S04/S05/S14为NEXT_REVIEW；其他后续场景与能力为BACKLOG，全部NOT_STARTED | [场景索引](scenarios/README.md)、[能力索引](capabilities/README.md)、09 |
 | 扩展目标 | 增加现有类型场景时不修改kernel业务语义和公共表；允许增加场景/能力模块、专有表和装配声明 | 02、07 |
 | 公共存储 | 10张平台公共表；通知能力另有2张专有表 | 05 |
@@ -71,11 +72,12 @@
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
 | 2.2文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | P01（CURRENT） | 总体状态和下一动作只以[P01 README](phases/P01/README.md)为准 |
-| 实际环境 | ENV_PENDING | JDK发行版/补丁、Maven与Spring AI具体补丁、MySQL镜像digest及连接配置须在T01实测 |
+| 当前阶段 | 无 CURRENT | P01 已 RELEASED；见[阶段索引](phases/README.md) |
+| P01 发布 | RELEASED（`p01`） | 人工验收 2026-09-15；证据[DELIVERY](phases/P01/DELIVERY.md) |
+| 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
-`READY`只表示“可以开始实施”，不表示“文档没有任何问题”。P01只有获得用户明确实施授权后才能开始。
+无 CURRENT 时不得开始新的实现编码。创建下一阶段并获得用户授权前，只能做文档细化与规划。
 
 ## 5. 实施期仍须验证
 
@@ -93,16 +95,16 @@
 
 - 不保留旧版需求、旧接口、旧DDL或无编号副本作为开发输入。
 - 旧项目的`WORKLOG.md`已经删除，不得恢复或作为需求、状态、进度来源。
-- 当前阶段身份以阶段索引为唯一入口，总体状态和下一动作以CURRENT阶段README为准；00只做摘要，二者不一致时暂停实施并先修正文档。
-- 实施开始后，真实命令、退出码、测试数、环境和证据只写入当前阶段的`DELIVERY.md`；P01的交付文件当前尚未创建。
+- 阶段身份以阶段索引为唯一入口；存在 CURRENT 时，总体状态和下一动作以该阶段 README 为准；00只做摘要，二者不一致时暂停实施并先修正文档。
+- 实施开始后，真实命令、退出码、测试数、环境和证据只写入当前阶段的`DELIVERY.md`；已 RELEASED 阶段的 DELIVERY 不再改写。P01 证据见[DELIVERY](phases/P01/DELIVERY.md)。
 - 新增或修改英文术语、字段、状态、方法和配置时，同步维护HUMAN-GLOSSARY，但中文释义不能改变正式契约语义。
-- 场景或能力状态变化时同步更新对应永久文档、索引、09和当前阶段；没有DELIVERY证据不得标VERIFIED。
+- 场景或能力状态变化时同步更新对应永久文档、索引、09和受影响阶段；没有DELIVERY证据不得标VERIFIED。
 - 已执行的Flyway迁移不得原地修改；文档修改不能伪装已经完成的工程或数据升级。
 
 ## 7. 进入实施的条件
 
-1. 用户明确要求“开始T01”或“开始实现”。仅确认文档、继续审核或讨论方案不构成实施授权。
-2. P01按[本期实施任务](phases/P01/IMPLEMENTATION.md)的T01→G01→T02→T03→T04→T05→T06→T07→T08推进。
-3. 任一阶段存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续阶段。
-4. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION；实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
-5. T08完成后统一提交交付报告供人工验收；在此之前不得宣称TimeImprintTask已经实现完成。
+1. 必须存在唯一 CURRENT 阶段，且用户明确授权开始该阶段实施。仅确认文档、继续审核或讨论方案不构成实施授权。
+2. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION，并已写入该阶段范围。
+3. 任一关键任务存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续任务或宣称阶段完成。
+4. 实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
+5. P01 已 RELEASED（标签 `p01`）。后续实现须先创建新阶段包并获授权，不得在无 CURRENT 时编码。

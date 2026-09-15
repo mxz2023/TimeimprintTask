@@ -38,6 +38,8 @@ docs/phases/Pxx/
 
 阶段README必须记录基础发布标签或“初始实现”、核心文档版本和下一任务。开始实施后的第一个任务必须在写代码前记录不可变`baselineGitRef`；仓库尚不能形成提交时，改为保存核心文档、kernel生产源码和公共Flyway目录的SHA-256清单。发布时记录新的Git标签，保证以后可以重现该期开始前与交付后的准确状态。
 
+发布标签命名固定为`v` + `yyyyMMdd` + `-` + 阶段编号，例如`v20260915-P01`。打在该阶段 RELEASED 文档冻结提交上；不得使用仅阶段号（如`p01`）或其他随意名称。
+
 ## 3. 阶段状态
 
 阶段总体状态只允许：
@@ -60,7 +62,7 @@ docs/phases/Pxx/
 5. README转为READY，00和阶段索引指向该阶段；仍须用户明确授权才能开始。
 6. 获得授权后转IMPLEMENTING，严格按IMPLEMENTATION任务顺序推进。
 7. 实现完成后转VERIFYING，创建DELIVERY并记录真实命令、环境、结果和证据。
-8. 全部验收通过且用户确认后转RELEASED，创建Git发布标签；DELIVERY和阶段任务不再改写。
+8. 全部验收通过且用户确认后转RELEASED，按`vyyyyMMdd-Pxx`创建Git发布标签（如`v20260915-P01`）；DELIVERY和阶段任务不再改写。
 9. 把仍然有效的平台规则合并到01—07、场景和能力规则合并到对应永久文档，更新实现状态和09排期；随后才能创建下一阶段。
 
 ## 5. 变化分类与审批
@@ -103,4 +105,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前没有 CURRENT 阶段。[P01第一期](phases/P01/README.md) 已 RELEASED（2026-09-15 人工验收；Git 标签 `p01`；证据[DELIVERY](phases/P01/DELIVERY.md)）。P01 的 README / IMPLEMENTATION / DELIVERY 冻结，不再改写。规划详情保存在场景/能力目录，09只维护排序关系；须从 NEXT_REVIEW 选择范围并经用户确认后才能创建下一阶段，不得提前创建P02/P03空目录或虚构范围。
+当前没有 CURRENT 阶段。[P01第一期](phases/P01/README.md) 已 RELEASED（2026-09-15 人工验收；Git 标签 `v20260915-P01`；证据[DELIVERY](phases/P01/DELIVERY.md)）。P01 的 README / IMPLEMENTATION / DELIVERY 冻结，不再改写。规划详情保存在场景/能力目录，09只维护排序关系；须从 NEXT_REVIEW 选择范围并经用户确认后才能创建下一阶段，不得提前创建P02/P03空目录或虚构范围。

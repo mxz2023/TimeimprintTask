@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-09-15
-阶段状态: RELEASED（2026-09-15 用户人工验收通过；Git 标签 `p01`；本文此后不再改写）
+阶段状态: RELEASED（2026-09-15 用户人工验收通过；Git 标签 `v20260915-P01`；本文此后不再改写）
 
 ---
 
@@ -611,7 +611,7 @@ JDK: Amazon Corretto 21.0.12；MySQL `9.7.2` / `MySQL Community Server - GPL`（
 | — | 07 §6 性能门槛（1万/1000/P95；预热+3 次） | PASS（证据 §5.11） |
 | — | E01—E13 独立 HTTP 契约矩阵 | PASS（证据 §5.10；部分维度 PARTIAL） |
 | — | I01—I07 HTTP 契约矩阵 | PASS（证据 §5.9；畸形时间/未知字段等 PARTIAL） |
-| — | P01 人工最终验收与 RELEASED | PASS（2026-09-15 用户确认；标签 `p01`） |
+| — | P01 人工最终验收与 RELEASED | PASS（2026-09-15 用户确认；标签 `v20260915-P01`） |
 
 ---
 

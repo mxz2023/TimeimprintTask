@@ -10,7 +10,7 @@
 
 | 阶段 | 状态 | 交付与标签 |
 | --- | --- | --- |
-| P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`p01`](P01/README.md)；人工验收 2026-09-15 |
+| P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`v20260915-P01`](P01/README.md)；人工验收 2026-09-15 |
 
 ## 未来阶段
 

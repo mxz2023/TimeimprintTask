@@ -13,7 +13,7 @@
 | 配置schemaVersion | 1 |
 | 所属模块 | `timeimprint-task-service-scenario-basic` |
 | 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
-| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `p01` |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `v20260915-P01` |
 
 ## 1. 用途与边界
 

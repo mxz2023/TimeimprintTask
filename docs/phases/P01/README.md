@@ -11,7 +11,7 @@
 | 基础发布 | 无；P01是初始实现 |
 | baselineGitRef | 无可用不可变提交基线；见[BASELINE-SHA256.txt](BASELINE-SHA256.txt)（写代码前核心文档清单） |
 | 工程状态 | RELEASED |
-| Git发布标签 | `p01`（打在本 RELEASED 文档冻结提交上） |
+| Git发布标签 | `v20260915-P01`（打在本 RELEASED 文档冻结提交上） |
 | 人工验收 | 2026-09-15 用户确认通过 |
 | 下一任务 | 无；从[场景索引](../../scenarios/README.md)/[09](../../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围后创建下一阶段 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
@@ -84,4 +84,4 @@ P01是首次实现阶段，允许按02创建约定的13个模块，并按05创�
 
 ## 7. 完成条件（已满足）
 
-T01—T08 均已 PASS，`DELIVERY.md` 已记录真实环境与结果，并经 2026-09-15 用户人工验收；P01 已转为 RELEASED（Git 标签 `p01`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
+T01—T08 均已 PASS，`DELIVERY.md` 已记录真实环境与结果，并经 2026-09-15 用户人工验收；P01 已转为 RELEASED（Git 标签 `v20260915-P01`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。

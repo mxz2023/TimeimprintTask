@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.2，最后收敛日期为2026-09-12。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.2把全部已规划场景和能力域迁入永久目录并增加三维状态。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `p01`）。
+当前文档基线版本为2.2，最后收敛日期为2026-09-12。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.2把全部已规划场景和能力域迁入永久目录并增加三维状态。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。
 
 ## 1. 阅读顺序
 
@@ -20,7 +20,7 @@
 | 09 | [SCENARIO-ROADMAP](09-SCENARIO-ROADMAP.md) | 当前、下一评审、长期规划及跨项演进关系 |
 | 10 | [TECHNICAL-REVIEW](10-TECHNICAL-REVIEW.md) | 设计理由、已处理问题和实施期验证风险 |
 | 阶段 | [阶段索引](phases/README.md) | 已发布、当前和未来阶段的唯一索引 |
-| 已发布 | [P01阶段入口](phases/P01/README.md) | 第一期 RELEASED；交付见[DELIVERY](phases/P01/DELIVERY.md)，标签 `p01` |
+| 已发布 | [P01阶段入口](phases/P01/README.md) | 第一期 RELEASED；交付见[DELIVERY](phases/P01/DELIVERY.md)，标签 `v20260915-P01` |
 | 当前 | 无 CURRENT | 下一阶段从 NEXT_REVIEW 选择后创建；见[阶段索引](phases/README.md) |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
@@ -73,7 +73,7 @@
 | --- | --- | --- |
 | 2.2文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
 | 当前阶段 | 无 CURRENT | P01 已 RELEASED；见[阶段索引](phases/README.md) |
-| P01 发布 | RELEASED（`p01`） | 人工验收 2026-09-15；证据[DELIVERY](phases/P01/DELIVERY.md) |
+| P01 发布 | RELEASED（`v20260915-P01`） | 人工验收 2026-09-15；证据[DELIVERY](phases/P01/DELIVERY.md) |
 | 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
@@ -107,4 +107,4 @@
 2. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION，并已写入该阶段范围。
 3. 任一关键任务存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续任务或宣称阶段完成。
 4. 实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
-5. P01 已 RELEASED（标签 `p01`）。后续实现须先创建新阶段包并获授权，不得在无 CURRENT 时编码。
+5. P01 已 RELEASED（标签 `v20260915-P01`）。后续实现须先创建新阶段包并获授权，不得在无 CURRENT 时编码。

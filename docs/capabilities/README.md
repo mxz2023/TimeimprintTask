@@ -25,7 +25,7 @@
 | CAP07 | `integration` | 外部系统集成 | `timeimprint-task-service-capability-integration` | BACKLOG | OUTLINE | NOT_STARTED | 无 | S11、S15、S16及第三方回调/日历 | [CAP07](CAP07-integration.md) |
 | CAP08 | `intelligence` | 智能理解与建议 | `timeimprint-task-service-capability-intelligence` | BACKLOG | OUTLINE | NOT_STARTED | 无；Spring AI版本基线不等于本能力实现 | S17自然语言解析、解释和建议 | [CAP08](CAP08-intelligence.md) |
 
-CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `p01`）。能力域状态仅覆盖上述已批准范围；表中其余 OUTLINE 能力项与 C01—C19 规划项仍未实现。
+CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。能力域状态仅覆盖上述已批准范围；表中其余 OUTLINE 能力项与 C01—C19 规划项仍未实现。
 
 ## C01—C19主要归属
 

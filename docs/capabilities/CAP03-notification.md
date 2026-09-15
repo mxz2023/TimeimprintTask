@@ -10,7 +10,7 @@
 | contractStatus | RELEASED |
 | implementationStatus | VERIFIED |
 | P01使用场景 | [S01](../scenarios/S01-reminder.md)、[S02](../scenarios/S02-recurring-todo.md) |
-| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `p01` |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `v20260915-P01` |
 
 ## 能力项
 

@@ -8,7 +8,7 @@
 
 | 层级 | 场景 | 能力 | 含义 |
 | --- | --- | --- | --- |
-| 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `p01`）；场景/能力项 VERIFIED |
+| 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13及被选场景需要的trigger/integration能力 | 下一批优先细化池；没有确定P02范围，不得编码 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
@@ -104,7 +104,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 
 ## 6. 建议演进顺序
 
-1. P01 的 S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证已完成并 RELEASED（标签 `p01`）。
+1. P01 的 S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证已完成并 RELEASED（标签 `v20260915-P01`）。
 2. 从NEXT_REVIEW的S03/S04/S05/S14中由用户选择真实需求；先补齐相关calendar、trigger或integration能力契约。
 3. 团队身份和权限明确后再评审S07/S08/S09；S06和S15根据会议/资源系统边界决定。
 4. 外部协议明确后推进S11/S12/S16和多IM渠道。
@@ -125,7 +125,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-09-10 | S01、S02 | 底层对象调整为通用定义、实例、Signal、TransitionPlan和Action | 2026-09-12复审纳入2.0契约 |
 | 2026-09-12 | S01、S02 | 本地固定身份但首期交付完整稳定核心；确认S02首版默认与控制规则 | 契约READY，工程NOT_STARTED，未授权编码 |
 | 2026-09-12 | S01—S17、C01—C19、X01—X03 | 规划迁入场景/能力永久目录并采用三维状态 | 文档基线2.2；没有新增实现或P02范围 |
-| 2026-09-15 | P01、S01、S02、CAL-01—CAL-05、NOT-01—NOT-03 | 用户人工验收通过；阶段 RELEASED | Git 标签 `p01`；implementationStatus=VERIFIED |
+| 2026-09-15 | P01、S01、S02、CAL-01—CAL-05、NOT-01—NOT-03 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260915-P01`；implementationStatus=VERIFIED |
 
 ## 8. 下一场景进入实施的检查
 

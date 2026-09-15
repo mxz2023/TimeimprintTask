@@ -29,7 +29,7 @@ T00 文档准备（READY）
 | T05 | PASS | 五种日历算法单测 + S01 ONCE闭环 + Signal/Action/Planner Worker；E02五规则预览矩阵 `CalendarFiveRulesPreviewMysqlIT` PASS |
 | T06 | PASS | S02 recurring_todo：`S02BasicMysqlIT`/`S02RecurringTodoMysqlIT` PASS（complete/skip） |
 | T07 | PASS | 三夹具 + kernel/DDL零变更断言 + `DualClaimMysqlIT`；双JVM接管/公平性见 DELIVERY §5 |
-| T08 | PASS | 07 证据已写入 DELIVERY；2026-09-15 用户人工验收通过；阶段 RELEASED，标签 `p01` |
+| T08 | PASS | 07 证据已写入 DELIVERY；2026-09-15 用户人工验收通过；阶段 RELEASED，标签 `v20260915-P01` |
 
 T00使用READY表示文档具备实施条件；T01—T08状态只允许NOT_STARTED、IN_PROGRESS、PASS或BLOCKED。不得用空实现、固定假数据、跳过测试、占位异常或TODO转PASS。环境或契约问题使关键证据无法取得时标BLOCKED，不得跳过进入下一阶段。
 

@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.extension.spi;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzInitialDefinitionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzScenarioExtensionDescriptor;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzSignalProcessContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.DefinitionConfigValidationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.InitialDefinitionContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.ScenarioExtensionDescriptor;
+import cn.net.mxz.timeimprint.task.service.extension.context.SignalProcessContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
 
@@ -45,7 +45,7 @@ public interface ScenarioExtension {
      * <p>包括展示名、支持的 schema 版本、定义级/实例级有哪些 commandKey、依赖哪些能力等。
      * E01 返回的 {@code ScenarioMetadataView} 主要来自这里。
      */
-    MxzScenarioExtensionDescriptor descriptor();
+    ScenarioExtensionDescriptor descriptor();
 
     /**
      * 校验「创建/更新任务定义」时带来的场景配置是否完整合法。
@@ -54,7 +54,7 @@ public interface ScenarioExtension {
      * 失败时抛技术异常或通过后续结果表达拒绝，由 application 映射成 HTTP 错误码。
      * 只做校验，不写库。
      */
-    void validateDefinitionConfig(MxzDefinitionConfigValidationContext context);
+    void validateDefinitionConfig(DefinitionConfigValidationContext context);
 
     /**
      * 创建定义时的「初始规划」：第一次该生成哪些实例、Signal、Action 意图。
@@ -62,7 +62,7 @@ public interface ScenarioExtension {
      * <p>在 E03 创建事务里由 application 调用。这里只计算计划（TransitionPlan 等），
      * 真正落公共表由平台统一提交器完成，避免场景模块各自写 SQL。
      */
-    HandlerResult planInitialDefinition(MxzInitialDefinitionContext context);
+    HandlerResult planInitialDefinition(InitialDefinitionContext context);
 
     /**
      * 处理一条已领取的 Signal：按玩法规则决定实例状态如何迁移、要不要发站内信等。
@@ -70,7 +70,7 @@ public interface ScenarioExtension {
      * <p>典型路径：日历到期 Signal → S01 变为 TRIGGERED 并产生通知 Action；
      * S02 变为 PENDING 并挂上 INITIAL/CHASE 等 Action。同样只返回计划，不直接改表。
      */
-    HandlerResult processSignal(MxzSignalProcessContext context);
+    HandlerResult processSignal(SignalProcessContext context);
 
     /**
      * 检查某个场景业务状态字符串在当前 schema 版本下是否允许出现。

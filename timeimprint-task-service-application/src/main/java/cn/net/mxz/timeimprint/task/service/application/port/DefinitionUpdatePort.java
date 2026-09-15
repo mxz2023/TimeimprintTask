@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.application.port;
 
-import cn.net.mxz.timeimprint.task.service.application.model.MxzCreateDefinitionCommand;
+import cn.net.mxz.timeimprint.task.service.application.model.CreateDefinitionCommand;
 import java.time.Instant;
 import java.util.List;
 
@@ -19,8 +19,8 @@ public interface DefinitionUpdatePort {
             String title,
             String description,
             String scenarioConfigJson,
-            List<MxzCreateDefinitionCommand.ParticipantInput> participants,
-            List<MxzCreateDefinitionCommand.TriggerBindingInput> triggerBindings,
+            List<CreateDefinitionCommand.ParticipantInput> participants,
+            List<CreateDefinitionCommand.TriggerBindingInput> triggerBindings,
             Instant now,
             Instant windowEnd) {}
 

@@ -1,17 +1,17 @@
 package cn.net.mxz.timeimprint.task.service.application.port;
 
-import cn.net.mxz.timeimprint.task.service.application.model.MxzInboxRecord;
+import cn.net.mxz.timeimprint.task.service.application.model.InboxRecord;
 import java.util.List;
 import java.util.Optional;
 
 public interface InboxRepository {
 
-    List<MxzInboxRecord> listForRecipient(
+    List<InboxRecord> listForRecipient(
             String tenantId, String recipientType, String recipientId, boolean unreadOnly, int limit);
 
-    Optional<MxzInboxRecord> findById(long inboxId);
+    Optional<InboxRecord> findById(long inboxId);
 
-    Optional<MxzInboxRecord> findByIdForRecipient(
+    Optional<InboxRecord> findByIdForRecipient(
             long inboxId, String tenantId, String recipientType, String recipientId);
 
     int countUnread(String tenantId, String recipientType, String recipientId);

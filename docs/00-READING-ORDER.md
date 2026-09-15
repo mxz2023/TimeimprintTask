@@ -53,7 +53,7 @@
 | 项目 | 当前结论 | 正式来源 |
 | --- | --- | --- |
 | 项目名称与工程前缀 | `TimeImprintTask`；Maven/工程前缀`timeimprint-task`；表前缀`tt_` | 02、03、05 |
-| Java命名 | 项目自定义Java `class`名称使用`Mxz`前缀；接口、枚举、Record和注解不适用 | 02 |
+| Java命名 | 项目自定义类型不使用`Mxz`前缀；按模块与职责命名 | 02 |
 | 技术线 | Java 21 LTS、Spring Boot 4.0.8、MyBatis Starter 4.0.1、Spring AI 2.0.x稳定线、MySQL 9.7.x LTS | 03 |
 | 首期产品形态 | 本地固定身份、API优先的可运行后端，不把GUI或生产多租户身份作为首期交付条件 | 01、04 |
 | 核心模型 | TaskDefinition → TaskInstance → Signal → TransitionPlan → Action Job | 01、02 |

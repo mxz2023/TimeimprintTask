@@ -38,7 +38,7 @@
 - 夹具不能引用公共Mapper、runtime实现类或其他场景内部类，不能通过Spring Bean名/反射绕过契约。
 - ApprovalFixture的专有数据与公共状态必须同事务成功或回滚；其物化器只能写测试场景自有表，不能修改公共DDL或公共表。
 - Maven依赖无环；common无业务状态；api不依赖实现；kernel不依赖Spring、MyBatis、web、storage或任何scenario/capability。
-- ArchUnit或等价源码检查必须证明所有项目自定义Java `class`定义以`Mxz`开头，并明确不把该规则施加到接口、枚举、Record或注解定义。
+- ArchUnit或等价源码检查必须证明kernel纯Java与模块边界；项目自定义类型不使用`Mxz`类名前缀。
 - 平台不得按`reminder`、`recurring_todo`、`approval`等scenarioKey编写if/switch；扩展通过显式注册表装配并在启动时检测重复key。
 
 任一条失败即表示“新场景不改底层”尚未证明，不能用S01/S02自身可运行替代。

@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzTriggerEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.TriggerEvaluationContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.TriggerProviderKey;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.PlannedSignalIntent;
 import cn.net.mxz.timeimprint.task.service.extension.spi.TriggerProvider;
@@ -36,7 +36,7 @@ public class EventTriggerFixture implements TriggerProvider {
      * contract is satisfied without external I/O.
      */
     @Override
-    public List<PlannedSignalIntent> evaluate(MxzTriggerEvaluationContext context) {
+    public List<PlannedSignalIntent> evaluate(TriggerEvaluationContext context) {
         return List.of();
     }
 }

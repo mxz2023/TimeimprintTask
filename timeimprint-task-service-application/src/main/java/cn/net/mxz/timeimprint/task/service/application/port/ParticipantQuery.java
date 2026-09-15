@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.application.port;
 
-import cn.net.mxz.timeimprint.task.service.application.model.MxzParticipantRecord;
+import cn.net.mxz.timeimprint.task.service.application.model.ParticipantRecord;
 import java.util.List;
 
 public interface ParticipantQuery {
 
-    List<MxzParticipantRecord> listDefinitionLevel(long definitionId);
+    List<ParticipantRecord> listDefinitionLevel(long definitionId);
 }

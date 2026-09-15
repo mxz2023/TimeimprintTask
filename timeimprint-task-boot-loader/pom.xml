@@ -97,7 +97,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
-                    <mainClass>cn.net.mxz.timeimprint.task.boot.MxzTimeImprintTaskApplication</mainClass>
+                    <mainClass>cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>

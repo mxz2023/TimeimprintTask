@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzPolicyEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.PolicyEvaluationContext;
 import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision;
 import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyPhase;
 import cn.net.mxz.timeimprint.task.service.extension.registry.PolicyRegistrationKey;
@@ -29,7 +29,7 @@ public class DenyActionPolicyFixture implements Policy {
     }
 
     @Override
-    public PolicyDecision evaluate(MxzPolicyEvaluationContext context) {
+    public PolicyDecision evaluate(PolicyEvaluationContext context) {
         return DENY.get() ? PolicyDecision.DENY : PolicyDecision.ALLOW;
     }
 }

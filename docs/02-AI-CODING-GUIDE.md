@@ -237,7 +237,7 @@ tt_audit_log
 ## 9. Spring、Java与交付纪律
 
 - 使用Java 21 LTS并编译release=21；Spring AI、Spring Boot、MyBatis和MySQL版本以03当前基线为准，完成T01实测前不得宣称环境已确认。
-- 所有项目自定义 Java `class` 定义的类名必须以 `Mxz` 开头；该前缀不适用于接口、枚举、Record 或注解定义。
+- 项目自定义 Java 类型不使用 `Mxz` 类名前缀；按模块与职责命名即可。
 - 自有应用对象使用构造器注入；第三方对象和组合装配使用 `@Bean`。事务必须经过 Spring 代理边界。
 - 时间使用可注入 Clock；数据库租约使用数据库 UTC 时间。业务时间精确到秒。
 - Mapper 使用 XML 参数化 SQL；动态排序使用白名单；禁止用内存仓储替代 MySQL。

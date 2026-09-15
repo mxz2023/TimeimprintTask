@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzScenarioDataMaterializationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.ScenarioDataMaterializationContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioDataMaterializerKey;
 import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioDataMaterializer;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.JsonPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,11 +40,11 @@ public class ApprovalDataMaterializer implements ScenarioDataMaterializer {
     }
 
     @Override
-    public int materialize(MxzScenarioDataMaterializationContext context) {
+    public int materialize(ScenarioDataMaterializationContext context) {
         var def = context.definitionSnapshot();
         String metaJson;
         try {
-            Map<String, Object> fields = context.mutation().payload() instanceof MxzJsonPayload jp
+            Map<String, Object> fields = context.mutation().payload() instanceof JsonPayload jp
                     ? jp.fields() : Map.of();
             metaJson = objectMapper.writeValueAsString(fields);
         } catch (Exception e) {

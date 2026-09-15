@@ -2,8 +2,8 @@ package cn.net.mxz.timeimprint.task.boot.fixture;
 
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionExecutionMode;
 import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionResult;
+import cn.net.mxz.timeimprint.task.service.extension.context.ActionExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.ActionExecutionResult;
 import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.spi.ActionHandler;
 import java.util.Set;
@@ -79,7 +79,7 @@ public class WebhookActionFixture implements ActionHandler {
     }
 
     @Override
-    public MxzActionExecutionResult execute(MxzActionExecutionContext context) {
+    public ActionExecutionResult execute(ActionExecutionContext context) {
         CountDownLatch entered = ENTERED.get();
         if (entered != null) {
             entered.countDown();
@@ -88,20 +88,20 @@ public class WebhookActionFixture implements ActionHandler {
         if (hold != null) {
             try {
                 if (!hold.await(15, TimeUnit.SECONDS)) {
-                    return new MxzActionExecutionResult(
+                    return new ActionExecutionResult(
                             ActionHandlerOutcome.UNKNOWN, "HOLD_TIMEOUT", "fixture hold timed out");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return new MxzActionExecutionResult(
+                return new ActionExecutionResult(
                         ActionHandlerOutcome.UNKNOWN, "HOLD_INTERRUPTED", "fixture hold interrupted");
             }
         }
         INVOKE_COUNT.incrementAndGet();
         if (FAIL_REMAINING.getAndDecrement() > 0) {
-            return new MxzActionExecutionResult(
+            return new ActionExecutionResult(
                     ActionHandlerOutcome.RETRYABLE_FAILURE, "FIXTURE_RETRY", "webhook fixture retryable");
         }
-        return new MxzActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "FIXTURE_OK", "webhook fixture success");
+        return new ActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "FIXTURE_OK", "webhook fixture success");
     }
 }

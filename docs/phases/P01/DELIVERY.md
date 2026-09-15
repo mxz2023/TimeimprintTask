@@ -39,14 +39,14 @@ recordedAtUtc: 2026-09-13
 ```
 
 验证内容:
-- 13个平级Maven模块编译通过（`MxzModuleBaselineTest.approvedModulesExist` PASS）
-- ArchUnit规则验证kernel无Spring/MyBatis/Web依赖（`MxzArchitectureRulesTest.kernelMustRemainPureJava` PASS）
-- API契约测试通过（`MxzApiContractTest` PASS）
-- 扩展SPI契约测试通过（`MxzExtensionSpiContractTest` PASS）
-- Calendar算法纯函数测试通过（`MxzCalendarOccurrenceCalculatorTest` PASS）
-- TransitionPlan契约测试通过（`MxzTransitionPlanContractTest` PASS）
-- Flyway表集合测试通过（`MxzFlywaySchemaInformationSchemaTest.contractListsTwelveTables` PASS）
-- 模块基线测试通过（`MxzModuleBaselineTest.approvedModulesExist` PASS）
+- 13个平级Maven模块编译通过（`ModuleBaselineTest.approvedModulesExist` PASS）
+- ArchUnit规则验证kernel无Spring/MyBatis/Web依赖（`ArchitectureRulesTest.kernelMustRemainPureJava` PASS）
+- API契约测试通过（`ApiContractTest` PASS）
+- 扩展SPI契约测试通过（`ExtensionSpiContractTest` PASS）
+- Calendar算法纯函数测试通过（`CalendarOccurrenceCalculatorTest` PASS）
+- TransitionPlan契约测试通过（`TransitionPlanContractTest` PASS）
+- Flyway表集合测试通过（`FlywaySchemaInformationSchemaTest.contractListsTwelveTables` PASS）
+- 模块基线测试通过（`ModuleBaselineTest.approvedModulesExist` PASS）
 
 ---
 
@@ -57,7 +57,7 @@ recordedAtUtc: 2026-09-13
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
-测试: MxzS01OnceMysqlIT#s01OnceVerticalLoop PASS
+测试: S01OnceMysqlIT#s01OnceVerticalLoop PASS
 ```
 
 验证内容:
@@ -86,20 +86,20 @@ recordedAtUtc: 2026-09-13
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0（全部7条IT测试 PASS，0 Failures，0 Errors）
-  MxzS01OnceMysqlIT#s01OnceVerticalLoop                  PASS
-  MxzS02BasicMysqlIT#s02RecurringTodoOncePlanToPendingToCompleted   PASS
-  MxzS02BasicMysqlIT#s02RecurringTodoDailyPlanToPendingToSkipped    PASS
-  MxzS02RecurringTodoMysqlIT#s02DailyBasicLoop            PASS
-  MxzT07FixtureMysqlIT#approvalFixtureRegistersAndMaterializes      PASS
-  MxzT07FixtureMysqlIT#eventTriggerFixtureIsRegistered    PASS
-  MxzT07FixtureMysqlIT#webhookActionFixtureIsRegistered   PASS
+  S01OnceMysqlIT#s01OnceVerticalLoop                  PASS
+  S02BasicMysqlIT#s02RecurringTodoOncePlanToPendingToCompleted   PASS
+  S02BasicMysqlIT#s02RecurringTodoDailyPlanToPendingToSkipped    PASS
+  S02RecurringTodoMysqlIT#s02DailyBasicLoop            PASS
+  T07FixtureMysqlIT#approvalFixtureRegistersAndMaterializes      PASS
+  T07FixtureMysqlIT#eventTriggerFixtureIsRegistered    PASS
+  T07FixtureMysqlIT#webhookActionFixtureIsRegistered   PASS
 ```
 
 ### 4.1 Kernel + Platform DDL 零变更断言
 
 - SHA-256基线记录在 [BASELINE-SHA256.txt](BASELINE-SHA256.txt)（"Kernel production sources"和"Platform public Flyway DDL"节）
 - 基线在T07夹具加入前生成（2026-09-12）
-- 单元测试 `MxzT07KernelIntegrityTest#kernelAndPlatformDdlMatchBaseline` 验证所有文件哈希与基线一致
+- 单元测试 `T07KernelIntegrityTest#kernelAndPlatformDdlMatchBaseline` 验证所有文件哈希与基线一致
 
 ### 4.2 三个测试夹具
 
@@ -113,11 +113,11 @@ recordedAtUtc: 2026-09-13
 
 ### 4.3 E09 实例级命令接口
 
-- `MxzInstanceCommandService` 实现 complete/skip/snooze 命令管道（dedup → 父级锁 → 子级锁 → 执行Handler → 提交 → 返回CommandResultView）
-- `MxzTaskInstanceController#executeCommand` 实现E09端点
-- `MxzRecurringTodoCompleteHandler` / `MxzRecurringTodoSkipHandler` / `MxzRecurringTodoSnoozeHandler` 已注册（`service-scenario-basic`）
+- `InstanceCommandService` 实现 complete/skip/snooze 命令管道（dedup → 父级锁 → 子级锁 → 执行Handler → 提交 → 返回CommandResultView）
+- `TaskInstanceController#executeCommand` 实现E09端点
+- `RecurringTodoCompleteHandler` / `RecurringTodoSkipHandler` / `RecurringTodoSnoozeHandler` 已注册（`service-scenario-basic`）
 
-### 4.4 S02 纵向闭环（MxzS02BasicMysqlIT）
+### 4.4 S02 纵向闭环（S02BasicMysqlIT）
 
 | 场景 | 流程 | 结果 |
 | --- | --- | --- |
@@ -128,22 +128,22 @@ recordedAtUtc: 2026-09-13
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzS02BasicMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT,MxzT07FixtureMysqlIT,MxzDualClaimMysqlIT
+  -Dit.test=S01OnceMysqlIT,S02RecurringTodoMysqlIT,S02BasicMysqlIT,CalendarFiveRulesPreviewMysqlIT,T07FixtureMysqlIT,DualClaimMysqlIT
 退出码: 0
 Failsafe: Tests run: 9, Failures: 0
 ```
 
 - Signal 推进 PENDING 时写入 `scenario_snapshot_json`（`REPLACE_INSTANCE_SNAPSHOT`）
 - E09 snooze：旧 READY 批次 CANCELLED、新 `actionGeneration`、返回 `scenarioResult`；`s02SnoozeShiftsReadyActions` PASS
-- CAL-01—CAL-05 E02 预览矩阵：`MxzCalendarFiveRulesPreviewMysqlIT` PASS
+- CAL-01—CAL-05 E02 预览矩阵：`CalendarFiveRulesPreviewMysqlIT` PASS
 - Signal 同步路径只执行 `availableAt <= now` 的 LOCAL_TRANSACTIONAL；未到期 Action 留给 ActionWorker（S01 IT 已覆盖）
-- MANUAL-HTTP 日历字段与 `MxzCalendarConfigParser` 对齐（`startDate` / `weekday`）
+- MANUAL-HTTP 日历字段与 `CalendarConfigParser` 对齐（`startDate` / `weekday`）
 
 ### 4.6 A05 / A36 状态机与并发冲突
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA05A36StateConcurrencyMysqlIT,MxzS02RecurringTodoMysqlIT,MxzS02BasicMysqlIT,MxzS01OnceMysqlIT
+  -Dit.test=A05A36StateConcurrencyMysqlIT,S02RecurringTodoMysqlIT,S02BasicMysqlIT,S01OnceMysqlIT
 退出码: 0
 Failsafe: Tests run: 9, Failures: 0
 ```
@@ -156,7 +156,7 @@ Failsafe: Tests run: 9, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA02A23CreatePauseMysqlIT,MxzS01OnceMysqlIT
+  -Dit.test=A02A23CreatePauseMysqlIT,S01OnceMysqlIT
 退出码: 0
 Failsafe: Tests run: 4, Failures: 0
 ```
@@ -168,9 +168,9 @@ Failsafe: Tests run: 4, Failures: 0
 
 ```
 命令: ./mvnw -q -pl timeimprint-task-service-capability-calendar test \
-  -Dtest=MxzCalendarOccurrenceCalculatorTest,MxzCalendarConfigParserTest
+  -Dtest=CalendarOccurrenceCalculatorTest,CalendarConfigParserTest
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA01A37CalendarMysqlIT,MxzCalendarFiveRulesPreviewMysqlIT,MxzDefinitionUpdateMysqlIT \
+  -Dit.test=A01A37CalendarMysqlIT,CalendarFiveRulesPreviewMysqlIT,DefinitionUpdateMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 5, Failures: 0
@@ -184,7 +184,7 @@ Failsafe: Tests run: 5, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA17A18A21MysqlIT,MxzMMatrixMysqlIT \
+  -Dit.test=A17A18A21MysqlIT,MMatrixMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 8, Failures: 0
@@ -199,7 +199,7 @@ Failsafe: Tests run: 8, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA12ResumeMysqlIT \
+  -Dit.test=A12ResumeMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 1, Failures: 0
@@ -213,7 +213,7 @@ Failsafe: Tests run: 1, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA07A13A28MysqlIT \
+  -Dit.test=A07A13A28MysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 3, Failures: 0
@@ -227,7 +227,7 @@ Failsafe: Tests run: 3, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA08ExternalPauseMysqlIT \
+  -Dit.test=A08ExternalPauseMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 2, Failures: 0
@@ -241,7 +241,7 @@ Failsafe: Tests run: 2, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA09ExternalCrashMysqlIT \
+  -Dit.test=A09ExternalCrashMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 3, Failures: 0
@@ -255,7 +255,7 @@ Failsafe: Tests run: 3, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA10LocalCasMysqlIT \
+  -Dit.test=A10LocalCasMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 1, Failures: 0
@@ -268,7 +268,7 @@ Failsafe: Tests run: 1, Failures: 0
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA15TxRetryMysqlIT \
+  -Dit.test=A15TxRetryMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 3, Failures: 0
@@ -288,7 +288,7 @@ Failsafe: Tests run: 3, Failures: 0
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify
 退出码: 0
 Failsafe: Tests run: 5, Failures: 0
-（MxzTakeoverSlaDualProcessIT + MxzFairnessBacklogDualProcessIT + MxzDualClaimMysqlIT + MxzA04A20DualProcessIT）
+（TakeoverSlaDualProcessIT + FairnessBacklogDualProcessIT + DualClaimMysqlIT + A04A20DualProcessIT）
 recordedAtUtc: 2026-09-13T08:39:59Z
 ```
 
@@ -316,40 +316,40 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA04A20DualProcessIT -Dfailsafe.failIfNoSpecifiedTests=false
+  -Dit.test=A04A20DualProcessIT -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 2, Failures: 0
-抽样回归: MxzS01OnceMysqlIT,MxzA07A13A28MysqlIT,MxzA09ExternalCrashMysqlIT,MxzA15TxRetryMysqlIT → Tests run: 10, Failures: 0
+抽样回归: S01OnceMysqlIT,A07A13A28MysqlIT,A09ExternalCrashMysqlIT,A15TxRetryMysqlIT → Tests run: 10, Failures: 0
 ```
 
-- Signal：短事务领取提交 RUNNING+token；子进程 `MxzClaimAndHoldMain` 领取后被杀；`MxzSignalLeaseReaper` → RETRY_WAIT；父进程 `processSignal` 接管；旧 token `completeWithToken` 为 false；一条 SIGNAL 迁移
-- Action：同上路径经 `MxzActionLeaseReaper` + `ActionWorker`；最终 1 条 inbox；旧 token 无权回写
-- 实现要点：`processSignal` 改为 claim 与处理两段事务；Signal 完成 CAS 要求 RUNNING+token；新增 `MxzSignalLeaseReaper`
+- Signal：短事务领取提交 RUNNING+token；子进程 `ClaimAndHoldMain` 领取后被杀；`SignalLeaseReaper` → RETRY_WAIT；父进程 `processSignal` 接管；旧 token `completeWithToken` 为 false；一条 SIGNAL 迁移
+- Action：同上路径经 `ActionLeaseReaper` + `ActionWorker`；最终 1 条 inbox；旧 token 无权回写
+- 实现要点：`processSignal` 改为 claim 与处理两段事务；Signal 完成 CAS 要求 RUNNING+token；新增 `SignalLeaseReaper`
 
 ### 5.2 A16 / A22 Action 退避与接收人规则
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA16A22MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
+  -Dit.test=A16A22MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 2, Failures: 0
-抽样回归: MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzA07A13A28MysqlIT,MxzA09ExternalCrashMysqlIT,MxzA10LocalCasMysqlIT,MxzA15TxRetryMysqlIT,MxzA16A22MysqlIT → Tests run: 15, Failures: 0
+抽样回归: S01OnceMysqlIT,S02RecurringTodoMysqlIT,A07A13A28MysqlIT,A09ExternalCrashMysqlIT,A10LocalCasMysqlIT,A15TxRetryMysqlIT,A16A22MysqlIT → Tests run: 15, Failures: 0
 recordedAtUtc: 2026-09-13T05:27:51Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
 ```
 
 - A16：EXTERNAL 可重试失败首次退避约 5s；`attempt_count` 达 `max_attempts` → DEAD；副作用前 Policy DENY 退还计数并记 `POLICY_BLOCKED`；`expires_at` 到界 → EXPIRED
 - A22：无 RECIPIENT 时通知 OWNER；显式 RECIPIENT 不隐式含 OWNER；>10 人 Signal `IGNORED` 且无 Action
-- 实现要点：`MxzRecipientRules`；S01/S02 Signal 发出 `PENDING_EXPAND` 模板由平台按接收人展开；`completeRetryableFailure` / `releasePolicyBlocked` / `expireIfDue`；claim 要求 `attempt_count < max_attempts`
+- 实现要点：`RecipientRules`；S01/S02 Signal 发出 `PENDING_EXPAND` 模板由平台按接收人展开；`completeRetryableFailure` / `releasePolicyBlocked` / `expireIfDue`；claim 要求 `attempt_count < max_attempts`
 
 ### 5.3 A03 / A11 并发规划与改时屏障
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA03A11MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
+  -Dit.test=A03A11MysqlIT -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 2, Failures: 0
-抽样回归: MxzA03A11MysqlIT,MxzS01OnceMysqlIT,MxzS02RecurringTodoMysqlIT,MxzDefinitionUpdateMysqlIT,MxzA07A13A28MysqlIT,MxzA12ResumeMysqlIT,MxzA16A22MysqlIT → Tests run: 13, Failures: 0
+抽样回归: A03A11MysqlIT,S01OnceMysqlIT,S02RecurringTodoMysqlIT,DefinitionUpdateMysqlIT,A07A13A28MysqlIT,A12ResumeMysqlIT,A16A22MysqlIT → Tests run: 13, Failures: 0
 recordedAtUtc: 2026-09-13T05:37:50Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
 ```
@@ -362,7 +362,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA06CompleteNotificationMysqlIT,MxzA19SchemaMysqlIT,MxzA26S01TerminalMysqlIT,MxzA25A29ScaleMysqlIT,MxzA32RedriveMysqlIT,MxzA14A30LocalProfileMysqlIT,MxzA14A30SecurityMysqlIT,MxzA27InterleaveMysqlIT,MxzA31A41CatchupMysqlIT,MxzA38SchemaMysqlIT,MxzA40SpiMysqlIT,MxzA42DeliveryStateMysqlIT,MxzS01OnceMysqlIT,MxzA16A22MysqlIT \
+  -Dit.test=A06CompleteNotificationMysqlIT,A19SchemaMysqlIT,A26S01TerminalMysqlIT,A25A29ScaleMysqlIT,A32RedriveMysqlIT,A14A30LocalProfileMysqlIT,A14A30SecurityMysqlIT,A27InterleaveMysqlIT,A31A41CatchupMysqlIT,A38SchemaMysqlIT,A40SpiMysqlIT,A42DeliveryStateMysqlIT,S01OnceMysqlIT,A16A22MysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 抽样结果: Failsafe 新套件 + 回归相关用例 PASS（见各 IT；A31/A42 单独复核 PASS）
 recordedAtUtc: 2026-09-13T05:50:22Z
@@ -386,7 +386,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA34PaginationMysqlIT,MxzA35ExtensionSchemaMysqlIT \
+  -Dit.test=A34PaginationMysqlIT,A35ExtensionSchemaMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 4, Failures: 0
@@ -409,7 +409,7 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzA39ShutdownMysqlIT \
+  -Dit.test=A39ShutdownMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 3, Failures: 0
@@ -420,15 +420,15 @@ recordedAtUtc: 2026-09-13T07:52:24Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
 ```
 
-- A39：`MxzLoopbackAddressEnvironmentPostProcessor` — local/test 非回环 `SERVER_ADDRESS`/`server.address` → 启动失败
+- A39：`LoopbackAddressEnvironmentPostProcessor` — local/test 非回环 `SERVER_ADDRESS`/`server.address` → 启动失败
 - A39：liveness 不依赖 DB；readiness 在 migrate/registry/live-schema/DB 失败时拒绝流量（既有指示器 + REFUSING → `OUT_OF_SERVICE`）
-- A39：`MxzRuntimeAdmission` + `MxzShutdownAdmissionLifecycle` — 停机先 `beginShutdown` + readiness REFUSING；`MxzShutdownWriteRejectFilter` 拒绝公开写（503 `RETRY_LATER`）；Signal/Action/Planner 停止领取；租约回收至 `RETRY_WAIT`，无伪造批量 READY；旧 `execution_token` CAS=0
+- A39：`RuntimeAdmission` + `ShutdownAdmissionLifecycle` — 停机先 `beginShutdown` + readiness REFUSING；`ShutdownWriteRejectFilter` 拒绝公开写（503 `RETRY_LATER`）；Signal/Action/Planner 停止领取；租约回收至 `RETRY_WAIT`，无伪造批量 READY；旧 `execution_token` CAS=0
 
 ### 5.7 07 §6 独立接管真时钟 SLA
 
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzTakeoverSlaDualProcessIT \
+  -Dit.test=TakeoverSlaDualProcessIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 1, Failures: 0
@@ -437,16 +437,16 @@ recordedAtUtc: 2026-09-13T08:20:45Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
 ```
 
-- 子进程 `MxzClaimAndHoldMain` 以 `LEASE_SECONDS=10` 领取 Action 后 `destroyForcibly`；**不**人为改写 `lease_until`
+- 子进程 `ClaimAndHoldMain` 以 `LEASE_SECONDS=10` 领取 Action 后 `destroyForcibly`；**不**人为改写 `lease_until`
 - 父进程开启 `spring.task.scheduling.enabled=true`；effective scan interval = Worker/Reaper `fixedDelay` 2000ms；门槛 = 租约到期后 `2×2000ms + 10s`
 - 父进程调度 reaper → RETRY_WAIT（含退避）→ ActionWorker 接管执行；断言 SUCCEEDED 落在 deadline 内、inbox=1、旧 token CAS=0
-- 附带稳定：`MxzDualClaimMysqlIT` 改为同事务 SELECT SKIP LOCKED + UPDATE RUNNING，并对齐 MySQL UTC
+- 附带稳定：`DualClaimMysqlIT` 改为同事务 SELECT SKIP LOCKED + UPDATE RUNNING，并对齐 MySQL UTC
 
 ### 5.8 07 §6 独立公平性积压
 
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzFairnessBacklogDualProcessIT \
+  -Dit.test=FairnessBacklogDualProcessIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 1, Failures: 0
@@ -466,13 +466,13 @@ recordedAtUtc: 2026-09-13T08:39:59Z
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzIMatrixMysqlIT \
+  -Dit.test=IMatrixMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 5, Failures: 0
 recordedAtUtc: 2026-09-13T09:25:26Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
-类: timeimprint-task-boot-loader/.../MxzIMatrixMysqlIT.java
+类: timeimprint-task-boot-loader/.../IMatrixMysqlIT.java
 ```
 
 覆盖（对照 [07 §5](../../07-ACCEPTANCE.md) 端点维度；不适用项写明）:
@@ -493,13 +493,13 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzEMatrixMysqlIT,MxzA40SpiMysqlIT \
+  -Dit.test=EMatrixMysqlIT,A40SpiMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 10, Failures: 0
 recordedAtUtc: 2026-09-13T09:34:24Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
-类: timeimprint-task-boot-loader/.../MxzEMatrixMysqlIT.java
+类: timeimprint-task-boot-loader/.../EMatrixMysqlIT.java
 ```
 
 覆盖（对照 [07 §5](../../07-ACCEPTANCE.md)；不适用项写明）:
@@ -524,15 +524,15 @@ JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306
 
 ```
 命令: ./mvnw -Pdual-process-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzPerfGateDualProcessIT \
+  -Dit.test=PerfGateDualProcessIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 2, Failures: 0（seed + warmup/formal；类内 631.2s）
 recordedAtUtc: 2026-09-13T09:55:13Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01）
 库: timeimprint_task_perf（专用空库，避免 local 脏积压干扰；Flyway 同版本迁移）
-进程: 父 SpringBootTest + 子 MxzPerfWorkerMain（双 JVM，CLAIM_BATCH_SIZE=100，scheduling=true）
-类: timeimprint-task-boot-loader/.../MxzPerfGateDualProcessIT.java
+进程: 父 SpringBootTest + 子 PerfWorkerMain（双 JVM，CLAIM_BATCH_SIZE=100，scheduling=true）
+类: timeimprint-task-boot-loader/.../PerfGateDualProcessIT.java
 suiteId: 0e42c193
 ```
 
@@ -557,26 +557,26 @@ suiteId: 0e42c193
 
 ```
 命令: ./mvnw -Pmysql-it -pl timeimprint-task-boot-loader -am verify \
-  -Dit.test=MxzHttpBoundaryMysqlIT \
+  -Dit.test=HttpBoundaryMysqlIT \
   -Dfailsafe.failIfNoSpecifiedTests=false
 退出码: 0
 Failsafe: Tests run: 1, Failures: 0
-抽样回归: MxzEMatrixMysqlIT,MxzA40SpiMysqlIT,MxzA14A30LocalProfileMysqlIT → PASS（同会话先前跑次）
+抽样回归: EMatrixMysqlIT,A40SpiMysqlIT,A14A30LocalProfileMysqlIT → PASS（同会话先前跑次）
 recordedAtUtc: 2026-09-13T10:00:22Z
 JDK: Amazon Corretto 21.0.12；MySQL 9.7.2（容器 tit-mysql-t01，端口 13306）
-类: timeimprint-task-boot-loader/.../MxzHttpBoundaryMysqlIT.java
+类: timeimprint-task-boot-loader/.../HttpBoundaryMysqlIT.java
 ```
 
 覆盖:
 - 未知路径 → 404 `RESOURCE_NOT_FOUND`；错误方法 → 400 `INVALID_REQUEST`
 - 不支持媒体类型 → 415 `UNSUPPORTED_MEDIA_TYPE`；空体/畸形 JSON/重复键/未知字段 → 400 `INVALID_REQUEST`
-- 请求体 >64KiB → 413 `REQUEST_TOO_LARGE`（`MxzRequestBodySizeFilter` + Tomcat max post）
+- 请求体 >64KiB → 413 `REQUEST_TOO_LARGE`（`RequestBodySizeFilter` + Tomcat max post）
 - 未捕获异常（IT 探针）→ 500 `INTERNAL_ERROR`，消息/体无 SQL/堆栈/凭据
 - 统一信封字段集 + `traceId`；错误 `data=null`；不泄露 executionToken/lease*
 - Actuator 仅 health（`/actuator/env`、`/beans` 不可达）；liveness 可达
 - local 忽略 `X-Debug-Actor-Id`（E01 仍 OK）
 
-实现侧: 扩展 `MxzApiExceptionHandler`；ObjectMapper `FAIL_ON_UNKNOWN_PROPERTIES` + `STRICT_DUPLICATE_DETECTION`；`COMMAND_NOT_SUPPORTED` HTTP 映射对齐 409。
+实现侧: 扩展 `ApiExceptionHandler`；ObjectMapper `FAIL_ON_UNKNOWN_PROPERTIES` + `STRICT_DUPLICATE_DETECTION`；`COMMAND_NOT_SUPPORTED` HTTP 映射对齐 409。
 
 ---
 

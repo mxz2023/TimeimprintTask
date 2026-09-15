@@ -91,7 +91,7 @@ docs/phases/Pxx/
 
 关键约束必须同时存在于正式文档和自动化验证中：
 
-- Maven Enforcer和ArchUnit验证模块依赖、kernel纯Java、场景/能力边界及`Mxz`类名前缀。
+- Maven Enforcer和ArchUnit验证模块依赖、kernel纯Java、场景/能力边界；不要求`Mxz`类名前缀。
 - 契约测试固定API字段、错误、schemaVersion、SPI注册键和结果语义。
 - information_schema测试固定公共表、字段、索引、FK、CHECK和唯一键。
 - 真MySQL及双进程测试验证幂等、锁序、租约、恢复和并发结果。

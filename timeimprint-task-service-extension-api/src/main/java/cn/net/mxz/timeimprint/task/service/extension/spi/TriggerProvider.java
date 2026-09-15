@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.extension.spi;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzTriggerEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.TriggerEvaluationContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.TriggerProviderKey;
 import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.PlannedSignalIntent;
 import java.util.List;
@@ -14,5 +14,5 @@ public interface TriggerProvider {
     /** 实现可读的配置与 payload schemaVersion 集合。 */
     Set<Integer> supportedSchemaVersions();
 
-    List<PlannedSignalIntent> evaluate(MxzTriggerEvaluationContext context);
+    List<PlannedSignalIntent> evaluate(TriggerEvaluationContext context);
 }

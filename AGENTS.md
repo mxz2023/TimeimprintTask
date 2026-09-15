@@ -29,7 +29,7 @@
 ## 稳定仓库规则
 
 - 项目名为`TimeImprintTask`，制品和模块前缀为`timeimprint-task`，数据库表前缀为`tt_`。
-- 所有项目自定义Java `class`名称以`Mxz`开头；接口、枚举、Record和注解不适用。
+- 项目自定义 Java 类型不使用 `Mxz` 类名前缀；按模块与职责命名即可。
 - 所有Markdown表格的表头必须使用中文；协议字段、状态枚举和代码标识放在表格内容或正文中，不得直接用作英文表头。
 - `docs/capabilities/`中的能力域文件固定使用`CAP01—CAP08`编号与`CAPxx-capabilityKey.md`命名；README不编号，CAP编号不得复用或因排期调整而改变。
 - 遵守`docs/02-AI-CODING-GUIDE.md`中的INV-01—INV-09。修改任一项属于核心模型变化，必须执行08规定的ADR和审批流程。

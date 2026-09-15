@@ -5,5 +5,5 @@ package cn.net.mxz.timeimprint.task.service.application.port;
  */
 public interface TransitionPlanCommitter {
 
-    MxzTransitionCommitResult commit(MxzTransitionCommitRequest request);
+    TransitionCommitResult commit(TransitionCommitRequest request);
 }

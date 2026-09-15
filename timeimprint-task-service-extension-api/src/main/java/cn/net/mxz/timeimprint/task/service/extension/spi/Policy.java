@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.extension.spi;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzPolicyEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.PolicyEvaluationContext;
 import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision;
 import cn.net.mxz.timeimprint.task.service.extension.registry.PolicyRegistrationKey;
 
@@ -10,5 +10,5 @@ public interface Policy {
 
     int order();
 
-    PolicyDecision evaluate(MxzPolicyEvaluationContext context);
+    PolicyDecision evaluate(PolicyEvaluationContext context);
 }

@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.extension.spi;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzCommandExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.context.CommandExecutionContext;
 import cn.net.mxz.timeimprint.task.service.extension.registry.TaskCommandHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
 
@@ -9,5 +9,5 @@ public interface TaskCommandHandler {
 
     TaskCommandHandlerKey registrationKey();
 
-    HandlerResult handle(MxzCommandExecutionContext context);
+    HandlerResult handle(CommandExecutionContext context);
 }

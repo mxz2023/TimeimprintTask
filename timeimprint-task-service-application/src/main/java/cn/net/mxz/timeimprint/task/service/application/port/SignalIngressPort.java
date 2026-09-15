@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.application.port;
 
-import cn.net.mxz.timeimprint.task.service.application.model.MxzSignalAcceptCommand;
-import cn.net.mxz.timeimprint.task.service.application.model.MxzSignalAcceptResult;
+import cn.net.mxz.timeimprint.task.service.application.model.SignalAcceptCommand;
+import cn.net.mxz.timeimprint.task.service.application.model.SignalAcceptResult;
 
 public interface SignalIngressPort {
 
-    MxzSignalAcceptResult accept(MxzSignalAcceptCommand command);
+    SignalAcceptResult accept(SignalAcceptCommand command);
 }

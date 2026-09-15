@@ -44,12 +44,12 @@ public class MxzExtensionRegistryImpl implements ExtensionRegistry {
             List<ActionHandler> actionHandlerList,
             List<Policy> policyList,
             List<ScenarioDataMaterializer> materializerList) {
-        scenarioExtensions = new MapScenarioRegistry(toMap(scenarioExtList, e -> e.registrationKey()));
-        triggerProviders = new MapTriggerRegistry(toMap(triggerProviderList, e -> e.registrationKey()));
-        commandHandlers = new MapCommandHandlerRegistry(toMap(commandHandlerList, e -> e.registrationKey()));
-        actionHandlers = new MapActionHandlerRegistry(toMap(actionHandlerList, e -> e.registrationKey()));
-        policies = new MapPolicyRegistry(toMap(policyList, e -> e.registrationKey()));
-        materializerRegistry = new MapMaterializerRegistry(toMap(materializerList, e -> e.registrationKey()));
+        scenarioExtensions = new MapScenarioRegistry(toMap(scenarioExtList, ScenarioExtension::registrationKey));
+        triggerProviders = new MapTriggerRegistry(toMap(triggerProviderList, TriggerProvider::registrationKey));
+        commandHandlers = new MapCommandHandlerRegistry(toMap(commandHandlerList, TaskCommandHandler::registrationKey));
+        actionHandlers = new MapActionHandlerRegistry(toMap(actionHandlerList, ActionHandler::registrationKey));
+        policies = new MapPolicyRegistry(toMap(policyList, Policy::registrationKey));
+        materializerRegistry = new MapMaterializerRegistry(toMap(materializerList, ScenarioDataMaterializer::registrationKey));
     }
 
     private <K, V> Map<K, V> toMap(List<V> list, Function<V, K> keyFn) {

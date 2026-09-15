@@ -49,10 +49,10 @@ public class MxzReminderScenarioExtension implements ScenarioExtension {
 
     @Override
     public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
-        if (!(context.scenarioConfig() instanceof MxzJsonPayload jp)) {
+        if (!(context.scenarioConfig() instanceof MxzJsonPayload(Map<String, Object> fields))) {
             throw new IllegalArgumentException("scenarioConfig must be object");
         }
-        if (!jp.fields().isEmpty()) {
+        if (!fields.isEmpty()) {
             throw new IllegalArgumentException("reminder scenarioConfig must be empty object");
         }
     }
@@ -82,8 +82,8 @@ public class MxzReminderScenarioExtension implements ScenarioExtension {
 
         // Extract info from signal payload. Final recipients are expanded by the platform
         // (PENDING_EXPAND); scenarios must not bind a single recipient into the Action template.
-        Map<String, Object> sigFields = context.payload() instanceof MxzJsonPayload jp
-                ? jp.fields() : Map.of();
+        Map<String, Object> sigFields = context.payload() instanceof MxzJsonPayload(Map<String, Object> fields)
+                ? fields : Map.of();
         String title = toString(sigFields.get("title"), "");
         String body = toString(sigFields.get("body"), null);
         String tenantId = toString(sigFields.get("tenantId"), "local");

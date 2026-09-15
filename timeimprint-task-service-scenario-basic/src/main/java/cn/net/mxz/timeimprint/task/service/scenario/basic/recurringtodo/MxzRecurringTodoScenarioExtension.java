@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
  * S02 recurring_todo scenario extension.
  * Signal processing: PLANNED (WAITING) → PENDING (ACTIVE).
  * Instance commands: complete / skip / snooze routed via MxzRecurringTodoCommandHandler.
- *
  * scenarioKey = "recurring_todo", contractVersion = 1.
  */
 @Component
@@ -70,14 +69,14 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
 
     @Override
     public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
-        if (!(context.scenarioConfig() instanceof MxzJsonPayload jp)) {
+        if (!(context.scenarioConfig() instanceof MxzJsonPayload(Map<String, Object> fields))) {
             throw new IllegalArgumentException("scenarioConfig must be object");
         }
-        expandDefaults(jp.fields());
+        expandDefaults(fields);
     }
 
     /**
-     * Expand omitted S02 defaults and validate schemaVersion 1 rules.
+     * Expand omitted S02 defaults and validate schemaVersion 1 rule.
      * Explicit null / unknown fields / illegal ranges are rejected.
      */
     public static Map<String, Object> expandDefaults(Map<String, Object> raw) {
@@ -104,12 +103,10 @@ public class MxzRecurringTodoScenarioExtension implements ScenarioExtension {
                         : List.copyOf(DEFAULT_CHASE_OFFSETS));
         out.put(
                 "notificationExpireAfterMinutes",
-                raw.containsKey("notificationExpireAfterMinutes")
-                        ? raw.get("notificationExpireAfterMinutes")
-                        : DEFAULT_NOTIFICATION_EXPIRE_MINUTES);
+                raw.getOrDefault("notificationExpireAfterMinutes", DEFAULT_NOTIFICATION_EXPIRE_MINUTES));
         out.put(
                 "maxSnoozeCount",
-                raw.containsKey("maxSnoozeCount") ? raw.get("maxSnoozeCount") : DEFAULT_MAX_SNOOZE_COUNT);
+                raw.getOrDefault("maxSnoozeCount", DEFAULT_MAX_SNOOZE_COUNT));
         validateExpanded(out);
         return out;
     }

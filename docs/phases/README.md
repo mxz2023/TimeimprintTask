@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P02工程结构与测试镜像](P02/README.md) | CURRENT / IMPLEMENTING | 已授权；T01–T03 PASS；下一任务 T04 业务优先包迁移 |
+| [P02工程结构与测试镜像](P02/README.md) | CURRENT / IMPLEMENTING | 已授权；T01–T05 PASS；下一任务 T06 全量回归与交付 |
 
 ## 已发布阶段
 

@@ -1,4 +1,4 @@
-package cn.net.mxz.timeimprint.task.service.runtime;
+package cn.net.mxz.timeimprint.task.service.runtime.shared.configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

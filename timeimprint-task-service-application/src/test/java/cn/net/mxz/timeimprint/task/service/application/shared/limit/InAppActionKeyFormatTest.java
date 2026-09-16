@@ -1,4 +1,4 @@
-package cn.net.mxz.timeimprint.task.service.application.limit;
+package cn.net.mxz.timeimprint.task.service.application.shared.limit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

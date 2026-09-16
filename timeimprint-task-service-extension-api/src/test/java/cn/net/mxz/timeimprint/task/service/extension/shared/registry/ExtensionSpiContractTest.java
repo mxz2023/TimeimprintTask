@@ -1,4 +1,4 @@
-package cn.net.mxz.timeimprint.task.service.extension.spi;
+package cn.net.mxz.timeimprint.task.service.extension.shared.registry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;

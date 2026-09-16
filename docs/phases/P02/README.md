@@ -13,7 +13,7 @@
 | 基础发布 | P01；Git标签`v20260915-P01` |
 | 基线提交 | `0c29c8a09f45644e68596730a6f610703390fb61`（T01 记录；见[T01清单](T01-STRUCTURE-INVENTORY.md)） |
 | 工程状态 | IN_PROGRESS |
-| 下一动作 | 执行[T05](IMPLEMENTATION.md)（NOT_STARTED）：固化架构与覆盖率门禁（Q01—Q07） |
+| 下一动作 | 执行[T06](IMPLEMENTATION.md)（NOT_STARTED）：全量回归与交付（Q01—Q08、P01回归、DELIVERY） |
 
 用户已于 2026-09-16 授权实施本阶段，范围仅限工程结构与测试镜像；禁止 Jackson 3 迁移及业务/API/DDL/SPI/Maven 模块变更。尚未创建 DELIVERY；生产源码迁移须在 T02/T03 安全网通过后按批进行。
 

@@ -1,4 +1,4 @@
-package cn.net.mxz.timeimprint.task.domain;
+package cn.net.mxz.timeimprint.task.domain.shared.response;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

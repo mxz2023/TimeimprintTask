@@ -11,7 +11,7 @@
 | T02 | 建立行为安全网 | PASS | T01 PASS | 所有者测试覆盖全部 226 顶层生产类型；四大类特征断言；`JsonGoldenContractTest` 通过 |
 | T03 | 按职责拆分多职责类 | PASS | T02 PASS | 四大类按变化原因拆分；入口契约保留；`./mvnw test` 266/0；无新跨模块依赖 |
 | T04 | 按业务优先规则迁移包 | PASS | T03 PASS | `./mvnw test` 262/0；包路径已迁至 `<root>.<biz>.<tech>`；MyBatis XML/MapperScan/mapper-locations 同步；P01 kernel baseline 已按新路径刷新 |
-| T05 | 固化架构与覆盖率门禁 | NOT_STARTED | T04 PASS | Q01—Q07自动化通过，门禁能对故意违规样例失败 |
+| T05 | 固化架构与覆盖率门禁 | PASS | T04 PASS | Q01—Q06 `StructureQualityGate`；Q07 ArchUnit + Jacoco 不下降（[T05-COVERAGE-BASELINE.json](T05-COVERAGE-BASELINE.json)）；负例失败；`./mvnw test` 294/0 |
 | T06 | 全量回归与交付 | NOT_STARTED | T05 PASS | Q01—Q08和P01回归通过；创建DELIVERY并记录真实证据 |
 
 任务只能按顺序推进。任一任务BLOCKED时不得开始后续任务；失败测试不能通过删除断言、排除测试或降低阈值解决。

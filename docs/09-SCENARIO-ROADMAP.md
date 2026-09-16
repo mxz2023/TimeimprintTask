@@ -9,7 +9,7 @@
 | 层级 | 场景 | 能力 | 含义 |
 | --- | --- | --- | --- |
 | 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
-| 当前P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像；CURRENT / IMPLEMENTING；T01–T03 PASS，执行 T04 |
+| 当前P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像；CURRENT / IMPLEMENTING；T01–T05 PASS，执行 T06 |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力，以及技术候选X05 | P02发布后优先评审X05，再由用户决定下一业务范围 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 

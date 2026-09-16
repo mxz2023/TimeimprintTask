@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.lang.reflect.Modifier;
 import org.junit.jupiter.api.Test;
 
-/** Owner test for RuntimeBeans. */
-class RuntimeBeansTest {
+/** Owner test for RuntimeBeans (Spring 组合配置 → ContextTest). */
+class RuntimeBeansContextTest {
 
     @Test
     void freezesTypeIdentity() {

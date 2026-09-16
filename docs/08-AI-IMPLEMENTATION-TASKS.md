@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-[P02工程结构与测试镜像](phases/P02/README.md)是唯一CURRENT阶段，总体状态IMPLEMENTING；实施任务见[P02 IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)。T01–T03已PASS（基线`0c29c8a09f45644e68596730a6f610703390fb61`；清单见[T01-STRUCTURE-INVENTORY](phases/P02/T01-STRUCTURE-INVENTORY.md)）；下一任务为T04。它不改变任何场景/能力三维状态，不包含Jackson 3迁移。[P01第一期](phases/P01/README.md)已RELEASED并冻结。P02发布后，Jackson 3候选X05可经独立阶段评审和授权实施；不得提前创建空P03或把迁移夹带进P02。
+[P02工程结构与测试镜像](phases/P02/README.md)是唯一CURRENT阶段，总体状态IMPLEMENTING；实施任务见[P02 IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)。T01–T05已PASS（基线`0c29c8a09f45644e68596730a6f610703390fb61`；清单见[T01-STRUCTURE-INVENTORY](phases/P02/T01-STRUCTURE-INVENTORY.md)；覆盖率基线见[T05-COVERAGE-BASELINE](phases/P02/T05-COVERAGE-BASELINE.json)）；下一任务为T06。它不改变任何场景/能力三维状态，不包含Jackson 3迁移。[P01第一期](phases/P01/README.md)已RELEASED并冻结。P02发布后，Jackson 3候选X05可经独立阶段评审和授权实施；不得提前创建空P03或把迁移夹带进P02。

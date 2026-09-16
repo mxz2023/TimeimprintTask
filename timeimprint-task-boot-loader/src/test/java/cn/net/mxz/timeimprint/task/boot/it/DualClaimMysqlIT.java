@@ -2,24 +2,26 @@ package cn.net.mxz.timeimprint.task.boot.it;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
-import cn.net.mxz.timeimprint.task.service.storage.mysql.mapper.TaskSignalMapper;
-import cn.net.mxz.timeimprint.task.service.storage.mysql.row.TaskSignalRow;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.service.storage.mysql.signal.row.TaskSignalRow;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.Tag;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.service.application.shared.transaction.TransactionBoundary;
+import cn.net.mxz.timeimprint.task.service.storage.mysql.signal.mapper.TaskSignalMapper;
 
 /**
  * 最小双竞争领取：两个并发 claim 不得领取同一 Signal（SKIP LOCKED）。

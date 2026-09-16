@@ -2,11 +2,14 @@ package cn.net.mxz.timeimprint.task.boot;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cn.net.mxz.timeimprint.task.service.application.registry.ExtensionRegistryImpl;
-import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyPhase;
-import cn.net.mxz.timeimprint.task.service.extension.registry.PolicyRegistrationKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.Policy;
+import cn.net.mxz.timeimprint.task.service.application.extension.registry.ExtensionRegistryImpl;
+import cn.net.mxz.timeimprint.task.service.extension.policy.spi.PolicyPhase;
+import cn.net.mxz.timeimprint.task.service.extension.policy.registry.PolicyRegistrationKey;
+import cn.net.mxz.timeimprint.task.service.extension.policy.spi.Policy;
 import java.util.List;
+import org.junit.jupiter.api.Test;
+import cn.net.mxz.timeimprint.task.service.extension.policy.context.PolicyEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.policy.result.PolicyDecision;
 import org.junit.jupiter.api.Test;
 
 class ExtensionRegistryDuplicateKeyTest {
@@ -35,9 +38,9 @@ class ExtensionRegistryDuplicateKeyTest {
             }
 
             @Override
-            public cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision evaluate(
-                    cn.net.mxz.timeimprint.task.service.extension.context.PolicyEvaluationContext context) {
-                return cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision.ALLOW;
+            public cn.net.mxz.timeimprint.task.service.extension.policy.result.PolicyDecision evaluate(
+                    cn.net.mxz.timeimprint.task.service.extension.policy.context.PolicyEvaluationContext context) {
+                return cn.net.mxz.timeimprint.task.service.extension.policy.result.PolicyDecision.ALLOW;
             }
         };
     }

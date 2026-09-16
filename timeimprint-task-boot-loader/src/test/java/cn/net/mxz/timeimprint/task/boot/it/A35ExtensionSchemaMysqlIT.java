@@ -3,36 +3,38 @@ package cn.net.mxz.timeimprint.task.boot.it;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.boot.fixture.ApprovalFixture;
 import cn.net.mxz.timeimprint.task.boot.health.LiveSchemaReadinessIndicator;
-import cn.net.mxz.timeimprint.task.service.extension.context.SignalProcessContext;
-import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.JsonPayload;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.snapshot.TaskDefinitionSnapshot;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.snapshot.TaskInstanceSnapshot;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.health.contributor.Status;
+import org.springframework.boot.health.contributor.Status;
+import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.SignalProcessContext;
+import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.definition.model.TaskDefinitionSnapshot;
+import cn.net.mxz.timeimprint.task.service.kernel.instance.model.TaskInstanceSnapshot;
 
 /**
  * A35：扩展 Applied/NoChange/Rejected/技术异常语义；未终结旧 schema 使 readiness 拒绝；历史终态仍可读公共快照。
@@ -185,7 +187,7 @@ class A35ExtensionSchemaMysqlIT {
                 "t",
                 "",
                 "{}",
-                cn.net.mxz.timeimprint.task.service.kernel.domain.state.ControlState.ACTIVE,
+                cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState.ACTIVE,
                 1L,
                 1L,
                 now,
@@ -199,7 +201,7 @@ class A35ExtensionSchemaMysqlIT {
                 null,
                 null,
                 null,
-                cn.net.mxz.timeimprint.task.service.kernel.domain.state.LifecycleCategory.WAITING,
+                cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory.WAITING,
                 "PENDING_APPROVAL",
                 1,
                 "{}",

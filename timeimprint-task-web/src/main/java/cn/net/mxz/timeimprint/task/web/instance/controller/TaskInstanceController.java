@@ -1,0 +1,143 @@
+package cn.net.mxz.timeimprint.task.web.instance.controller;
+
+import cn.net.mxz.timeimprint.task.domain.shared.response.ApiMessages;
+import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponse;
+import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponses;
+import cn.net.mxz.timeimprint.task.domain.instance.request.InstanceCommandRequest;
+import cn.net.mxz.timeimprint.task.domain.shared.view.CommandResultView;
+import cn.net.mxz.timeimprint.task.domain.shared.view.Page;
+import cn.net.mxz.timeimprint.task.domain.instance.view.TaskInstanceView;
+import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 任务实例相关公开 HTTP 接口（契约 E07 / E08 / E09）。
+ *
+ * <p>路径前缀 {@code /api/v1}。S01 提醒触发后通常进入终态；S02 周期待办在 PENDING 下可执行
+ * {@code complete} / {@code skip}（及场景支持的其他命令）。
+ * 字段语义以 {@code docs/04-API.md} 为准。
+ */
+@RestController
+@RequestMapping("/api/v1")
+public class TaskInstanceController {
+
+    private final TaskGateway gateway;
+
+    public TaskInstanceController(TaskGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    /**
+     * E08 · 分页列出任务实例。
+     *
+     * <p><b>方法与路径：</b>{@code GET /api/v1/task-instances}
+     *
+     * <p><b>查询参数：</b>{@code definitionId}、{@code scenarioKey}、{@code lifecycleCategory}、
+     * {@code scenarioState}、{@code participantRole}、{@code from}、{@code to}、{@code cursor}、{@code limit}
+     *
+     * <p><b>调用示例：</b>{@code curl -sS 'http://127.0.0.1:18080/api/v1/task-instances?definitionId=1'}
+     */
+    @GetMapping("/task-instances")
+    public ApiResponse<Page<TaskInstanceView>> list(
+            @RequestParam(required = false) Long definitionId,
+            @RequestParam(required = false) String scenarioKey,
+            @RequestParam(required = false) String lifecycleCategory,
+            @RequestParam(required = false) String scenarioState,
+            @RequestParam(required = false) String participantRole,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit) {
+        Page<TaskInstanceView> page = gateway.listInstances(
+                definitionId,
+                scenarioKey,
+                lifecycleCategory,
+                scenarioState,
+                participantRole,
+                from,
+                to,
+                cursor,
+                limit);
+        int n = page.items() == null ? 0 : page.items().size();
+        return ApiResponses.ok("已返回任务实例列表，本页 " + n + " 条", page);
+    }
+
+    /**
+     * E07 · 按 ID 查询任务实例（场景状态、生命周期、修订号等）。
+     *
+     * <p><b>方法与路径：</b>{@code GET /api/v1/task-instances/{instanceId}}
+     *
+     * <p><b>路径参数：</b>
+     * <ul>
+     *   <li>{@code instanceId} — 实例主键（库表 tt_task_instance.instance_id）</li>
+     * </ul>
+     *
+     * <p><b>调用示例：</b>
+     * <pre>{@code
+     * curl -sS 'http://127.0.0.1:18080/api/v1/task-instances/1'
+     * }</pre>
+     */
+    @GetMapping("/task-instances/{instanceId}")
+    public ApiResponse<TaskInstanceView> get(@PathVariable long instanceId) {
+        TaskInstanceView view = gateway.getInstance(instanceId);
+        return ApiResponses.ok(
+                "已查询任务实例详情，instanceId="
+                        + view.instanceId()
+                        + "，scenarioKey="
+                        + view.scenarioKey()
+                        + "，scenarioState="
+                        + view.scenarioState()
+                        + "，lifecycleCategory="
+                        + view.lifecycleCategory()
+                        + "，revision="
+                        + view.revision()
+                        + "；下一步可依据 allowedCommands 选择命令",
+                view);
+    }
+
+    /**
+     * E09 · 对实例执行场景命令（如 S02 的 {@code complete} / {@code skip} / {@code snooze}）。
+     *
+     * <p><b>方法与路径：</b>{@code POST /api/v1/task-instances/{instanceId}/commands/{commandKey}}
+     *
+     * <p><b>路径参数：</b>
+     * <ul>
+     *   <li>{@code instanceId} — 实例主键</li>
+     *   <li>{@code commandKey} — 命令键，由场景扩展声明（S02：{@code complete}、{@code skip} 等）</li>
+     * </ul>
+     *
+     * <p><b>请求体参数（InstanceCommandRequest）：</b>
+     * <ul>
+     *   <li>{@code requestId} — 幂等键，标准 UUID 小写</li>
+     *   <li>{@code expectedRevision} — 乐观锁期望修订号（来自 E07 的 revision）</li>
+     *   <li>{@code commandSchemaVersion} — 命令 schema 版本，通常为 1</li>
+     *   <li>{@code payload} — 命令载荷；{@code complete} 可为 {@code {}}；{@code skip} 需含 {@code reason}</li>
+     * </ul>
+     */
+    @PostMapping("/task-instances/{instanceId}/commands/{commandKey}")
+    public ApiResponse<CommandResultView> executeCommand(
+            @PathVariable long instanceId,
+            @PathVariable String commandKey,
+            @Valid @RequestBody InstanceCommandRequest req) {
+        CommandResultView result = gateway.executeInstanceCommand(instanceId, commandKey, req);
+        String scenarioState = null;
+        if (result.resourceSnapshot() != null && result.resourceSnapshot().has("scenarioState")) {
+            scenarioState = result.resourceSnapshot().path("scenarioState").asText(null);
+        }
+        return ApiResponses.ok(
+                ApiMessages.instanceCommandSucceeded(
+                        commandKey,
+                        instanceId,
+                        result.resourceRevision(),
+                        result.changed(),
+                        scenarioState == null ? "unknown" : scenarioState),
+                result);
+    }
+}

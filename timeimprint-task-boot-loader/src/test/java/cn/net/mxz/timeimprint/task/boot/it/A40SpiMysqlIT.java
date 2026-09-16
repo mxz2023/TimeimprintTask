@@ -4,31 +4,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.service.application.service.DefinitionCommandService;
-import cn.net.mxz.timeimprint.task.service.extension.command.CommandScope;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
-import cn.net.mxz.timeimprint.task.service.extension.registry.TaskCommandHandlerKey;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.service.application.definition.service.DefinitionCommandService;
+import cn.net.mxz.timeimprint.task.service.extension.command.spi.CommandScope;
+import cn.net.mxz.timeimprint.task.service.extension.command.registry.TaskCommandHandlerKey;
 
 /**
  * A40 (minimal): SPI catalog (E01), unknown instance command rejected; definition {@code pause} is handled by

@@ -4,21 +4,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.CommandExecutionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.SignalProcessContext;
-import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyPhase;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
-import cn.net.mxz.timeimprint.task.service.extension.registry.PolicyRegistrationKey;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioDataMaterializerKey;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioExtensionKey;
-import cn.net.mxz.timeimprint.task.service.extension.registry.TaskCommandHandlerKey;
-import cn.net.mxz.timeimprint.task.service.extension.registry.TriggerProviderKey;
-import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionPlan;
+import cn.net.mxz.timeimprint.task.service.extension.command.context.CommandExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.SignalProcessContext;
+import cn.net.mxz.timeimprint.task.service.extension.policy.spi.PolicyPhase;
+import cn.net.mxz.timeimprint.task.service.extension.action.registry.ActionHandlerKey;
+import cn.net.mxz.timeimprint.task.service.extension.policy.registry.PolicyRegistrationKey;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializerKey;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
+import cn.net.mxz.timeimprint.task.service.extension.command.registry.TaskCommandHandlerKey;
+import cn.net.mxz.timeimprint.task.service.extension.trigger.registry.TriggerProviderKey;
+import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPlan;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
+import org.junit.jupiter.api.Test;
+import cn.net.mxz.timeimprint.task.service.extension.command.spi.TaskCommandHandler;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.spi.ScenarioExtension;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionResourceType;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTarget;
 import org.junit.jupiter.api.Test;
 
 class ExtensionSpiContractTest {
@@ -30,8 +35,8 @@ class ExtensionSpiContractTest {
         assertInstanceOf(
                 HandlerResult.class,
                 new HandlerResult.Applied(new TransitionPlan(
-                        new cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionTarget(
-                                cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionResourceType
+                        new cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTarget(
+                                cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionResourceType
                                         .DEFINITION,
                                 1L,
                                 1L),

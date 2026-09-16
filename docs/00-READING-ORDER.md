@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.2，最后收敛日期为2026-09-12。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.2把全部已规划场景和能力域迁入永久目录并增加三维状态。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。
+当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。
 
 ## 1. 阅读顺序
 
@@ -21,13 +21,13 @@
 | 10 | [TECHNICAL-REVIEW](10-TECHNICAL-REVIEW.md) | 设计理由、已处理问题和实施期验证风险 |
 | 阶段 | [阶段索引](phases/README.md) | 已发布、当前和未来阶段的唯一索引 |
 | 已发布 | [P01阶段入口](phases/P01/README.md) | 第一期 RELEASED；交付见[DELIVERY](phases/P01/DELIVERY.md)，标签 `v20260915-P01` |
-| 当前 | 无 CURRENT | 下一阶段从 NEXT_REVIEW 选择后创建；见[阶段索引](phases/README.md) |
+| 当前 | [P02工程结构与测试镜像](phases/P02/README.md) | 唯一CURRENT，状态IMPLEMENTING；T01–T03 PASS，下一任务 T04；禁止 Jackson 迁移 |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
 | 附录 | [HUMAN-GLOSSARY](HUMAN-GLOSSARY.md) | 英文术语、字段和状态的中文释义 |
 
-首次参与项目的开发者或编码AI必须先读完00—10、场景/能力索引与阶段索引；若存在 CURRENT 阶段则再读其 README。开始某个实施任务前，再读取当前阶段IMPLEMENTATION、目标场景文件及全部依赖能力文件。无 CURRENT 时不得编码。不能只依据会话摘要、历史记录或单份文档编码。
+首次参与项目的开发者或编码AI必须先读完00—10、场景/能力索引与阶段索引；再读取唯一CURRENT阶段的README和IMPLEMENTATION。开始某个场景实施任务前，还要读取目标场景文件及全部依赖能力文件。CURRENT为READY仍不等于已获编码授权；IMPLEMENTING后方可按任务顺序编码。不能只依据会话摘要、历史记录或单份文档编码。
 
 ## 2. 权威边界
 
@@ -56,6 +56,7 @@
 | 项目名称与工程前缀 | `TimeImprintTask`；Maven/工程前缀`timeimprint-task`；表前缀`tt_` | 02、03、05 |
 | Java命名 | 项目自定义类型不使用`Mxz`前缀；按模块与职责命名 | 02 |
 | 技术线 | Java 21 LTS、Spring Boot 4.0.8、MyBatis Starter 4.0.1、Spring AI 2.0.x稳定线、MySQL 9.7.x LTS | 03 |
+| JSON技术线 | P01制品保持Jackson 2兼容行为；P02只建立黄金契约，Jackson 3.1.5原生迁移排在P02发布后的独立阶段 | 03、04、07、09 |
 | 首期产品形态 | 本地固定身份、API优先的可运行后端，不把GUI或生产多租户身份作为首期交付条件 | 01、04 |
 | 核心模型 | TaskDefinition → TaskInstance → Signal → TransitionPlan → Action Job | 01、02 |
 | 首期场景 | S01 reminder、S02 recurring_todo及五种calendar规则 | [场景契约](scenarios/README.md)、01、04 |
@@ -71,13 +72,13 @@
 
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
-| 2.2文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | 无 CURRENT | P01 已 RELEASED；见[阶段索引](phases/README.md) |
+| 2.3文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
+| 当前阶段 | P02 / CURRENT / IMPLEMENTING | 已授权；基线`0c29c8a09f45644e68596730a6f610703390fb61`；T01–T03 PASS，执行 T04 |
 | P01 发布 | RELEASED（`v20260915-P01`） | 人工验收 2026-09-15；证据[DELIVERY](phases/P01/DELIVERY.md) |
 | 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
-无 CURRENT 时不得开始新的实现编码。创建下一阶段并获得用户授权前，只能做文档细化与规划。
+P02已获实施授权并转为IMPLEMENTING；T01已记录`baselineGitRef`并生成结构清单，T02已补齐所有者测试与JSON黄金样例，T03已按变化原因拆分多职责大类。后续任务仍须按IMPLEMENTATION顺序推进。Jackson 3迁移不属于P02，必须在P02发布后建立独立阶段并再次授权。
 
 ## 5. 实施期仍须验证
 
@@ -88,6 +89,8 @@
 - G01中的Java DTO、SPI签名、12张表首版DDL和最小端口能否共同支持S01真实纵向闭环。
 - 幂等、父级锁序、租约接管、旧token、外部副作用UNKNOWN、多进程竞争和优雅停机。
 - A01—A42、E01—E13、I01—I07、M01—M10及性能门槛的真实结果。
+- P02的包路径映射、测试目录镜像、生产类型所有者测试覆盖和无行为变化回归结果。
+- Jackson 3专项阶段的依赖纯度、Mapper装配、HTTP/数据库JSON黄金契约及哈希稳定性。
 
 验证失败时按08标记对应阶段FAIL或BLOCKED；如果原因是契约错误，先修正文档及测试，再恢复实施。不得为了维持`REVIEWED`或`READY`状态而迁就错误设计。
 
@@ -107,4 +110,4 @@
 2. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION，并已写入该阶段范围。
 3. 任一关键任务存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续任务或宣称阶段完成。
 4. 实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
-5. P01 已 RELEASED（标签 `v20260915-P01`）。后续实现须先创建新阶段包并获授权，不得在无 CURRENT 时编码。
+5. P01 已 RELEASED（标签 `v20260915-P01`）。P02为CURRENT / IMPLEMENTING；基线已记录，T01–T03 PASS，按T04起推进。P02不得包含Jackson 3迁移。

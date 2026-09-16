@@ -5,22 +5,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.web.config.RequestBodySizeFilter;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.web.shared.filter.RequestBodySizeFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import java.net.http.HttpResponse;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**

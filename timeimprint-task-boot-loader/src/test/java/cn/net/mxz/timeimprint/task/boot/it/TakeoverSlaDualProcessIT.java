@@ -4,18 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.boot.it.support.ClaimAndHoldMain;
-import cn.net.mxz.timeimprint.task.service.application.port.ActionJobExecutionPort;
-import cn.net.mxz.timeimprint.task.service.application.port.TransactionBoundary;
-import cn.net.mxz.timeimprint.task.service.application.runtime.RuntimeAdmission;
-import cn.net.mxz.timeimprint.task.service.application.service.SignalProcessingService;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.Tag;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,22 +23,24 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.boot.it.support.ClaimAndHoldMain;
+import cn.net.mxz.timeimprint.task.service.application.action.port.ActionJobExecutionPort;
+import cn.net.mxz.timeimprint.task.service.application.shared.transaction.TransactionBoundary;
+import cn.net.mxz.timeimprint.task.service.application.shared.service.RuntimeAdmission;
+import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalProcessingService;
 
 /**
  * 07 §6 独立接管真时钟 SLA：子进程领取后被杀，父进程须在原租约到期后 {@code 2 × scan interval + 10s}
@@ -60,7 +61,7 @@ class TakeoverSlaDualProcessIT {
     private static final String DB_USER = "tit";
     private static final String DB_PASS = "tit_local";
 
-    /** Matches {@link cn.net.mxz.timeimprint.task.service.runtime.ActionWorker} / Reaper fixedDelay. */
+    /** Matches {@link cn.net.mxz.timeimprint.task.service.runtime.action.worker.ActionWorker} / Reaper fixedDelay. */
     private static final long SCAN_INTERVAL_MS = 2000L;
     /** 03 下限；缩短真挂钟等待。 */
     private static final int LEASE_SECONDS = 10;

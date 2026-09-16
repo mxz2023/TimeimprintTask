@@ -1,6 +1,6 @@
 # 中文术语与标识对照（人工查阅）
 
-本表对应2.2文档，帮助非技术读者理解英文标识；正式行为仍以01—10及场景/能力永久文档为准。同一组数据库字段采用合并说明，避免逐行重复。
+本表对应2.3文档，帮助非技术读者理解英文标识；正式行为仍以01—10及场景/能力永久文档为准。同一组数据库字段采用合并说明，避免逐行重复。
 
 ## 1. 平台与工程
 
@@ -31,6 +31,13 @@
 | SPI / extension | 稳定扩展接口 / 基于接口接入的新能力或场景 |
 | Maven Enforcer / ArchUnit | 依赖规则检查 / Java架构边界测试 |
 | Unit / Contract / IT | 单元测试 / 接口契约测试 / 集成测试 |
+| business-first package / 业务优先包 | 模块内先按业务功能分包，再按技术职责分层；不是先按controller/service/repository横向堆放 |
+| test mirror / 测试镜像 | 测试类与被测生产类使用完全相同的Java包路径 |
+| owner test / 所有者测试 | 一个顶层生产类型对应的主要测试入口；负责证明其核心行为或契约，不等于只能有一个测试文件 |
+| characterization test / 特征测试 | 重构前记录现有可观察行为的测试，用于证明拆分或移动没有无意改变行为 |
+| golden contract / 黄金契约 | 以发布基线的输入输出样例固定兼容行为，升级底层实现时逐项对比 |
+| Jackson 3.1.5 / JsonMapper | P02之后专项迁移的JSON库版本 / 生产代码统一注入的Jackson 3 JSON Mapper类型 |
+| canonical JSON / 规范化JSON | 由项目显式规定属性、空值、数字和编码规则的稳定JSON表示，用于哈希、幂等和动作键，不依赖库默认顺序 |
 | mysql-it / dual-process-it | 真MySQL测试配置 / 两个真实Java进程的测试配置 |
 | PASS / FAIL / BLOCKED / NOT_RUN | 通过 / 失败 / 被条件阻塞 / 尚未执行 |
 | REVIEWED / READY（T00） / ENV_PENDING / OUT_OF_SCOPE | 文档已评审 / 文档具备实施条件 / 环境待实测或注入 / 不属于当前交付范围；T00的READY不等于队列状态READY |

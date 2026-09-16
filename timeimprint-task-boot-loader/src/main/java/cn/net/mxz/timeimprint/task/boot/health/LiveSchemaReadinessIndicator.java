@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.boot.health;
 
-import cn.net.mxz.timeimprint.task.service.extension.registry.ExtensionRegistry;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioExtensionKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ActionHandler;
-import cn.net.mxz.timeimprint.task.service.extension.spi.TriggerProvider;
+import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
+import cn.net.mxz.timeimprint.task.service.extension.action.spi.ActionHandler;
+import cn.net.mxz.timeimprint.task.service.extension.trigger.spi.TriggerProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.storage.mysql.action.mapper.ActionJobMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.storage.mysql.action.row.ActionJobRow">
+        <id property="actionJobId" column="action_job_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="definitionId" column="definition_id"/>
+        <result property="instanceId" column="instance_id"/>
+        <result property="transitionId" column="transition_id"/>
+        <result property="definitionControlGeneration" column="definition_control_generation"/>
+        <result property="parentActionJobId" column="parent_action_job_id"/>
+        <result property="redriveNo" column="redrive_no"/>
+        <result property="handlerKey" column="handler_key"/>
+        <result property="actionKey" column="action_key"/>
+        <result property="executionMode" column="execution_mode"/>
+        <result property="schemaVersion" column="schema_version"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="payloadJson" column="payload_json"/>
+        <result property="payloadHash" column="payload_hash"/>
+        <result property="availableAt" column="available_at"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="status" column="status"/>
+        <result property="attemptCount" column="attempt_count"/>
+        <result property="maxAttempts" column="max_attempts"/>
+        <result property="nextAttemptAt" column="next_attempt_at"/>
+        <result property="leaseOwner" column="lease_owner"/>
+        <result property="leaseUntil" column="lease_until"/>
+        <result property="executionToken" column="execution_token"/>
+        <result property="outcomeCode" column="outcome_code"/>
+        <result property="outcomeSummary" column="outcome_summary"/>
+        <result property="completedAt" column="completed_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="actionJobId">
+        INSERT INTO tt_action_job (tenant_id, definition_id, instance_id, transition_id,
+            definition_control_generation, parent_action_job_id, redrive_no,
+            handler_key, action_key, execution_mode, schema_version, target_type, target_id,
+            payload_json, payload_hash, available_at, expires_at, status,
+            attempt_count, max_attempts, next_attempt_at,
+            lease_owner, lease_until, execution_token,
+            outcome_code, outcome_summary, completed_at, created_at, updated_at)
+        VALUES (#{tenantId}, #{definitionId}, #{instanceId}, #{transitionId},
+            #{definitionControlGeneration}, #{parentActionJobId}, #{redriveNo},
+            #{handlerKey}, #{actionKey}, #{executionMode}, #{schemaVersion}, #{targetType}, #{targetId},
+            #{payloadJson}, #{payloadHash}, #{availableAt}, #{expiresAt}, #{status},
+            #{attemptCount}, #{maxAttempts}, #{nextAttemptAt},
+            #{leaseOwner}, #{leaseUntil}, #{executionToken},
+            #{outcomeCode}, #{outcomeSummary}, #{completedAt}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="selectById" resultMap="RM">
+        SELECT * FROM tt_action_job WHERE action_job_id = #{actionJobId}
+    </select>
+
+    <select id="selectByIdForUpdate" resultMap="RM">
+        SELECT * FROM tt_action_job WHERE action_job_id = #{actionJobId} FOR UPDATE
+    </select>
+
+    <select id="selectByInstanceId" resultMap="RM">
+        SELECT * FROM tt_action_job WHERE instance_id = #{instanceId}
+        ORDER BY created_at ASC, action_job_id ASC
+    </select>
+
+    <select id="claimReadyActions" resultMap="RM">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status IN ('READY', 'RETRY_WAIT')
+          AND available_at &lt;= #{now}
+          AND next_attempt_at &lt;= #{now}
+          AND (expires_at IS NULL OR expires_at &gt; #{now})
+        ORDER BY next_attempt_at ASC, available_at ASC, action_job_id ASC
+        LIMIT #{limit}
+        FOR UPDATE SKIP LOCKED
+    </select>
+
+    <update id="claimAction">
+        UPDATE tt_action_job SET
+            status = 'RUNNING',
+            lease_owner = #{leaseOwner},
+            lease_until = #{leaseUntil},
+            execution_token = #{executionToken},
+            attempt_count = attempt_count + 1,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+          AND attempt_count &lt; max_attempts
+    </update>
+
+    <update id="cancelRunning">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
+    <update id="completeAction">
+        UPDATE tt_action_job SET
+            status = #{status},
+            outcome_code = #{outcomeCode},
+            outcome_summary = #{outcomeSummary},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId} AND execution_token = #{executionToken}
+    </update>
+
+    <update id="completeToRetryWait">
+        UPDATE tt_action_job SET
+            status = 'RETRY_WAIT',
+            outcome_code = #{outcomeCode},
+            outcome_summary = #{outcomeSummary},
+            next_attempt_at = #{nextAttemptAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
+    <update id="refundPolicyBlocked">
+        UPDATE tt_action_job SET
+            status = 'READY',
+            attempt_count = GREATEST(attempt_count - 1, 0),
+            outcome_code = #{outcomeCode},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+    </update>
+
+    <update id="markExpiredIfDue">
+        UPDATE tt_action_job SET
+            status = 'EXPIRED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+          AND expires_at IS NOT NULL
+          AND expires_at &lt;= #{now}
+    </update>
+
+    <select id="selectReadyDueIds" resultType="java.lang.Long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status IN ('READY', 'RETRY_WAIT')
+          AND (available_at IS NULL OR available_at &lt;= #{now})
+          AND (next_attempt_at IS NULL OR next_attempt_at &lt;= #{now})
+        ORDER BY next_attempt_at ASC, available_at ASC, action_job_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectReadyDueIdsNewestFirst" resultType="java.lang.Long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status IN ('READY', 'RETRY_WAIT')
+          AND (available_at IS NULL OR available_at &lt;= #{now})
+          AND (next_attempt_at IS NULL OR next_attempt_at &lt;= #{now})
+        ORDER BY available_at DESC, action_job_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectExpiredRunningIds" resultType="java.lang.Long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE status = 'RUNNING'
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+        ORDER BY lease_until ASC, action_job_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="recoverToRetryWait">
+        UPDATE tt_action_job SET
+            status = 'RETRY_WAIT',
+            next_attempt_at = #{nextAttemptAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
+
+    <update id="recoverToTerminal">
+        UPDATE tt_action_job SET
+            status = #{status},
+            outcome_code = #{outcomeCode},
+            outcome_summary = #{outcomeSummary},
+            completed_at = #{completedAt},
+            lease_owner = NULL,
+            lease_until = NULL,
+            execution_token = NULL,
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status = 'RUNNING'
+          AND execution_token = #{executionToken}
+          AND lease_until IS NOT NULL
+          AND lease_until &lt; UTC_TIMESTAMP()
+    </update>
+
+    <update id="cancelByControlGeneration">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE instance_id = #{instanceId}
+          AND definition_control_generation != #{definitionControlGeneration}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <update id="cancelReadyByInstance">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE instance_id = #{instanceId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <update id="cancelReadyByInstanceExceptTransition">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE instance_id = #{instanceId}
+          AND transition_id != #{keepTransitionId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <update id="cancelReadyByDefinition">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE definition_id = #{definitionId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <update id="cancelReadyById">
+        UPDATE tt_action_job SET
+            status = 'CANCELLED',
+            outcome_code = #{outcomeCode},
+            completed_at = #{completedAt},
+            updated_at = #{updatedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND status IN ('READY', 'RETRY_WAIT')
+    </update>
+
+    <select id="selectList" resultMap="RM">
+        SELECT * FROM tt_action_job
+        WHERE 1=1
+        <if test="definitionId != null">AND definition_id = #{definitionId}</if>
+        <if test="instanceId != null">AND instance_id = #{instanceId}</if>
+        <if test="status != null">AND status = #{status}</if>
+        <if test="handlerKey != null">AND handler_key = #{handlerKey}</if>
+        <if test="cursor != null">AND action_job_id &gt; #{cursor}</if>
+        ORDER BY action_job_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countByParent" resultType="int">
+        SELECT COUNT(*) FROM tt_action_job WHERE parent_action_job_id = #{parentActionJobId}
+    </select>
+</mapper>

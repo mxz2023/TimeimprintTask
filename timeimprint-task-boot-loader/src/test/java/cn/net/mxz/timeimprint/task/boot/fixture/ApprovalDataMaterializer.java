@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.ScenarioDataMaterializationContext;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioDataMaterializerKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioDataMaterializer;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.context.ScenarioDataMaterializationContext;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializerKey;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializer;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

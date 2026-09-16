@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.storage.mysql.participant.mapper.TaskParticipantMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.storage.mysql.participant.row.TaskParticipantRow">
+        <id property="participantId" column="participant_id"/>
+        <result property="definitionId" column="definition_id"/>
+        <result property="instanceId" column="instance_id"/>
+        <result property="principalType" column="principal_type"/>
+        <result property="principalId" column="principal_id"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="sourceCode" column="source_code"/>
+        <result property="metadataJson" column="metadata_json"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="participantId">
+        INSERT INTO tt_task_participant (definition_id, instance_id, principal_type, principal_id,
+            role_code, source_code, metadata_json, created_at, updated_at)
+        VALUES (#{definitionId}, #{instanceId}, #{principalType}, #{principalId},
+            #{roleCode}, #{sourceCode}, #{metadataJson}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO tt_task_participant (definition_id, instance_id, principal_type, principal_id,
+            role_code, source_code, metadata_json, created_at, updated_at)
+        VALUES
+        <foreach collection="rows" item="r" separator=",">
+            (#{r.definitionId}, #{r.instanceId}, #{r.principalType}, #{r.principalId},
+             #{r.roleCode}, #{r.sourceCode}, #{r.metadataJson}, #{r.createdAt}, #{r.updatedAt})
+        </foreach>
+    </insert>
+
+    <select id="selectByDefinitionId" resultMap="RM">
+        SELECT * FROM tt_task_participant
+        WHERE definition_id = #{definitionId}
+        <choose>
+            <when test="instanceId != null">AND instance_id = #{instanceId}</when>
+            <otherwise>AND instance_id IS NULL</otherwise>
+        </choose>
+        ORDER BY role_code, principal_type, principal_id
+    </select>
+
+    <delete id="deleteByDefinitionIdDefinitionLevel">
+        DELETE FROM tt_task_participant WHERE definition_id = #{definitionId} AND instance_id IS NULL
+    </delete>
+
+</mapper>

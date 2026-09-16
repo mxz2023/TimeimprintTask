@@ -4,7 +4,9 @@
 
 ## 当前阶段
 
-当前没有 CURRENT 阶段。下一阶段须从[场景索引](../scenarios/README.md)、[能力索引](../capabilities/README.md)和[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围，经规则细化与用户确认后创建。
+| 阶段 | 状态 | 范围与下一动作 |
+| --- | --- | --- |
+| [P02工程结构与测试镜像](P02/README.md) | CURRENT / IMPLEMENTING | 已授权；T01–T03 PASS；下一任务 T04 业务优先包迁移 |
 
 ## 已发布阶段
 
@@ -14,7 +16,7 @@
 
 ## 未来阶段
 
-P02、P03尚未定义，也不得提前创建空任务。未来工作从[场景索引](../scenarios/README.md)、[能力索引](../capabilities/README.md)和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建下一阶段目录。
+P02发布后优先评审[09演进路线](../09-SCENARIO-ROADMAP.md)中的X05 Jackson 3原生迁移。尚未选择阶段编号，不提前创建P03空目录。其后业务工作仍从场景/能力索引和09路线选择范围，经规则细化、核心影响分析和用户确认后创建。
 
 ## 更新规则
 

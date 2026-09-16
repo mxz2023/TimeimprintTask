@@ -1,10 +1,10 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.PolicyEvaluationContext;
-import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyDecision;
-import cn.net.mxz.timeimprint.task.service.extension.policy.PolicyPhase;
-import cn.net.mxz.timeimprint.task.service.extension.registry.PolicyRegistrationKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.Policy;
+import cn.net.mxz.timeimprint.task.service.extension.policy.context.PolicyEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.policy.result.PolicyDecision;
+import cn.net.mxz.timeimprint.task.service.extension.policy.spi.PolicyPhase;
+import cn.net.mxz.timeimprint.task.service.extension.policy.registry.PolicyRegistrationKey;
+import cn.net.mxz.timeimprint.task.service.extension.policy.spi.Policy;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.stereotype.Component;
 

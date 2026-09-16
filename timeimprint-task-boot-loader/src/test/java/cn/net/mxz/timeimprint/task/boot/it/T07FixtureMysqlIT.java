@@ -4,18 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.boot.fixture.ApprovalFixture;
-import cn.net.mxz.timeimprint.task.gateway.TaskGateway;
-import com.fasterxml.jackson.databind.JsonNode;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +16,16 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioDataMutation;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.boot.fixture.ApprovalFixture;
 
 /**
  * T07 · Fixture integrity IT: verifies that ApprovalFixture (ScenarioExtension +

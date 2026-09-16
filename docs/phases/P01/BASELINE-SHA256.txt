@@ -20,29 +20,29 @@ dc1885c4dfbd4b9970b27b2d3b9898a632b4364f650c5d0b9764e5958f3607d7  docs/scenarios
 8f76d7329a282b8790b41e8326fb88610cd78d02bc1454b1258878b08c5fcd52  docs/capabilities/CAP01-calendar.md
 c43549bf6ee07011a62492cef2e4ff93dd9cb73d45f332e550f887c1d6b3ee3f  docs/capabilities/CAP03-notification.md
 
-## Kernel production sources (T07 baseline refreshed after removing Mxz class prefix)
-7fee10aef540656d37c7b95dcfa7980860de6a367a2f31b5bf1d72273cc91d00  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/identity/TaskDefinitionId.java
-76161e206ef0371c4a7f8f4f4ee5e0ca2f352a8de87a145f3a39be339f04e4d3  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/identity/TaskInstanceId.java
-40b19ba70116b5f165da8994039c832e5058f2225e0c4c73bb665143df3acae4  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/mutation/JsonPayload.java
-8ac4d9e240cfbb90805115300f1bc13c79c85b983011d7283d7969aaf483a63d  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/mutation/ScenarioDataMutation.java
-98241e5f4d60927a7dfaa5b6208d5dbab2f8dd60b6703dbd404fc8ff91918a26  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/mutation/ScenarioMutationPayload.java
-810e9f0c351d43664870b54035a05060c3cce7dfbe5989e0d6da37220e7324ec  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/ActionJobIntent.java
-5012ce2668cf19306fb6bb10de951e5d99230e926291825b8f8b71f0acf60643  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/DefinitionControlTransition.java
-5b79f453c3aa281ff5eebdf8e51404dd1a51eee2f77fb6b2259ad136b2aad679  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/InstanceStateTransition.java
-30405271f23b49256b1195e15633de949d1d4dd20c01b56ba466532fd1f2e98d  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/ParticipantChange.java
-7ae27e2927bfca4306634e5fd555646be6e30280869b0b272cc42ef33e30d8c3  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/ParticipantChangeKind.java
-9d7e40a7f2b282fed9b8d8a338fdef625cee2841865156cd61d87b562a453371  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/PlannedSignalIntent.java
-a04494fdb7b9aea26a3e2d640f90ee291b19191a67cbcb6eaa3cf3f3f127be19  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/TransitionPlan.java
-46b32d00061b7291119235f75c9a08d68a5f1b5ceb5c1bcce9dc0e542a8f355d  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/TransitionResourceType.java
-5b97e5802ebdcd9472cca4fa0d5559f1a404962ac6ac1745dc53b783bf624330  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/TransitionTarget.java
-e5621f1db10245212dca4f6587d09d1a5e526f9e48561cd2ef7d554060a1db9a  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/plan/TriggerBindingChange.java
-f67f1716b83229f91e15cfa44a66c0a4c0bc6e1155561aea99a7f871b5f342c1  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/revision/Revisions.java
-7c416cf38e67de69d79f7ecc2c30210397368a7b0431e23fea06adaeb56567eb  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/snapshot/TaskDefinitionSnapshot.java
-e5b7c118979aa2c25be6b20f0e6f443bce4303a5b5040686737d4a260692ccdf  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/snapshot/TaskInstanceSnapshot.java
-27b2a2c5d396aade9aa9ba2fa086659e2a0a40d7ceff23a71592b74ac837ea80  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/state/ControlState.java
-432fb856c289bf63ed764445531de0c78fac5cdc57b1a62104631fb083ef2bed  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/domain/state/LifecycleCategory.java
+## Kernel production sources (P02 T04 refreshed after biz.tech package migration)
+217f508ce4ad6e497916fd9d981e085cf51ac588e58219ce89e4fe4ec70758b0  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/definition/identity/TaskDefinitionId.java
+f74e4e190544fe945e27b4df781b1cbd555f004e229aad9effa4330fffce7921  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/definition/model/DefinitionControlTransition.java
+7bf4a95233f46773d567a1d67063436948a2e00b58e76446f4c0f4e3c64ed173  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/definition/model/TaskDefinitionSnapshot.java
+dcd574a501cf4b53c198c3649281461ac6a7095e9e3f3c79eaa7811bc6a91f71  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/instance/identity/TaskInstanceId.java
+fe8c3e962f3cdf293a2c719d93b95a0bf7245abf4bfc65afbfedb3f1b4a75a3b  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/instance/model/InstanceStateTransition.java
+0c5990c2eff9de1c41b72fa05f33a345fe8ba6c41bb8e72e28d265f3b0224a5c  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/instance/model/TaskInstanceSnapshot.java
 daa320f3ba8da470722c3fd57c8f1d927a3bb807ec01adb38bc2df784577e9f1  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/package-info.java
-29b44b735e5b71f3cbe2b2262236875f0d6d33320466ecb85ae5bfe5c624eb02  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/port/BusinessClock.java
+5c68af9074529f56e5f1b53b1abe8255a11bb52f5efbd3968f69c4ad62464531  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/participant/model/ParticipantChange.java
+9175f5d22a40c8206a177ff58e2bd11e772a3d5fb529e0aae7681b78d40bb161  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/participant/model/ParticipantChangeKind.java
+2e98c54c1c0f847e16d57c910e690cea72bb56789c8caf591d77e6ed2f36f2f5  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/shared/model/BusinessClock.java
+0e4921cc4cd71392ecc296cfd2d4a6d736d19804fbd3a412e3ef8fa905fa6b66  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/shared/model/PlannedSignalIntent.java
+e37d97fd3d5100a8f3f9e6a63c393b1a2366d4e3a087c37f2933d6ca8269149d  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/shared/state/ControlState.java
+a8959d467509a883cb15401bfa2ee2e1ea60f2542afbe21748c2ed316075ddd0  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/shared/state/LifecycleCategory.java
+fb9b1f781b0458fd276cb03a234caa7b7866f3703b44b4423fe72268e14fe7ac  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/ActionJobIntent.java
+2db0b55c539c6cc7bb2dac76f79e49c327f7c93d5649d3296a4c7bcd4d4b9231  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/JsonPayload.java
+6589453887a390dd306fe3c74688e56f555f6a4e346f0433a358930b19c3a5a1  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/ScenarioDataMutation.java
+04c3c7156e422881e7cade370c6d41f72f44bb260bd50006f4c1921d90bb8f8a  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/ScenarioMutationPayload.java
+707fb5324ae2a2640a7dcba115703ce3ba94455f7154a1476f53da893db1ecf5  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/TransitionPlan.java
+a615a4295b49ab7f02e86fda2a63abdbbaa38b6e2d38b3af1eab1bcdd63159c0  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/TransitionResourceType.java
+5678fb25ad6ffe61f63e6669c336e163c6a604be98c81ce07da91ac13be21ae7  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/TransitionTarget.java
+b49ce81e0bca311a41fa6068e3e69d41288cae4739ba6ada5061d1204e3a16f6  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/model/TriggerBindingChange.java
+f2afd2059160d4fdb1b0af15dd3a96ffec134b88311fd5e468fcc514722068e9  timeimprint-task-service-kernel/src/main/java/cn/net/mxz/timeimprint/task/service/kernel/transition/revision/Revisions.java
 
 ## Platform public Flyway DDL (T07 pre-fixture baseline, 2026-09-12)
 de2ef74914474028f1e00784df72b28e25ee088fd7632b5f64bc39cfb3f54c62  timeimprint-task-service-storage-mysql/src/main/resources/db/migration/platform/V20260912000000__platform_init_public_tables.sql

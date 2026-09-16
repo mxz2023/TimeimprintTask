@@ -3,32 +3,34 @@ package cn.net.mxz.timeimprint.task.boot.it;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.service.application.limit.CreateWriteLimitsValidator;
-import cn.net.mxz.timeimprint.task.service.application.limit.PlatformLimits;
-import cn.net.mxz.timeimprint.task.service.application.model.CreateDefinitionCommand;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import java.time.Instant;
+import java.util.ArrayList;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.DynamicPropertySource;
+import cn.net.mxz.timeimprint.task.service.application.shared.validation.CreateWriteLimitsValidator;
+import cn.net.mxz.timeimprint.task.service.application.shared.limit.PlatformLimits;
+import cn.net.mxz.timeimprint.task.service.application.definition.model.CreateDefinitionCommand;
 
 /** A25/A29 scale limits at create time (participants, JSON bytes). */
 @SpringBootTest(
@@ -84,7 +86,7 @@ class A25A29ScaleMysqlIT {
         var participants = List.of(new CreateDefinitionCommand.ParticipantInput("USER", "local-actor", "OWNER"));
         Instant now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
         var ex = org.junit.jupiter.api.Assertions.assertThrows(
-                cn.net.mxz.timeimprint.task.service.application.exception.ApplicationException.class,
+                cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException.class,
                 () -> CreateWriteLimitsValidator.validateBeforeWrite(
                         "ok",
                         "{\"pad\":\"" + huge + "\"}",

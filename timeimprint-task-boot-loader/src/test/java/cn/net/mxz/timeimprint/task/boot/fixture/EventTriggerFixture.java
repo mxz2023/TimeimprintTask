@@ -1,9 +1,9 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.TriggerEvaluationContext;
-import cn.net.mxz.timeimprint.task.service.extension.registry.TriggerProviderKey;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.PlannedSignalIntent;
-import cn.net.mxz.timeimprint.task.service.extension.spi.TriggerProvider;
+import cn.net.mxz.timeimprint.task.service.extension.trigger.context.TriggerEvaluationContext;
+import cn.net.mxz.timeimprint.task.service.extension.trigger.registry.TriggerProviderKey;
+import cn.net.mxz.timeimprint.task.service.kernel.shared.model.PlannedSignalIntent;
+import cn.net.mxz.timeimprint.task.service.extension.trigger.spi.TriggerProvider;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Component;

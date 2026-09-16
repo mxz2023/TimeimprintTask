@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.storage.mysql.action.mapper.ActionAttemptMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.storage.mysql.action.row.ActionAttemptRow">
+        <id property="attemptId" column="attempt_id"/>
+        <result property="actionJobId" column="action_job_id"/>
+        <result property="attemptNo" column="attempt_no"/>
+        <result property="executionToken" column="execution_token"/>
+        <result property="startedAt" column="started_at"/>
+        <result property="finishedAt" column="finished_at"/>
+        <result property="effectStartedAt" column="effect_started_at"/>
+        <result property="outcome" column="outcome"/>
+        <result property="errorClass" column="error_class"/>
+        <result property="errorCode" column="error_code"/>
+        <result property="providerReference" column="provider_reference"/>
+        <result property="safeSummary" column="safe_summary"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="attemptId">
+        INSERT INTO tt_action_attempt (action_job_id, attempt_no, execution_token, started_at,
+            finished_at, effect_started_at, outcome, error_class, error_code, provider_reference, safe_summary)
+        VALUES (#{actionJobId}, #{attemptNo}, #{executionToken}, #{startedAt},
+            #{finishedAt}, #{effectStartedAt}, #{outcome}, #{errorClass}, #{errorCode},
+            #{providerReference}, #{safeSummary})
+    </insert>
+
+    <select id="selectByActionJobId" resultMap="RM">
+        SELECT * FROM tt_action_attempt WHERE action_job_id = #{actionJobId} ORDER BY attempt_no ASC
+    </select>
+
+    <update id="completeAttempt">
+        UPDATE tt_action_attempt SET
+            outcome = #{outcome},
+            error_class = #{errorClass},
+            error_code = #{errorCode},
+            safe_summary = #{safeSummary},
+            finished_at = #{finishedAt}
+        WHERE action_job_id = #{actionJobId} AND execution_token = #{executionToken}
+          AND finished_at IS NULL
+    </update>
+
+    <update id="markEffectStarted">
+        UPDATE tt_action_attempt SET
+            effect_started_at = #{effectStartedAt}
+        WHERE action_job_id = #{actionJobId}
+          AND execution_token = #{executionToken}
+          AND effect_started_at IS NULL
+          AND finished_at IS NULL
+    </update>
+
+    <select id="selectMaxAttemptNo" resultType="java.lang.Integer">
+        SELECT MAX(attempt_no) FROM tt_action_attempt WHERE action_job_id = #{actionJobId}
+    </select>
+
+</mapper>

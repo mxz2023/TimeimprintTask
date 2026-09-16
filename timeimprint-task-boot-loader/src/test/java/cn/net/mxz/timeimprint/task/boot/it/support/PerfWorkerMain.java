@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.boot.it.support;
 
-import cn.net.mxz.timeimprint.task.boot.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import org.springframework.boot.SpringApplication;
 
 /**

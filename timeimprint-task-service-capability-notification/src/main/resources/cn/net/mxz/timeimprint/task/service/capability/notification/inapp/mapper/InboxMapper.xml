@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.capability.notification.inapp.mapper.InboxMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.capability.notification.inapp.row.InboxRow">
+        <id property="inboxId" column="inbox_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="notificationId" column="notification_id"/>
+        <result property="actionJobId" column="action_job_id"/>
+        <result property="definitionId" column="definition_id"/>
+        <result property="instanceId" column="instance_id"/>
+        <result property="recipientType" column="recipient_type"/>
+        <result property="recipientId" column="recipient_id"/>
+        <result property="readAt" column="read_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="inboxId">
+        INSERT INTO tt_inbox (tenant_id, notification_id, action_job_id, definition_id, instance_id,
+            recipient_type, recipient_id, read_at, created_at)
+        VALUES (#{tenantId}, #{notificationId}, #{actionJobId}, #{definitionId}, #{instanceId},
+            #{recipientType}, #{recipientId}, #{readAt}, #{createdAt})
+    </insert>
+
+    <select id="selectById" resultMap="RM">
+        SELECT * FROM tt_inbox
+        WHERE inbox_id = #{inboxId}
+          AND tenant_id = #{tenantId}
+          AND recipient_type = #{recipientType}
+          AND recipient_id = #{recipientId}
+    </select>
+
+    <select id="selectByRecipient" resultMap="RM">
+        SELECT * FROM tt_inbox
+        WHERE tenant_id = #{tenantId}
+          AND recipient_type = #{recipientType}
+          AND recipient_id = #{recipientId}
+          <if test="unreadOnly">AND read_at IS NULL</if>
+          <if test="cursor != null">AND inbox_id &lt; #{cursor}</if>
+        ORDER BY created_at DESC, inbox_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countUnread" resultType="long">
+        SELECT COUNT(*) FROM tt_inbox
+        WHERE tenant_id = #{tenantId}
+          AND recipient_type = #{recipientType}
+          AND recipient_id = #{recipientId}
+          AND read_at IS NULL
+    </select>
+
+    <update id="markRead">
+        UPDATE tt_inbox SET read_at = #{readAt}
+        WHERE inbox_id = #{inboxId}
+          AND tenant_id = #{tenantId}
+          AND recipient_type = #{recipientType}
+          AND recipient_id = #{recipientId}
+          AND read_at IS NULL
+    </update>
+
+</mapper>

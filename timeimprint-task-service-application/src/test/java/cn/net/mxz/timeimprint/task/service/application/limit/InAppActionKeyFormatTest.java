@@ -3,7 +3,7 @@ package cn.net.mxz.timeimprint.task.service.application.limit;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import cn.net.mxz.timeimprint.task.common.Sha256;
+import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import java.util.Base64;
 import org.junit.jupiter.api.Test;
 

@@ -1,11 +1,11 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.action.ActionExecutionMode;
-import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
-import cn.net.mxz.timeimprint.task.service.extension.context.ActionExecutionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.ActionExecutionResult;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ActionHandler;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionExecutionMode;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionHandlerOutcome;
+import cn.net.mxz.timeimprint.task.service.extension.action.context.ActionExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionExecutionResult;
+import cn.net.mxz.timeimprint.task.service.extension.action.registry.ActionHandlerKey;
+import cn.net.mxz.timeimprint.task.service.extension.action.spi.ActionHandler;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

@@ -6,17 +6,18 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P02工程结构与测试镜像](P02/README.md) | CURRENT / VERIFYING | T01–T06 PASS；审核[DELIVERY](P02/DELIVERY.md)后转 RELEASED |
+| （无） | — | 尚无 CURRENT；从[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围（优先 X05）后创建下一阶段并授权 |
 
 ## 已发布阶段
 
 | 阶段 | 状态 | 交付与标签 |
 | --- | --- | --- |
 | P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`v20260915-P01`](P01/README.md)；人工验收 2026-09-15 |
+| [P02工程结构与测试镜像](P02/README.md) | RELEASED | [DELIVERY](P02/DELIVERY.md)；Git 标签 `v20260917-P02`；人工验收 2026-09-17 |
 
 ## 未来阶段
 
-P02发布后优先评审[09演进路线](../09-SCENARIO-ROADMAP.md)中的X05 Jackson 3原生迁移。尚未选择阶段编号，不提前创建P03空目录。其后业务工作仍从场景/能力索引和09路线选择范围，经规则细化、核心影响分析和用户确认后创建。
+优先评审[09演进路线](../09-SCENARIO-ROADMAP.md)中的X05 Jackson 3原生迁移。尚未选择阶段编号，不提前创建P03空目录。其后业务工作仍从场景/能力索引和09路线选择范围，经规则细化、核心影响分析和用户确认后创建。
 
 ## 更新规则
 

@@ -9,11 +9,11 @@
 | 层级 | 场景 | 能力 | 含义 |
 | --- | --- | --- | --- |
 | 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
-| 当前P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像；CURRENT / VERIFYING；T01–T06 PASS，审核DELIVERY后转RELEASED |
-| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力，以及技术候选X05 | P02发布后优先评审X05，再由用户决定下一业务范围 |
+| 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
+| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力，以及技术候选X05 | 当前无 CURRENT；优先评审X05，再由用户决定下一业务范围 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02是唯一CURRENT阶段，已获授权实施工程结构与测试镜像（VERIFYING；T01–T06 PASS）。NEXT_REVIEW只决定之后先讨论哪些需求；X05和业务场景都必须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。当前无CURRENT。NEXT_REVIEW只决定之后先讨论哪些需求；X05和业务场景都必须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -100,7 +100,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 | X01 | MQ消息队列 | 未来跨服务事件、吞吐或积压需要；先验证MySQL队列瓶颈和外部接入，再比较MQ、Outbox及运维成本 | BACKLOG / OUTLINE / NOT_STARTED |
 | X02 | 工作流引擎 | 支撑S09/C06的分支、汇合、退回和升级；先明确流程复杂度，再选择自有有限状态机或引擎 | BACKLOG / OUTLINE / NOT_STARTED |
 | X03 | 动态加载插件 | 运行中增加/升级场景代码；需评估代码信任、依赖隔离、迁移、卸载和回滚 | BACKLOG / OUTLINE / NOT_STARTED |
-| X04 | 工程结构与测试镜像 | 业务功能优先、技术职责次级的包结构；测试包镜像与每个顶层生产类型的所有者测试 | P02 / READY_FOR_IMPLEMENTATION / IN_PROGRESS |
+| X04 | 工程结构与测试镜像 | 业务功能优先、技术职责次级的包结构；测试包镜像与每个顶层生产类型的所有者测试 | P02 / READY_FOR_IMPLEMENTATION / VERIFIED |
 | X05 | Jackson 3原生迁移 | 在P02黄金契约基础上迁移到Boot 4 BOM管理的Jackson 3.1.5；保持HTTP、持久化JSON、幂等与哈希兼容 | NEXT_REVIEW / READY_FOR_IMPLEMENTATION / NOT_STARTED |
 
 现有MySQL持久化队列不等于MQ；稳定扩展注册不等于动态加载；存在workflow能力域不等于已经选择流程引擎。
@@ -130,6 +130,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-09-12 | S01—S17、C01—C19、X01—X03 | 规划迁入场景/能力永久目录并采用三维状态 | 文档基线2.2；没有新增实现或P02范围 |
 | 2026-09-15 | P01、S01、S02、CAL-01—CAL-05、NOT-01—NOT-03 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260915-P01`；implementationStatus=VERIFIED |
 | 2026-09-16 | X04、X05 | 用户要求先收敛工程结构、测试镜像和Jackson 3迁移方案 | 文档基线2.3；P02只实施X04，X05排在P02发布后的独立阶段 |
+| 2026-09-17 | P02、X04 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260917-P02`；X04 implementationStatus=VERIFIED |
 
 ## 8. 下一场景进入实施的检查
 

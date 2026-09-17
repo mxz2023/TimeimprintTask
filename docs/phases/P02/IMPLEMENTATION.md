@@ -1,6 +1,6 @@
 # P02 · 实施任务与门槛
 
-本文件只定义P02的执行顺序。阶段为VERIFYING；用户已授权仅执行工程结构与测试镜像，禁止Jackson迁移与业务契约变更。T01–T06均已PASS，证据见[DELIVERY](DELIVERY.md)。
+本文件只定义P02的执行顺序。阶段已 RELEASED（2026-09-17；标签 `v20260917-P02`）；本文冻结，不再改写。T01–T06均已PASS，证据见[DELIVERY](DELIVERY.md)。
 
 ## 1. 任务状态
 

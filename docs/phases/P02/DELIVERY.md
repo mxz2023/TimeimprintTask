@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-09-17T00:34:10Z
-阶段状态: VERIFYING（等待用户审核后转 RELEASED 并打标签）
+阶段状态: RELEASED（2026-09-17 用户人工验收通过；Git 标签 `v20260917-P02`；本文此后不再改写）
 
 ---
 
@@ -19,7 +19,7 @@ recordedAtUtc: 2026-09-17T00:34:10Z
 | MySQL 镜像 Digest | `sha256:29abb0a179982e4a8928138bfc7f918af9eda64e7eeb1b1d084c1720a20159e6` |
 | MySQL SELECT VERSION() | `9.7.2` |
 | MySQL 事务隔离级别 | `READ-COMMITTED` |
-| 证据记录时 HEAD | `026e640d078e097e1149e13e2237423b17eebe03`（T05；本 DELIVERY 提交另计） |
+| 证据记录时 HEAD | `026e640d078e097e1149e13e2237423b17eebe03`（T05）；DELIVERY 入仓于 `d7f609baa64854681bfb34a7f64cf2dfcca25466`；RELEASED 冻结提交见标签 `v20260917-P02` |
 | 基线提交 | `0c29c8a09f45644e68596730a6f610703390fb61` |
 | P01 发布标签 | `v20260915-P01` |
 
@@ -88,4 +88,4 @@ recordedAtUtc: 2026-09-17T00:34:10Z
 | T00—T05 | PASS（既有提交） |
 | T06 | PASS（本证据） |
 
-用户审核本 DELIVERY 后，可将阶段 README 转为 RELEASED，并按 `vyyyyMMdd-P02` 打发布标签；在此之前不得宣称 RELEASED。
+2026-09-17 用户人工验收确认 RELEASED；发布标签 `v20260917-P02`。本文此后不再改写。

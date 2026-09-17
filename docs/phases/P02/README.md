@@ -7,15 +7,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P02 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P01；Git标签`v20260915-P01` |
 | 基线提交 | `0c29c8a09f45644e68596730a6f610703390fb61`（T01 记录；见[T01清单](T01-STRUCTURE-INVENTORY.md)） |
-| 工程状态 | VERIFYING |
-| 下一动作 | 审核[DELIVERY](DELIVERY.md)；确认后转 RELEASED 并打 `vyyyyMMdd-P02` 标签 |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20260917-P02`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-09-17 用户确认通过 |
+| 下一动作 | 无；从[09](../../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围（优先 X05）后创建下一阶段 |
+| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
+| 交付证据 | [DELIVERY](DELIVERY.md)（冻结，不再改写） |
 
-用户已于 2026-09-16 授权实施本阶段，范围仅限工程结构与测试镜像；禁止 Jackson 3 迁移及业务/API/DDL/SPI/Maven 模块变更。T01–T06 已 PASS；真实证据见[DELIVERY](DELIVERY.md)。等待用户审核后转 RELEASED 并打发布标签。
+用户已于 2026-09-16 授权实施本阶段，范围仅限工程结构与测试镜像；禁止 Jackson 3 迁移及业务/API/DDL/SPI/Maven 模块变更。T01–T06 已 PASS；证据见[DELIVERY](DELIVERY.md)。2026-09-17 用户人工验收通过，阶段已 RELEASED（标签 `v20260917-P02`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 目标与范围
 

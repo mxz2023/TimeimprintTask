@@ -3,7 +3,7 @@ package cn.net.mxz.timeimprint.task.boot.it;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.net.URI;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -38,7 +38,7 @@ class A14A30LocalProfileMysqlIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     private final HttpClient http = HttpClient.newHttpClient();
 

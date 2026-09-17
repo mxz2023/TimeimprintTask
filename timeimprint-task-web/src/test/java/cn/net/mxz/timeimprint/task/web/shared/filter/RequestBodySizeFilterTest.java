@@ -17,7 +17,7 @@ class RequestBodySizeFilterTest {
         assertEquals(1, ctors.length);
         assertEquals(1, ctors[0].getParameterCount());
         assertEquals(
-                com.fasterxml.jackson.databind.ObjectMapper.class,
+                tools.jackson.databind.json.JsonMapper.class,
                 ctors[0].getParameterTypes()[0]);
     }
 }

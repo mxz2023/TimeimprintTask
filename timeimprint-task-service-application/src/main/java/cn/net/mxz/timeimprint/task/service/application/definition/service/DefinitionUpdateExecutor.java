@@ -16,11 +16,10 @@ import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRe
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class DefinitionUpdateExecutor {
     private final ExtensionRegistry extensionRegistry;
     private final TransactionBoundary tx;
     private final BusinessClock clock;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ParticipantCreateValidator participantCreateValidator;
 
     public DefinitionUpdateExecutor(
@@ -59,7 +58,7 @@ public class DefinitionUpdateExecutor {
             ExtensionRegistry extensionRegistry,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             ParticipantCreateValidator participantCreateValidator) {
         this.actorContextProvider = actorContextProvider;
         this.definitionRepository = definitionRepository;
@@ -180,10 +179,7 @@ public class DefinitionUpdateExecutor {
         if (payload == null || !payload.isObject()) {
             throw new ApplicationException("INVALID_REQUEST", "update payload must be object");
         }
-        List<String> names = new ArrayList<>();
-        for (Iterator<String> it = payload.fieldNames(); it.hasNext(); ) {
-            names.add(it.next());
-        }
+        List<String> names = new ArrayList<>(payload.propertyNames());
         if (names.size() != UPDATE_FIELDS.size() || !UPDATE_FIELDS.containsAll(names)) {
             throw new ApplicationException(
                     "INVALID_REQUEST", "update payload must provide exactly six required fields");

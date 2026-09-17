@@ -4,7 +4,7 @@ import cn.net.mxz.timeimprint.task.domain.shared.response.ApiErrorCodes;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiMessages;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponse;
 import cn.net.mxz.timeimprint.task.service.application.shared.service.RuntimeAdmission;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,9 +25,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ShutdownWriteRejectFilter extends OncePerRequestFilter {
 
     private final RuntimeAdmission admission;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public ShutdownWriteRejectFilter(RuntimeAdmission admission, ObjectMapper objectMapper) {
+    public ShutdownWriteRejectFilter(RuntimeAdmission admission, JsonMapper objectMapper) {
         this.admission = admission;
         this.objectMapper = objectMapper;
     }

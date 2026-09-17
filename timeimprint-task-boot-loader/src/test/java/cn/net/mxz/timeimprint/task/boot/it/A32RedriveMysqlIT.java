@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +35,7 @@ class A32RedriveMysqlIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Autowired
     JdbcTemplate jdbc;

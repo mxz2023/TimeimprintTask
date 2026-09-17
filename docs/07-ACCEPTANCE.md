@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P02实施计划](phases/P02/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02及后续Jackson 3迁移的新验收项在真实执行前均为NOT_RUN。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P03实施计划](phases/P03/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10在真实执行前均为NOT_RUN。
 
 ## 1. 验收分层与环境
 
@@ -62,12 +62,12 @@
 
 ### 2.2 Jackson 3专项验收
 
-以下项目属于P02发布后的独立专项阶段；P02不得执行迁移，当前均为NOT_RUN：
+以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；当前均为NOT_RUN：
 
 | 编号 | 验收对象 | 通过标准 |
 | --- | --- | --- |
 | J01 | 版本与BOM | 使用Spring Boot 4.0.8 BOM管理的Jackson 3.1.5，不覆盖版本属性、不使用动态版本 |
-| J02 | 依赖纯度 | 运行制品不含Jackson 2 core/databind/datatype；只允许Jackson官方保留的2.x annotations兼容制品 |
+| J02 | 依赖纯度 | 业务/一方直接依赖与源码不含Jackson 2 core/databind/datatype；仅允许annotations，以及Flyway传递的唯一Jackson 2残留（不得被业务引用） |
 | J03 | 包名与直接依赖 | databind/core/dataformat引用全部使用`tools.jackson`；直接使用Jackson类型的模块声明直接依赖，注解继续使用`com.fasterxml.jackson.annotation` |
 | J04 | Mapper装配 | 生产代码统一注入不可变`JsonMapper`；全局策略由boot-loader单点配置，无运行期可变配置和无理由的额外Mapper |
 | J05 | MVC转换器 | 使用Boot自动配置的Jackson 3转换器；不存在`MappingJackson2HttpMessageConverter`或Jackson 2强制替换逻辑 |
@@ -183,6 +183,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。未来Jackson 3专项阶段须把J01—J10逐项记录在其DELIVERY；在真实阶段建立前不得预填PASS。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

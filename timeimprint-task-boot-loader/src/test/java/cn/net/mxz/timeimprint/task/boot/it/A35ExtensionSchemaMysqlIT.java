@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.boot.fixture.ApprovalFixture;
 import cn.net.mxz.timeimprint.task.boot.health.LiveSchemaReadinessIndicator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -51,7 +51,7 @@ class A35ExtensionSchemaMysqlIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Autowired
     JdbcTemplate jdbc;

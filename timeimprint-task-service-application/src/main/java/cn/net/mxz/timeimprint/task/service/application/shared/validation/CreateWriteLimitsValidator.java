@@ -5,8 +5,8 @@ import cn.net.mxz.timeimprint.task.service.application.definition.model.CreateDe
 import cn.net.mxz.timeimprint.task.service.application.inbox.validation.RecipientRules;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ public final class CreateWriteLimitsValidator {
             List<CreateDefinitionCommand.TriggerBindingInput> triggerBindings,
             Instant now,
             Instant windowEnd,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         if (participants.size() > PlatformLimits.MAX_PARTICIPANTS_PER_SCOPE) {
             throw limit("参与人数量超过上限，请减少 participants 后重试");
         }
@@ -50,7 +50,7 @@ public final class CreateWriteLimitsValidator {
             List<CreateDefinitionCommand.TriggerBindingInput> triggerBindings,
             Instant now,
             Instant windowEnd,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         if (triggerBindings.isEmpty()) {
             return;
         }
@@ -81,7 +81,7 @@ public final class CreateWriteLimitsValidator {
         }
     }
 
-    private static Map<String, Object> parseMap(String json, ObjectMapper objectMapper) {
+    private static Map<String, Object> parseMap(String json, JsonMapper objectMapper) {
         try {
             return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {

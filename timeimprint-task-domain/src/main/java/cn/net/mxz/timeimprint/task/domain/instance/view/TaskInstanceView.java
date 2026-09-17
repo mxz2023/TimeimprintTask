@@ -2,7 +2,7 @@ package cn.net.mxz.timeimprint.task.domain.instance.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.List;
 import cn.net.mxz.timeimprint.task.domain.shared.view.DeliverySummary;
 import cn.net.mxz.timeimprint.task.domain.shared.view.ParticipantView;

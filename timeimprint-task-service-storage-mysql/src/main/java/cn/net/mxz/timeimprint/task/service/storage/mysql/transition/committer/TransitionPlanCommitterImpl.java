@@ -27,7 +27,7 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.instance.row.TaskInstan
 import cn.net.mxz.timeimprint.task.service.storage.mysql.participant.row.TaskParticipantRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.transition.row.TaskTransitionRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.trigger.row.TriggerBindingRow;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -46,7 +46,7 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
     private final TaskInstanceMapper instanceMapper;
     private final TaskParticipantMapper participantMapper;
     private final TaskTransitionMapper transitionMapper;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final TransitionCommitSupport support;
     private final TransitionSideEffectWriter sideEffectWriter;
 
@@ -56,7 +56,7 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
             TaskInstanceMapper instanceMapper,
             TaskParticipantMapper participantMapper,
             TaskTransitionMapper transitionMapper,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             TransitionCommitSupport support,
             TransitionSideEffectWriter sideEffectWriter) {
         this.definitionMapper = definitionMapper;

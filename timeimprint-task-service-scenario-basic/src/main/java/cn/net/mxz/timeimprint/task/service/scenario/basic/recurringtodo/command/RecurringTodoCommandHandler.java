@@ -15,8 +15,8 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTar
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
 import cn.net.mxz.timeimprint.task.service.scenario.basic.recurringtodo.extension.RecurringTodoScenarioExtension;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -118,9 +118,9 @@ public class RecurringTodoCommandHandler {
     @Component
     public static class RecurringTodoSnoozeHandler implements TaskCommandHandler {
 
-        private final ObjectMapper objectMapper;
+        private final JsonMapper objectMapper;
 
-        public RecurringTodoSnoozeHandler(ObjectMapper objectMapper) {
+        public RecurringTodoSnoozeHandler(JsonMapper objectMapper) {
             this.objectMapper = objectMapper;
         }
 

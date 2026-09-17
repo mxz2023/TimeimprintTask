@@ -124,4 +124,4 @@ Signal和Action都通过数据库租约与executionToken领取。租约过期后
 
 稳定核心、本地身份适配、场景专有数据物化及已知场景扩展路径在设计层面可以兼容；核心表和内核不应包含提醒、待办、审批或具体通知渠道的专有字段/分支。08要求首期完成核心，但没有要求实现未来23个模块或未来业务能力。
 
-P01已经以真实DELIVERY和标签形成发布基线。2.3文档进一步收敛包结构、测试镜像和Jackson 3兼容边界；P02为CURRENT / IMPLEMENTING，T01已记录基线并生成结构清单。后续按T02—T06推进；Jackson 3必须等待P02发布并另建阶段。
+P01已经以真实DELIVERY和标签形成发布基线。P02已RELEASED（`v20260917-P02`）。2.3文档收敛的Jackson 3边界由[P03](phases/P03/README.md)（CURRENT / VERIFYING，X05）实施；证据见[P03 DELIVERY](phases/P03/DELIVERY.md)。

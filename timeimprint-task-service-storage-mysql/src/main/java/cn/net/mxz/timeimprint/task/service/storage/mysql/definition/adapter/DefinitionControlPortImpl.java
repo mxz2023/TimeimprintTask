@@ -15,8 +15,8 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.trigger.mapper.TriggerB
 import cn.net.mxz.timeimprint.task.service.storage.mysql.instance.row.TaskInstanceRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.signal.row.TaskSignalRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.transition.row.TaskTransitionRow;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -37,7 +37,7 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
     private final TaskInstanceMapper instanceMapper;
     private final TaskSignalMapper signalMapper;
     private final TaskTransitionMapper transitionMapper;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public DefinitionControlPortImpl(
             TaskDefinitionMapper definitionMapper,
@@ -45,7 +45,7 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
             TaskInstanceMapper instanceMapper,
             TaskSignalMapper signalMapper,
             TaskTransitionMapper transitionMapper,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         this.definitionMapper = definitionMapper;
         this.triggerMapper = triggerMapper;
         this.instanceMapper = instanceMapper;

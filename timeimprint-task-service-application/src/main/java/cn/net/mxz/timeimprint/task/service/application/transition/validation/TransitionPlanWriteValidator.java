@@ -6,7 +6,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioDataM
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioMutationPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ActionJobIntent;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPlan;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import cn.net.mxz.timeimprint.task.service.application.shared.limit.PlatformLimits;
@@ -17,7 +17,7 @@ public final class TransitionPlanWriteValidator {
 
     private TransitionPlanWriteValidator() {}
 
-    public static void validateBeforeWrite(TransitionPlan plan, ObjectMapper objectMapper) {
+    public static void validateBeforeWrite(TransitionPlan plan, JsonMapper objectMapper) {
         int actions = plan.actionJobIntents().size();
         if (actions > PlatformLimits.MAX_ACTIONS_PER_TRANSITION) {
             throw limit("too many actions in transition");
@@ -96,7 +96,7 @@ public final class TransitionPlanWriteValidator {
         return total;
     }
 
-    private static int transitionPlanBytes(TransitionPlan plan, ObjectMapper objectMapper) {
+    private static int transitionPlanBytes(TransitionPlan plan, JsonMapper objectMapper) {
         try {
             String json = objectMapper.writeValueAsString(plan);
             return json.getBytes(StandardCharsets.UTF_8).length;

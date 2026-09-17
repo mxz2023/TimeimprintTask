@@ -20,8 +20,8 @@ import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRe
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -38,7 +38,7 @@ public class CreateTaskDefinitionService {
     private final TransitionPlanCommitter committer;
     private final TransactionBoundary tx;
     private final BusinessClock clock;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ParticipantCreateValidator participantCreateValidator;
 
     public CreateTaskDefinitionService(
@@ -50,7 +50,7 @@ public class CreateTaskDefinitionService {
             TransitionPlanCommitter committer,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             ParticipantCreateValidator participantCreateValidator) {
         this.actorContextProvider = actorContextProvider;
         this.extensionRegistry = extensionRegistry;

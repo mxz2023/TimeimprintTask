@@ -15,7 +15,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPla
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionResourceType;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTarget;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Component;

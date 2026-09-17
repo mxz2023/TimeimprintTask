@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
 import cn.net.mxz.timeimprint.task.service.runtime.action.worker.ActionWorker;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.http.HttpClient;
 import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Tag;
@@ -18,7 +18,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -45,7 +45,7 @@ class S01OnceMysqlIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Autowired
     JdbcTemplate jdbc;

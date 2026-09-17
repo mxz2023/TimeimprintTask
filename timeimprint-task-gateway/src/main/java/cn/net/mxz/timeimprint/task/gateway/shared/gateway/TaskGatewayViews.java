@@ -15,8 +15,8 @@ import cn.net.mxz.timeimprint.task.service.application.inbox.model.InboxRecord;
 import cn.net.mxz.timeimprint.task.service.application.signal.model.SignalRecord;
 import cn.net.mxz.timeimprint.task.service.application.shared.service.ListQueryService;
 import cn.net.mxz.timeimprint.task.service.application.shared.service.TaskQueryService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -30,13 +30,13 @@ public class TaskGatewayViews {
     private final TaskQueryService queryService;
     private final ListQueryService listQueryService;
     private final BusinessClock clock;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public TaskGatewayViews(
             TaskQueryService queryService,
             ListQueryService listQueryService,
             BusinessClock clock,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         this.queryService = queryService;
         this.listQueryService = listQueryService;
         this.clock = clock;

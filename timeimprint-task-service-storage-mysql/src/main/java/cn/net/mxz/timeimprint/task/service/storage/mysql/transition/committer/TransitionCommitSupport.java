@@ -8,7 +8,7 @@ import cn.net.mxz.timeimprint.task.service.application.transition.port.Transitio
 import cn.net.mxz.timeimprint.task.service.storage.mysql.definition.row.TaskDefinitionRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.instance.row.TaskInstanceRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.transition.row.TaskTransitionRow;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -22,9 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class TransitionCommitSupport {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public TransitionCommitSupport(ObjectMapper objectMapper) {
+    public TransitionCommitSupport(JsonMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

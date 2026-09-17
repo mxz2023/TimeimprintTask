@@ -7,8 +7,8 @@ import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionCo
 import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,9 @@ public class PreviewService {
             List<Occurrence> occurrences) {}
 
     private final ExtensionRegistry extensionRegistry;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public PreviewService(ExtensionRegistry extensionRegistry, ObjectMapper objectMapper) {
+    public PreviewService(ExtensionRegistry extensionRegistry, JsonMapper objectMapper) {
         this.extensionRegistry = extensionRegistry;
         this.objectMapper = objectMapper;
     }

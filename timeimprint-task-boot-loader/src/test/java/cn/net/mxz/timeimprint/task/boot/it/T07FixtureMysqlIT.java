@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.http.HttpClient;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioDataMutation;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -42,7 +42,7 @@ class T07FixtureMysqlIT {
 
     @LocalServerPort int port;
 
-    @Autowired ObjectMapper objectMapper;
+    @Autowired JsonMapper objectMapper;
     @Autowired JdbcTemplate jdbc;
     @Autowired TaskGateway gateway;
 

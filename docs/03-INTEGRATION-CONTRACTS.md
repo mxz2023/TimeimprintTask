@@ -33,7 +33,7 @@ MySQL 9.7 LTS的InnoDB支持READ COMMITTED和队列领取所需的SKIP LOCKED；
 
 ### 1.1 Jackson 3目标契约
 
-本节是后续Jackson 3专项阶段的实施契约，不属于[P02](phases/P02/README.md)的编码范围。P02只能通过特征测试固定JSON行为，不得顺手修改Jackson依赖、import、Mapper Bean或HTTP消息转换器。
+本节是[P03](phases/P03/README.md)（X05）的实施契约。P01/P02已发布制品保持Jackson 2兼容行为；只有P03获授权后才可修改Jackson依赖、import、Mapper Bean或HTTP消息转换器。
 
 迁移目标固定如下：
 
@@ -46,13 +46,13 @@ MySQL 9.7 LTS的InnoDB支持READ COMMITTED和队列领取所需的SKIP LOCKED；
 - 全局JSON配置只属于`boot-loader` 的`configuration.json`组合根；`runtime`、`web`或业务模块不得另建全局Mapper。
 - Spring MVC使用Boot自动配置的Jackson 3 `JacksonJsonHttpMessageConverter`；删除强制Jackson 2的`MappingJackson2HttpMessageConverter`替换逻辑。
 - 直接引用Jackson类型的模块必须声明直接依赖，不得依赖其他项目模块传递Jackson。
-- 迁移完成后的运行制品禁止包含Jackson 2的`jackson-core`、`jackson-databind`和`com.fasterxml.jackson.datatype:*`；仅允许官方保留的annotations制品。双Mapper只可用于迁移分支的临时对照，不得进入阶段交付。
+- 迁移完成后，业务与一方案代码、直接依赖与打包入口不得再引入 Jackson 2 的`jackson-core`、`jackson-databind`和`com.fasterxml.jackson.datatype:*`；仅允许官方保留的 annotations 制品。已知例外：Flyway 11 在插件复制路径仍反射依赖`com.fasterxml.jackson.databind.ObjectMapper`，允许其作为**唯一**传递残留，且禁止业务代码 import 或注入该坐标。双 Mapper 只可用于迁移分支的临时对照，不得进入阶段交付。
 
 迁移前必须通过黄金样例固定04定义的HTTP JSON、数据库JSON、幂等响应重放、S01/S02配置/快照/投影、Signal/Action/TransitionPlan载荷和哈希输入。任何用于`request_hash`、`payload_hash`、`config_hash`、`snapshot_hash`或Action Key的JSON必须使用项目显式定义的规范化规则，不得依赖Jackson 2或3的默认属性顺序。
 
 ### 1.2 Jackson 3迁移顺序与回滚
 
-X05独立阶段必须按以下顺序执行，每一步保持可编译并运行对应的J01—J10子集：
+P03（X05）独立阶段必须按以下顺序执行，每一步保持可编译并运行对应的J01—J10子集：
 
 1. 从P02发布标签记录依赖树、打包制品、Mapper Bean和转换器清单，运行HTTP、持久化JSON及哈希黄金契约。
 2. 按实际直接使用关系把各模块POM切换到Jackson 3坐标；保留annotations官方例外，移除不再需要的datatype和parameter-names模块。
@@ -62,7 +62,7 @@ X05独立阶段必须按以下顺序执行，每一步保持可编译并运行�
 6. 验证P01历史JSON可读、新旧哈希与幂等结果一致，再执行单元、打包、真MySQL和双进程全量回归。
 7. 扫描源码、依赖树和最终制品，清除Jackson 2核心残留、双Mapper桥接与临时豁免后才可交付。
 
-迁移不修改数据库JSON内容或API版本，因此不需要数据迁移脚本。任一黄金契约无法恢复、历史JSON不可读或哈希变化时，停止并回退到X05的`baselineGitRef`；不得通过批量重写数据库JSON、清空幂等记录或同时发布API变更规避失败。若确需改变兼容行为，先将阶段转BLOCKED并按08单独评审。
+迁移不修改数据库JSON内容或API版本，因此不需要数据迁移脚本。任一黄金契约无法恢复、历史JSON不可读或哈希变化时，停止并回退到P03的`baselineGitRef`；不得通过批量重写数据库JSON、清空幂等记录或同时发布API变更规避失败。若确需改变兼容行为，先将阶段转BLOCKED并按08单独评审。
 
 ## 2. 模块构建与装配
 

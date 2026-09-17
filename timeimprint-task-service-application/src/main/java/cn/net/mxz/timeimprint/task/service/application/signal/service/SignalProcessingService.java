@@ -27,8 +27,8 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ActionJobInte
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPlan;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class SignalProcessingService {
     private final ExtensionRegistry extensionRegistry;
     private final TransactionBoundary tx;
     private final BusinessClock clock;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final TriggerBindingQuery triggerBindingQuery;
 
     public SignalProcessingService(
@@ -69,7 +69,7 @@ public class SignalProcessingService {
             ExtensionRegistry extensionRegistry,
             TransactionBoundary tx,
             BusinessClock clock,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             TriggerBindingQuery triggerBindingQuery) {
         this.signalRepository = signalRepository;
         this.definitionRepository = definitionRepository;

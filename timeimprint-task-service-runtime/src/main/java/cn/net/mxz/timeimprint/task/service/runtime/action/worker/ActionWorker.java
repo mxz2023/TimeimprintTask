@@ -70,7 +70,11 @@ public class ActionWorker {
     public int pollOnceForTests() {
         List<Long> ids = selectFairDueIds();
         for (Long actionJobId : ids) {
-            executeAction(actionJobId);
+            try {
+                executeAction(actionJobId);
+            } catch (Exception e) {
+                log.warn("Action worker: error executing action {}: {}", actionJobId, e.getMessage());
+            }
         }
         return ids.size();
     }

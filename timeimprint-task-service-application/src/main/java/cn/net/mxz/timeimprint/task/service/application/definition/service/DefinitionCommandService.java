@@ -1,6 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.application.definition.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
 /**

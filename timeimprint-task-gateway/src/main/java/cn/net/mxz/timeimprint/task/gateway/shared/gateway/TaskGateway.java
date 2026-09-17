@@ -34,8 +34,8 @@ import cn.net.mxz.timeimprint.task.service.application.shared.service.RedriveSer
 import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalIngressService;
 import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.application.shared.service.TaskQueryService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +58,7 @@ public class TaskGateway {
     private final InstanceCommandService instanceCommandService;
     private final DefinitionCommandService definitionCommandService;
     private final BusinessClock clock;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final TaskGatewayViews views;
 
     public TaskGateway(
@@ -73,7 +73,7 @@ public class TaskGateway {
             InstanceCommandService instanceCommandService,
             DefinitionCommandService definitionCommandService,
             BusinessClock clock,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             TaskGatewayViews views) {
         this.previewService = previewService;
         this.createService = createService;

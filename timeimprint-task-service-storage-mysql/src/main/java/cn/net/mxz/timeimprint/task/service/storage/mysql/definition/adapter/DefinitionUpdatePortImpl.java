@@ -21,9 +21,9 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.participant.row.TaskPar
 import cn.net.mxz.timeimprint.task.service.storage.mysql.signal.row.TaskSignalRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.transition.row.TaskTransitionRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.trigger.row.TriggerBindingRow;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
     private final TaskTransitionMapper transitionMapper;
     private final AuditLogMapper auditLogMapper;
     private final DefinitionControlPort definitionControlPort;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public DefinitionUpdatePortImpl(
             TaskDefinitionMapper definitionMapper,
@@ -55,7 +55,7 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
             TaskTransitionMapper transitionMapper,
             AuditLogMapper auditLogMapper,
             DefinitionControlPort definitionControlPort,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         this.definitionMapper = definitionMapper;
         this.participantMapper = participantMapper;
         this.bindingMapper = bindingMapper;

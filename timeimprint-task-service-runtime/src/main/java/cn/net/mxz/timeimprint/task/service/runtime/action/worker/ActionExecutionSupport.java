@@ -13,8 +13,8 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.definition.model.TaskDefinitionSnapshot;
 import cn.net.mxz.timeimprint.task.service.kernel.instance.model.TaskInstanceSnapshot;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -38,12 +38,12 @@ public class ActionExecutionSupport {
 
     private final TaskDefinitionRepository definitionRepository;
     private final ExtensionRegistry extensionRegistry;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public ActionExecutionSupport(
             TaskDefinitionRepository definitionRepository,
             ExtensionRegistry extensionRegistry,
-            ObjectMapper objectMapper) {
+            JsonMapper objectMapper) {
         this.definitionRepository = definitionRepository;
         this.extensionRegistry = extensionRegistry;
         this.objectMapper = objectMapper;

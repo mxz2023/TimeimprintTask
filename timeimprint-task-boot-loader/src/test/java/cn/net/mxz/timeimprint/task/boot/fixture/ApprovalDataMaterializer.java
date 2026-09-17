@@ -4,7 +4,7 @@ import cn.net.mxz.timeimprint.task.service.extension.materialization.context.Sce
 import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializerKey;
 import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializer;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -26,9 +26,9 @@ public class ApprovalDataMaterializer implements ScenarioDataMaterializer {
             + "VALUES (?, ?, ?, ?)";
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public ApprovalDataMaterializer(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public ApprovalDataMaterializer(JdbcTemplate jdbcTemplate, JsonMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
     }

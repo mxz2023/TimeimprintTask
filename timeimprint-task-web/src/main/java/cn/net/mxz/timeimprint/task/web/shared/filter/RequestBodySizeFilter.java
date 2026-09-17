@@ -3,7 +3,7 @@ package cn.net.mxz.timeimprint.task.web.shared.filter;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiErrorCodes;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiMessages;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,9 +25,9 @@ public class RequestBodySizeFilter extends OncePerRequestFilter {
 
     public static final int MAX_BODY_BYTES = 65_536;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public RequestBodySizeFilter(ObjectMapper objectMapper) {
+    public RequestBodySizeFilter(JsonMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

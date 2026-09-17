@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -116,7 +116,7 @@ class IMatrixMysqlIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Autowired
     JdbcTemplate jdbc;
@@ -398,7 +398,7 @@ class IMatrixMysqlIT {
     private static void assertFieldSet(JsonNode obj, Set<String> expected) {
         assertTrue(obj.isObject(), obj.toString());
         Set<String> actual = new java.util.HashSet<>();
-        obj.fieldNames().forEachRemaining(actual::add);
+        obj.propertyNames().forEach(actual::add);
         assertEquals(expected, actual, "fields=" + actual);
     }
 

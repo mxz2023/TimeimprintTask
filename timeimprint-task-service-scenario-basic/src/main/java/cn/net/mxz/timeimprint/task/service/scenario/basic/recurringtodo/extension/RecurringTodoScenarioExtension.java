@@ -17,8 +17,8 @@ import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPla
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionResourceType;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTarget;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -47,9 +47,9 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
     static final int DEFAULT_NOTIFICATION_EXPIRE_MINUTES = 1440;
     public static final int DEFAULT_MAX_SNOOZE_COUNT = 3;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public RecurringTodoScenarioExtension(ObjectMapper objectMapper) {
+    public RecurringTodoScenarioExtension(JsonMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

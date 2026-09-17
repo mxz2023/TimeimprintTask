@@ -6,13 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,11 +14,16 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import cn.net.mxz.timeimprint.task.service.runtime.shared.configuration.RuntimeBeans;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * P02 JSON golden samples frozen against the production Jackson 2 ObjectMapper wiring in
- * {@link RuntimeBeans}. Do not migrate Jackson here; X05 consumes these assertions.
+ * JSON golden samples aligned with {@link TimeImprintJacksonDefaults} / boot-loader
+ * {@code JsonMapperBuilderCustomizer} (P03 / J06–J08).
  */
 class JsonGoldenContractTest {
 
@@ -36,11 +34,11 @@ class JsonGoldenContractTest {
             @JsonProperty("traceId") String traceId,
             @JsonProperty("data") Object data) {}
 
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @BeforeEach
     void setUp() {
-        mapper = new RuntimeBeans().objectMapper();
+        mapper = TimeImprintJacksonDefaults.newMapper();
     }
 
     @Test
@@ -54,15 +52,14 @@ class JsonGoldenContractTest {
         String json = "{\"code\":\"OK\",\"code\":\"FAIL\",\"message\":\"x\",\"traceId\":\"t\",\"data\":null}";
         Exception ex = assertThrows(Exception.class, () -> mapper.readValue(json, Envelope.class));
         assertTrue(
-                ex instanceof JsonParseException
-                        || ex instanceof JsonMappingException
-                        || (ex.getCause() != null && ex.getCause() instanceof JsonParseException),
+                ex instanceof StreamReadException
+                        || ex instanceof JacksonException
+                        || (ex.getCause() != null && ex.getCause() instanceof StreamReadException),
                 () -> ex.getClass().getName() + ": " + ex.getMessage());
     }
 
     @Test
     void coercesNumericCodeToStringForEnvelope() throws Exception {
-        // Current Jackson 2 wiring accepts numeric JSON for String fields via coercion.
         String json = "{\"code\":1,\"message\":\"x\",\"traceId\":\"t\",\"data\":null}";
         Envelope env = mapper.readValue(json, Envelope.class);
         assertEquals("1", env.code());
@@ -70,8 +67,6 @@ class JsonGoldenContractTest {
 
     @Test
     void rejectsArrayWhereObjectExpected() {
-        String json = "{\"code\":\"OK\",\"message\":\"x\",\"traceId\":\"t\",\"data\":[]}";
-        // data is Object; array is still a valid JSON value for Object — use nested shape mismatch instead
         String bad = "[{\"code\":\"OK\"}]";
         assertThrows(MismatchedInputException.class, () -> mapper.readValue(bad, Envelope.class));
     }
@@ -90,8 +85,7 @@ class JsonGoldenContractTest {
     }
 
     @Test
-    void writesInstantAsNumericTimestampWithCurrentMapper() throws JsonProcessingException {
-        // Production RuntimeBeans currently keeps WRITE_DATES_AS_TIMESTAMPS default (true).
+    void writesInstantAsNumericTimestampWithCurrentMapper() throws JacksonException {
         Instant instant = Instant.parse("2026-09-16T10:30:00Z");
         String json = mapper.writeValueAsString(Map.of("at", instant));
         JsonNode node = mapper.readTree(json);
@@ -130,7 +124,7 @@ class JsonGoldenContractTest {
 
     private static List<String> fieldNames(JsonNode node) {
         List<String> names = new ArrayList<>();
-        Iterator<String> it = node.fieldNames();
+        Iterator<String> it = node.propertyNames().iterator();
         while (it.hasNext()) {
             names.add(it.next());
         }

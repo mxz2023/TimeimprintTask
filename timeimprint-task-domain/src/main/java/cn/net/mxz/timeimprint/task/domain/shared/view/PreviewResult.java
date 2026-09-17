@@ -3,7 +3,7 @@ package cn.net.mxz.timeimprint.task.domain.shared.view;
 import cn.net.mxz.timeimprint.task.domain.shared.request.TriggerBindingInput;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)

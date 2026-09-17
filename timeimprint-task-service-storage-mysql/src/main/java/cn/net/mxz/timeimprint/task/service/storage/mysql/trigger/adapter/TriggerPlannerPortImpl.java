@@ -14,8 +14,8 @@ import cn.net.mxz.timeimprint.task.service.storage.mysql.trigger.mapper.TriggerB
 import cn.net.mxz.timeimprint.task.service.storage.mysql.instance.row.TaskInstanceRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.signal.row.TaskSignalRow;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.transition.row.TaskTransitionRow;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -43,7 +43,7 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
     private final TaskInstanceMapper instanceMapper;
     private final TaskSignalMapper signalMapper;
     private final TaskTransitionMapper transitionMapper;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final TransactionTemplate requiresNew;
 
     public TriggerPlannerPortImpl(
@@ -52,7 +52,7 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
             TaskInstanceMapper instanceMapper,
             TaskSignalMapper signalMapper,
             TaskTransitionMapper transitionMapper,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             PlatformTransactionManager transactionManager) {
         this.bindingMapper = bindingMapper;
         this.definitionMapper = definitionMapper;

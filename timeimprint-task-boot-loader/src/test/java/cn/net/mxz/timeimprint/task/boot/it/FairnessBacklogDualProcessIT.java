@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
 import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.runtime.action.worker.ActionWorker;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -19,7 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.DynamicPropertySource;
 
 /**
  * 07 §6 独立公平性：≥10 定义、每定义 >100 条积压；单轮领取 ≤ CLAIM_BATCH_SIZE(100)；
@@ -55,7 +53,7 @@ class FairnessBacklogDualProcessIT {
     int port;
 
     @Autowired
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Autowired
     JdbcTemplate jdbc;
@@ -131,7 +129,6 @@ class FairnessBacklogDualProcessIT {
                   completed_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP(),
                   lease_owner = NULL, lease_until = NULL, execution_token = NULL
                 WHERE status = 'READY'
-                  AND available_at <= UTC_TIMESTAMP()
                   AND action_key NOT LIKE ?
                 """,
                 runPrefix + "-backlog-%");

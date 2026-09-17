@@ -1,6 +1,6 @@
 # P02 · 实施任务与门槛
 
-本文件只定义P02的执行顺序。阶段为IMPLEMENTING；用户已授权仅执行工程结构与测试镜像，禁止Jackson迁移与业务契约变更。
+本文件只定义P02的执行顺序。阶段为VERIFYING；用户已授权仅执行工程结构与测试镜像，禁止Jackson迁移与业务契约变更。T01–T06均已PASS，证据见[DELIVERY](DELIVERY.md)。
 
 ## 1. 任务状态
 
@@ -12,7 +12,7 @@
 | T03 | 按职责拆分多职责类 | PASS | T02 PASS | 四大类按变化原因拆分；入口契约保留；`./mvnw test` 266/0；无新跨模块依赖 |
 | T04 | 按业务优先规则迁移包 | PASS | T03 PASS | `./mvnw test` 262/0；包路径已迁至 `<root>.<biz>.<tech>`；MyBatis XML/MapperScan/mapper-locations 同步；P01 kernel baseline 已按新路径刷新 |
 | T05 | 固化架构与覆盖率门禁 | PASS | T04 PASS | Q01—Q06 `StructureQualityGate`；Q07 ArchUnit + Jacoco 不下降（[T05-COVERAGE-BASELINE.json](T05-COVERAGE-BASELINE.json)）；负例失败；`./mvnw test` 294/0 |
-| T06 | 全量回归与交付 | NOT_STARTED | T05 PASS | Q01—Q08和P01回归通过；创建DELIVERY并记录真实证据 |
+| T06 | 全量回归与交付 | PASS | T05 PASS | 见[DELIVERY](DELIVERY.md)：unit 273/0；mysql-it 91/0；dual-process-it 7/0；Q01—Q08 PASS |
 
 任务只能按顺序推进。任一任务BLOCKED时不得开始后续任务；失败测试不能通过删除断言、排除测试或降低阈值解决。
 

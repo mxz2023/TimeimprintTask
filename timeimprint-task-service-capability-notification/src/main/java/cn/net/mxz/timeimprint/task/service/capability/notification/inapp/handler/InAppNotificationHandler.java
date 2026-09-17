@@ -109,9 +109,14 @@ public class InAppNotificationHandler implements ActionHandler {
     }
 
     private long toLong(Object o) {
-        if (o instanceof Number n) return n.longValue();
-        if (o instanceof String s) return Long.parseLong(s);
-        throw new IllegalArgumentException("Expected number, got: " + o);
+        if (o instanceof Number n) {
+            return n.longValue();
+        }
+        if (o instanceof String s) {
+            return Long.parseLong(s);
+        }
+        throw new IllegalArgumentException(
+                "Expected number, got: " + o + (o == null ? "" : " (" + o.getClass().getName() + ")"));
     }
 
     private String toString(Object o, String defaultVal) {

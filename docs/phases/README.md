@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P02工程结构与测试镜像](P02/README.md) | CURRENT / IMPLEMENTING | 已授权；T01–T05 PASS；下一任务 T06 全量回归与交付 |
+| [P02工程结构与测试镜像](P02/README.md) | CURRENT / VERIFYING | T01–T06 PASS；审核[DELIVERY](P02/DELIVERY.md)后转 RELEASED |
 
 ## 已发布阶段
 

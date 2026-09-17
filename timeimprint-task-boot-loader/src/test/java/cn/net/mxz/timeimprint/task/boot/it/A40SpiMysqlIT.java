@@ -103,7 +103,7 @@ class A40SpiMysqlIT {
                 .commandHandlers()
                 .find(new TaskCommandHandlerKey("reminder", CommandScope.INSTANCE, "pause", 1))
                 .isPresent());
-        assertTrue(DefinitionCommandService.class.getSimpleName().startsWith("Mxz"));
+        assertEquals("DefinitionCommandService", DefinitionCommandService.class.getSimpleName());
     }
 
     private long createOnceInstanceId() throws Exception {

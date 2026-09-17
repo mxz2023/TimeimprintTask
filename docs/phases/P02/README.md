@@ -8,14 +8,14 @@
 | --- | --- |
 | 阶段 | P02 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P01；Git标签`v20260915-P01` |
 | 基线提交 | `0c29c8a09f45644e68596730a6f610703390fb61`（T01 记录；见[T01清单](T01-STRUCTURE-INVENTORY.md)） |
-| 工程状态 | IN_PROGRESS |
-| 下一动作 | 执行[T06](IMPLEMENTATION.md)（NOT_STARTED）：全量回归与交付（Q01—Q08、P01回归、DELIVERY） |
+| 工程状态 | VERIFYING |
+| 下一动作 | 审核[DELIVERY](DELIVERY.md)；确认后转 RELEASED 并打 `vyyyyMMdd-P02` 标签 |
 
-用户已于 2026-09-16 授权实施本阶段，范围仅限工程结构与测试镜像；禁止 Jackson 3 迁移及业务/API/DDL/SPI/Maven 模块变更。尚未创建 DELIVERY；生产源码迁移须在 T02/T03 安全网通过后按批进行。
+用户已于 2026-09-16 授权实施本阶段，范围仅限工程结构与测试镜像；禁止 Jackson 3 迁移及业务/API/DDL/SPI/Maven 模块变更。T01–T06 已 PASS；真实证据见[DELIVERY](DELIVERY.md)。等待用户审核后转 RELEASED 并打发布标签。
 
 ## 2. 目标与范围
 

@@ -87,6 +87,16 @@ class FairnessBacklogDualProcessIT {
     @Test
     void backlogDoesNotStarveFreshS01WithinTenSeconds() throws Exception {
         assertEquals(CLAIM_BATCH, actionWorker.claimBatchSize());
+        // Shared local MySQL may retain READY jobs from earlier IT classes; claim is global.
+        jdbc.update(
+                """
+                UPDATE tt_action_job SET
+                  status = 'CANCELLED', outcome_code = 'TEST_ISOLATION_CLEANUP',
+                  completed_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP(),
+                  lease_owner = NULL, lease_until = NULL, execution_token = NULL
+                WHERE status IN ('READY', 'RUNNING')
+                """);
+
         String runPrefix = "fair-" + UUID.randomUUID().toString().substring(0, 8);
 
         for (int d = 0; d < BACKLOG_DEFS; d++) {
@@ -102,6 +112,29 @@ class FairnessBacklogDualProcessIT {
                     perDef != null && perDef > 100,
                     "def " + d + " backlog READY count=" + perDef + " (need >100)");
         }
+
+        // Activate backlog only after all defs are seeded (not claimable mid-seed).
+        jdbc.update(
+                """
+                UPDATE tt_action_job SET
+                  available_at = UTC_TIMESTAMP() - INTERVAL 1 SECOND,
+                  next_attempt_at = UTC_TIMESTAMP() - INTERVAL 1 SECOND,
+                  updated_at = UTC_TIMESTAMP()
+                WHERE status = 'READY' AND action_key LIKE ?
+                """,
+                runPrefix + "-backlog-%");
+        // Drop any foreign due READY rows so the claim batch is only this test's backlog.
+        jdbc.update(
+                """
+                UPDATE tt_action_job SET
+                  status = 'CANCELLED', outcome_code = 'TEST_ISOLATION_FOREIGN_DUE',
+                  completed_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP(),
+                  lease_owner = NULL, lease_until = NULL, execution_token = NULL
+                WHERE status = 'READY'
+                  AND available_at <= UTC_TIMESTAMP()
+                  AND action_key NOT LIKE ?
+                """,
+                runPrefix + "-backlog-%");
 
         int polled = actionWorker.pollOnceForTests();
         assertTrue(polled <= CLAIM_BATCH, "single round must respect CLAIM_BATCH_SIZE; got " + polled);
@@ -178,10 +211,10 @@ class FairnessBacklogDualProcessIT {
                       definition_control_generation, NULL, 0,
                       handler_key, ?, execution_mode, schema_version,
                       target_type, target_id, payload_json, payload_hash,
-                      UTC_TIMESTAMP() - INTERVAL 1 SECOND,
                       UTC_TIMESTAMP() + INTERVAL 1 DAY,
+                      UTC_TIMESTAMP() + INTERVAL 2 DAY,
                       'READY', 0, max_attempts,
-                      UTC_TIMESTAMP() - INTERVAL 1 SECOND,
+                      UTC_TIMESTAMP() + INTERVAL 1 DAY,
                       UTC_TIMESTAMP(), UTC_TIMESTAMP()
                     FROM tt_action_job WHERE action_job_id = ?
                     """,

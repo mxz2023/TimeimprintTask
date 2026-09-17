@@ -1,6 +1,6 @@
 # P03 · 实施任务与门槛
 
-本文件只定义 P03 的执行顺序。阶段为 VERIFYING；T00—T07 均已 PASS，证据见[DELIVERY](DELIVERY.md)。
+本文件只定义 P03 的执行顺序。阶段已 RELEASED（2026-09-17；标签 `v20260917-P03`）；本文冻结，不再改写。T00—T07均已PASS，证据见[DELIVERY](DELIVERY.md)。
 
 ## 1. 任务状态
 

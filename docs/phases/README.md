@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P03 Jackson 3 原生迁移](P03/README.md) | CURRENT / VERIFYING | T01–T07 PASS；审核[DELIVERY](P03/DELIVERY.md)后转 RELEASED |
+| （无） | — | 尚无 CURRENT；从[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择下一业务或技术范围后创建阶段并授权 |
 
 ## 已发布阶段
 
@@ -14,10 +14,11 @@
 | --- | --- | --- |
 | P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`v20260915-P01`](P01/README.md)；人工验收 2026-09-15 |
 | [P02工程结构与测试镜像](P02/README.md) | RELEASED | [DELIVERY](P02/DELIVERY.md)；Git 标签 `v20260917-P02`；人工验收 2026-09-17 |
+| [P03 Jackson 3 原生迁移](P03/README.md) | RELEASED | [DELIVERY](P03/DELIVERY.md)；Git 标签 `v20260917-P03`；人工验收 2026-09-17 |
 
 ## 未来阶段
 
-P03 发布后，业务工作仍从场景/能力索引和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建。不提前创建空 P04 目录。
+业务与后续技术工作仍从场景/能力索引和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建。不提前创建空 P04 目录。
 
 ## 更新规则
 

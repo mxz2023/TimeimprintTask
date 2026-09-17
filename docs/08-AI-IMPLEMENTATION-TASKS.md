@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-[P03 Jackson 3 原生迁移](phases/P03/README.md)是唯一CURRENT阶段，总体状态VERIFYING；实施任务见[P03 IMPLEMENTATION](phases/P03/IMPLEMENTATION.md)，证据见[P03 DELIVERY](phases/P03/DELIVERY.md)。对应[09](09-SCENARIO-ROADMAP.md)候选X05；T01–T07已PASS。不改变任何场景/能力三维状态。[P01](phases/P01/README.md)与[P02](phases/P02/README.md)已RELEASED并冻结（`v20260915-P01`、`v20260917-P02`）。不得提前创建空P04或改写已冻结阶段。
+当前无CURRENT阶段。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)与[P03 Jackson 3 原生迁移](phases/P03/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`）；P03证据见[DELIVERY](phases/P03/DELIVERY.md)。下一阶段须从[09](09-SCENARIO-ROADMAP.md) NEXT_REVIEW 选择，经规则细化与用户授权后创建；不得提前创建空P04或改写已冻结阶段。

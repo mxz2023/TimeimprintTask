@@ -7,17 +7,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P03 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P02；Git标签`v20260917-P02`（其上含 P01 `v20260915-P01` 业务基线） |
 | 基线提交 | `e26e27bf8745dfa2c14c73d6b3722a72af25013f`（T01；见[T01清单](T01-JACKSON-BASELINE.md)） |
-| 工程状态 | VERIFYING |
-| 下一动作 | 审核[DELIVERY](DELIVERY.md)；确认后转 RELEASED 并打 `vyyyyMMdd-P03` 标签 |
-| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | [DELIVERY](DELIVERY.md) |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20260917-P03`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-09-17 用户确认通过 |
+| 下一动作 | 无；从[09](../../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
+| 交付证据 | [DELIVERY](DELIVERY.md)（冻结，不再改写） |
 
-本阶段对应[09](../../09-SCENARIO-ROADMAP.md)技术候选 X05。用户已于 2026-09-17 授权完成全部 P03 任务；T01–T07 已 PASS，证据见[DELIVERY](DELIVERY.md)。
+本阶段对应[09](../../09-SCENARIO-ROADMAP.md)技术候选 X05。用户已于 2026-09-17 授权并完成全部 P03 任务；证据见[DELIVERY](DELIVERY.md)。同日人工验收通过，阶段已 RELEASED（标签 `v20260917-P03`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 目标与范围
 

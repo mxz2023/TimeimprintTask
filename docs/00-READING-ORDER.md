@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。当前唯一 CURRENT 为[P03](phases/P03/README.md)（Jackson 3 / X05），状态 VERIFYING。
+当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。P03已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P03`）；当前无 CURRENT 阶段。
 
 ## 1. 阅读顺序
 
@@ -22,7 +22,8 @@
 | 阶段 | [阶段索引](phases/README.md) | 已发布、当前和未来阶段的唯一索引 |
 | 已发布 | [P01阶段入口](phases/P01/README.md) | 第一期 RELEASED；交付见[DELIVERY](phases/P01/DELIVERY.md)，标签 `v20260915-P01` |
 | 已发布 | [P02工程结构与测试镜像](phases/P02/README.md) | 工程结构与测试镜像 RELEASED；交付见[DELIVERY](phases/P02/DELIVERY.md)，标签 `v20260917-P02` |
-| 当前 | [P03 Jackson 3 原生迁移](phases/P03/README.md) | 唯一CURRENT，状态VERIFYING（X05）；T01–T07 PASS，审核[DELIVERY](phases/P03/DELIVERY.md)后转RELEASED |
+| 已发布 | [P03 Jackson 3 原生迁移](phases/P03/README.md) | Jackson 3 RELEASED；交付见[DELIVERY](phases/P03/DELIVERY.md)，标签 `v20260917-P03` |
+| 当前 | （无 CURRENT） | 从[09](09-SCENARIO-ROADMAP.md) NEXT_REVIEW 选择范围后创建下一阶段并授权 |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
@@ -57,7 +58,7 @@
 | 项目名称与工程前缀 | `TimeImprintTask`；Maven/工程前缀`timeimprint-task`；表前缀`tt_` | 02、03、05 |
 | Java命名 | 项目自定义类型不使用`Mxz`前缀；按模块与职责命名 | 02 |
 | 技术线 | Java 21 LTS、Spring Boot 4.0.8、MyBatis Starter 4.0.1、Spring AI 2.0.x稳定线、MySQL 9.7.x LTS | 03 |
-| JSON技术线 | P01/P02制品保持Jackson 2兼容行为；P03（X05）迁移到Boot BOM管理的Jackson 3.1.5，须保持黄金契约兼容 | 03、04、07、09、[P03](phases/P03/README.md) |
+| JSON技术线 | P01/P02 业务基线之上，P03已迁移到Boot BOM管理的Jackson 3.1.5（标签`v20260917-P03`） | 03、04、07、09、[P03](phases/P03/README.md) |
 | 首期产品形态 | 本地固定身份、API优先的可运行后端，不把GUI或生产多租户身份作为首期交付条件 | 01、04 |
 | 核心模型 | TaskDefinition → TaskInstance → Signal → TransitionPlan → Action Job | 01、02 |
 | 首期场景 | S01 reminder、S02 recurring_todo及五种calendar规则 | [场景契约](scenarios/README.md)、01、04 |
@@ -74,13 +75,14 @@
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
 | 2.3文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | P03 / CURRENT / VERIFYING | X05 Jackson 3；T01–T07 PASS；审核DELIVERY后转RELEASED |
+| 当前阶段 | 无 CURRENT | 下一范围从[09](09-SCENARIO-ROADMAP.md) NEXT_REVIEW 选择 |
+| P03 发布 | RELEASED（`v20260917-P03`） | 人工验收 2026-09-17；证据[DELIVERY](phases/P03/DELIVERY.md) |
 | P02 发布 | RELEASED（`v20260917-P02`） | 人工验收 2026-09-17；证据[DELIVERY](phases/P02/DELIVERY.md) |
 | P01 发布 | RELEASED（`v20260915-P01`） | 人工验收 2026-09-15；证据[DELIVERY](phases/P01/DELIVERY.md) |
 | 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
-[P03 Jackson 3 原生迁移](phases/P03/README.md)为唯一CURRENT，状态VERIFYING（对应X05）。T01–T07已PASS，证据见[P03 DELIVERY](phases/P03/DELIVERY.md)。P01/P02已RELEASED。
+P03已于2026-09-17人工验收通过并RELEASED（标签`v20260917-P03`）；证据见[P03 DELIVERY](phases/P03/DELIVERY.md)。当前无CURRENT阶段。P01/P02亦已RELEASED。
 
 ## 5. 实施期仍须验证
 
@@ -101,7 +103,7 @@
 - 不保留旧版需求、旧接口、旧DDL或无编号副本作为开发输入。
 - 旧项目的`WORKLOG.md`已经删除，不得恢复或作为需求、状态、进度来源。
 - 阶段身份以阶段索引为唯一入口；存在 CURRENT 时，总体状态和下一动作以该阶段 README 为准；00只做摘要，二者不一致时暂停实施并先修正文档。
-- 实施开始后，真实命令、退出码、测试数、环境和证据只写入当前阶段的`DELIVERY.md`；已 RELEASED 阶段的 DELIVERY 不再改写。P01 证据见[DELIVERY](phases/P01/DELIVERY.md)；P02 证据见[DELIVERY](phases/P02/DELIVERY.md)。
+- 实施开始后，真实命令、退出码、测试数、环境和证据只写入当前阶段的`DELIVERY.md`；已 RELEASED 阶段的 DELIVERY 不再改写。P01 证据见[DELIVERY](phases/P01/DELIVERY.md)；P02 证据见[DELIVERY](phases/P02/DELIVERY.md)；P03 证据见[DELIVERY](phases/P03/DELIVERY.md)。
 - 新增或修改英文术语、字段、状态、方法和配置时，同步维护HUMAN-GLOSSARY，但中文释义不能改变正式契约语义。
 - 场景或能力状态变化时同步更新对应永久文档、索引、09和受影响阶段；没有DELIVERY证据不得标VERIFIED。
 - 已执行的Flyway迁移不得原地修改；文档修改不能伪装已经完成的工程或数据升级。
@@ -112,4 +114,4 @@
 2. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION，并已写入该阶段范围。
 3. 任一关键任务存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续任务或宣称阶段完成。
 4. 实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
-5. P01 已 RELEASED（标签 `v20260915-P01`）。P02 已 RELEASED（标签 `v20260917-P02`）。P03 为 CURRENT / VERIFYING（X05）；T01–T07 PASS，等待审核DELIVERY后转RELEASED。不得改写已冻结的 P01/P02。
+5. P01 已 RELEASED（标签 `v20260915-P01`）。P02 已 RELEASED（标签 `v20260917-P02`）。P03 已 RELEASED（标签 `v20260917-P03`）。当前无 CURRENT；下一阶段须从09 NEXT_REVIEW 选择并授权。不得改写已冻结阶段。

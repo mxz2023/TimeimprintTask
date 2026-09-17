@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-09-17T15:25:00Z
-阶段状态: VERIFYING（等待用户审核后转 RELEASED 并打标签）
+阶段状态: RELEASED（2026-09-17 用户人工验收通过；Git 标签 `v20260917-P03`；本文此后不再改写）
 
 ---
 
@@ -18,7 +18,7 @@ recordedAtUtc: 2026-09-17T15:25:00Z
 | Jackson 目标 | Boot BOM 管理的 `tools.jackson` **3.1.5** |
 | MySQL 镜像 | `mysql:9.7.2` |
 | MySQL 镜像 Digest | `sha256:29abb0a179982e4a8928138bfc7f918af9eda64e7eeb1b1d084c1720a20159e6` |
-| 基线提交 | `e26e27bf8745dfa2c14c73d6b3722a72af25013f`（`v20260917-P02`） |
+| 证据记录时 HEAD | VERIFYING 入仓于 `97a8f76f21857defaf2e782b74c96c807d8ecb9d`；基线 `e26e27bf8745dfa2c14c73d6b3722a72af25013f`；RELEASED 冻结提交见标签 `v20260917-P03` |
 | P02 发布标签 | `v20260917-P02` |
 
 ---
@@ -79,4 +79,4 @@ recordedAtUtc: 2026-09-17T15:25:00Z
 | --- | --- |
 | T00—T07 | PASS（本证据） |
 
-用户审核本 DELIVERY 后，可将阶段 README 转为 RELEASED，并按 `vyyyyMMdd-P03` 打发布标签。
+2026-09-17 用户人工验收确认 RELEASED；发布标签 `v20260917-P03`。本文此后不再改写。

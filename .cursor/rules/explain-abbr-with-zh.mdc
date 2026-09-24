@@ -1,0 +1,25 @@
+---
+description: 向用户讲解概念时，缩写须括号标注中文含义
+alwaysApply: true
+---
+
+# 讲解时缩写须附中文
+
+面向用户讲解概念、架构、流程、验收或学习任务时：
+
+1. **首次出现**的英文缩写、稳定编号、协议字段、状态枚举、模块短名，必须在紧随其后的括号中写出中文含义。
+2. 同一条回复里再次出现可只写缩写；换话题或隔段较远时建议再注一次。
+3. 中文优先采用 [docs/HUMAN-GLOSSARY.md](docs/HUMAN-GLOSSARY.md)；词表没有时用一句准确意译，勿留裸字母。
+4. 与 [link-stable-ids](link-stable-ids.mdc) 同时遵守：`E01`/`S01`/`INV-*` 等既要可点击文档链接，也要有中文括注。
+
+## 写法
+
+差：`先走 SPI，再提交 TransitionPlan，由 Worker 执行 Action。`
+
+好：`先走 SPI（稳定扩展接口），再提交 TransitionPlan（声明式迁移计划），由 Worker（后台工作者）执行 Action（动作任务）。`
+
+差：`S01 的 Signal 到期后变 TERMINAL。`
+
+好：`[S01](docs/scenarios/S01-reminder.md)（通用提醒）的 Signal（持久化异步信号）到期后变为 TERMINAL（终态生命周期）。`
+
+纯内部思考、工具参数、或用户明确要求「只给标识不解释」时不受此限。

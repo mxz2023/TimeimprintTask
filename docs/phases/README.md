@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P04 S02 站内信标题](P04/README.md) | DRAFT | 催办标题为「催办：」加实例标题；见[IMPLEMENTATION](P04/IMPLEMENTATION.md)。未授权不得编码 |
+| [P04 标题与锁序](P04/README.md) | DRAFT | 催办标题，以及实例命令先锁定义再锁实例；见[IMPLEMENTATION](P04/IMPLEMENTATION.md)。未授权不得编码 |
 
 ## 已发布阶段
 
@@ -18,7 +18,7 @@
 
 ## 未来阶段
 
-P04 已作为 CURRENT，范围只限 S02 站内信标题。S03、S04、S05、S14 仍在[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW，不随本阶段自动进入实施。
+P04 已作为 CURRENT，范围是 S02 站内信标题和实例命令锁序。S03、S04、S05、S14 仍在[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW，不随本阶段自动进入实施。
 
 ## 更新规则
 

@@ -1,17 +1,17 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzDefinitionConfigValidationContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzInitialDefinitionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzScenarioExtensionDescriptor;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzSignalProcessContext;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioExtensionKey;
-import cn.net.mxz.timeimprint.task.service.extension.result.HandlerResult;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioExtension;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.ScenarioDataMutation;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionPlan;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionResourceType;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.plan.TransitionTarget;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.InitialDefinitionContext;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.context.ScenarioExtensionDescriptor;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.SignalProcessContext;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
+import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
+import cn.net.mxz.timeimprint.task.service.extension.scenario.spi.ScenarioExtension;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioDataMutation;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPlan;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionResourceType;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionTarget;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,13 +39,13 @@ public class ApprovalFixture implements ScenarioExtension {
     }
 
     @Override
-    public MxzScenarioExtensionDescriptor descriptor() {
-        return new MxzScenarioExtensionDescriptor(
+    public ScenarioExtensionDescriptor descriptor() {
+        return new ScenarioExtensionDescriptor(
                 SCENARIO_KEY, CONTRACT_VERSION, List.of(), List.of());
     }
 
     @Override
-    public void validateDefinitionConfig(MxzDefinitionConfigValidationContext context) {
+    public void validateDefinitionConfig(DefinitionConfigValidationContext context) {
         // No additional config required for the approval fixture
     }
 
@@ -55,14 +55,14 @@ public class ApprovalFixture implements ScenarioExtension {
      * The TransitionPlan has no instance state transition — only the mutation.
      */
     @Override
-    public HandlerResult planInitialDefinition(MxzInitialDefinitionContext context) {
+    public HandlerResult planInitialDefinition(InitialDefinitionContext context) {
         var def = context.definitionSnapshot();
         Map<String, Object> meta = Map.of(
                 "definitionId", def.definitionId(),
                 "scenarioKey", SCENARIO_KEY,
                 "approvalRequired", true);
         var mutation = new ScenarioDataMutation(
-                SCENARIO_KEY, MUTATION_KEY, CONTRACT_VERSION, new MxzJsonPayload(meta));
+                SCENARIO_KEY, MUTATION_KEY, CONTRACT_VERSION, new JsonPayload(meta));
         var plan = new TransitionPlan(
                 new TransitionTarget(TransitionResourceType.DEFINITION, def.definitionId(), def.revision()),
                 null,
@@ -77,7 +77,7 @@ public class ApprovalFixture implements ScenarioExtension {
     }
 
     @Override
-    public HandlerResult processSignal(MxzSignalProcessContext context) {
+    public HandlerResult processSignal(SignalProcessContext context) {
         return new HandlerResult.NoChange(Map.of("reason", "approval_fixture_no_signal_handler"));
     }
 

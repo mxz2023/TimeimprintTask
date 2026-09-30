@@ -1,0 +1,18 @@
+{
+  "description": "P02 T05 Jacoco no-decline baseline (unit tests; instruction+branch ratios)",
+  "modules": {
+    "timeimprint-task-common": {"lineRatio": 0.840909, "branchRatio": 1.000000},
+    "timeimprint-task-domain": {"lineRatio": 0.083119, "branchRatio": 0.102564},
+    "timeimprint-task-service-kernel": {"lineRatio": 0.459220, "branchRatio": 0.435484},
+    "timeimprint-task-service-extension-api": {"lineRatio": 0.245353, "branchRatio": 0.000000},
+    "timeimprint-task-service-application": {"lineRatio": 0.013169, "branchRatio": 0.020339},
+    "timeimprint-task-service-runtime": {"lineRatio": 0.011848, "branchRatio": 0.000000},
+    "timeimprint-task-service-storage-mysql": {"lineRatio": 0.004271, "branchRatio": 0.007194},
+    "timeimprint-task-service-capability-calendar": {"lineRatio": 0.708797, "branchRatio": 0.539130},
+    "timeimprint-task-service-capability-notification": {"lineRatio": 0.000000, "branchRatio": 0.000000},
+    "timeimprint-task-service-scenario-basic": {"lineRatio": 0.000000, "branchRatio": 0.000000},
+    "timeimprint-task-gateway": {"lineRatio": 0.028686, "branchRatio": 0.128000},
+    "timeimprint-task-web": {"lineRatio": 0.000000, "branchRatio": 0.000000},
+    "timeimprint-task-boot-loader": {"lineRatio": 0.000000, "branchRatio": 0.000000}
+  }
+}

@@ -16,16 +16,16 @@
 
 | 能力编号 | 能力标识 | 能力域 | 目标模块 | 排期位置 | 契约状态 | 实现状态 | 当前批准范围 | 未来规划 | 正式文档 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CAP01 | `calendar` | 日历与时间 | `timeimprint-task-service-capability-calendar` | P01 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | 五种基础公历规则、北京时间、预览与滚动规划 | C01—C04、C08、C10、C11、C17及农历 | [CAP01](CAP01-calendar.md) |
+| CAP01 | `calendar` | 日历与时间 | `timeimprint-task-service-capability-calendar` | P01 | RELEASED | VERIFIED | 五种基础公历规则、北京时间、预览与滚动规划 | C01—C04、C08、C10、C11、C17及农历 | [CAP01](CAP01-calendar.md) |
 | CAP02 | `trigger` | 外部/条件/依赖触发 | `timeimprint-task-service-capability-trigger` | BACKLOG | OUTLINE | NOT_STARTED | 无 | C05、C07，服务S05、S11、S12等 | [CAP02](CAP02-trigger.md) |
-| CAP03 | `notification` | 通知与收件 | `timeimprint-task-service-capability-notification` | P01 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | 通知意图、IN_APP、收件、接收人投影、Action执行 | C09、C12、C18及C16的通知部分 | [CAP03](CAP03-notification.md) |
+| CAP03 | `notification` | 通知与收件 | `timeimprint-task-service-capability-notification` | P01 | RELEASED | VERIFIED | 通知意图、IN_APP、收件、接收人投影、Action执行 | C09、C12、C18及C16的通知部分 | [CAP03](CAP03-notification.md) |
 | CAP04 | `collaboration` | 协作与主体 | `timeimprint-task-service-capability-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | 无；P01公共Participant与本地身份不是本能力已实现 | C13、C16，服务S06—S09、S15 | [CAP04](CAP04-collaboration.md) |
 | CAP05 | `workflow` | 流程编排 | `timeimprint-task-service-capability-workflow` | BACKLOG | OUTLINE | NOT_STARTED | 无 | C06及S08、S09 | [CAP05](CAP05-workflow.md) |
 | CAP06 | `aggregation` | 聚合与统计 | `timeimprint-task-service-capability-aggregation` | BACKLOG | OUTLINE | NOT_STARTED | 无 | S10、S12、S13的计数、窗口和摘要 | [CAP06](CAP06-aggregation.md) |
 | CAP07 | `integration` | 外部系统集成 | `timeimprint-task-service-capability-integration` | BACKLOG | OUTLINE | NOT_STARTED | 无 | S11、S15、S16及第三方回调/日历 | [CAP07](CAP07-integration.md) |
 | CAP08 | `intelligence` | 智能理解与建议 | `timeimprint-task-service-capability-intelligence` | BACKLOG | OUTLINE | NOT_STARTED | 无；Spring AI版本基线不等于本能力实现 | S17自然语言解析、解释和建议 | [CAP08](CAP08-intelligence.md) |
 
-当前没有任何`VERIFIED`能力。P01获得编码授权并完成交付验收前，calendar和notification仍是`NOT_STARTED`。
+CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。能力域状态仅覆盖上述已批准范围；表中其余 OUTLINE 能力项与 C01—C19 规划项仍未实现。
 
 ## C01—C19主要归属
 

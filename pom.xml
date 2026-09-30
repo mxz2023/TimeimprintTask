@@ -42,6 +42,7 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <mybatis-spring-boot.version>4.0.1</mybatis-spring-boot.version>
         <archunit.version>1.4.1</archunit.version>
+        <jacoco.version>0.8.13</jacoco.version>
         <mysql.it.image>mysql:9.7.2</mysql.it.image>
         <mysql.it.image.digest>PENDING_T01_LOCK</mysql.it.image.digest>
     </properties>
@@ -155,9 +156,33 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+            </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -244,7 +269,11 @@
                                 </goals>
                                 <configuration>
                                     <groups>mysql-it</groups>
-                                    <excludedGroups>dual-process-it</excludedGroups>
+                                    <!-- Full-suite IT: keep Hikari small so many Spring contexts do not exhaust MySQL max_connections. -->
+                                    <systemPropertyVariables>
+                                        <spring.datasource.hikari.maximum-pool-size>4</spring.datasource.hikari.maximum-pool-size>
+                                        <spring.datasource.hikari.minimum-idle>0</spring.datasource.hikari.minimum-idle>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>
@@ -267,6 +296,10 @@
                                 </goals>
                                 <configuration>
                                     <groups>dual-process-it</groups>
+                                    <systemPropertyVariables>
+                                        <spring.datasource.hikari.maximum-pool-size>4</spring.datasource.hikari.maximum-pool-size>
+                                        <spring.datasource.hikari.minimum-idle>0</spring.datasource.hikari.minimum-idle>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>

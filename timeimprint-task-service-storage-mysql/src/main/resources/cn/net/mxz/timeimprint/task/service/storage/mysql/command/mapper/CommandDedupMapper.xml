@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.net.mxz.timeimprint.task.service.storage.mysql.command.mapper.CommandDedupMapper">
+
+    <resultMap id="RM" type="cn.net.mxz.timeimprint.task.service.storage.mysql.command.row.CommandDedupRow">
+        <id property="dedupId" column="dedup_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="actorId" column="actor_id"/>
+        <result property="operation" column="operation"/>
+        <result property="requestId" column="request_id"/>
+        <result property="requestHash" column="request_hash"/>
+        <result property="processStatus" column="process_status"/>
+        <result property="resultCode" column="result_code"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="resourceRevision" column="resource_revision"/>
+        <result property="responseJson" column="response_json"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insertProcessing">
+        INSERT IGNORE INTO tt_command_dedup (tenant_id, actor_id, operation, request_id, request_hash,
+            process_status, created_at, updated_at)
+        VALUES (#{tenantId}, #{actorId}, #{operation}, #{requestId}, #{requestHash},
+            'PROCESSING', #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="selectByKey" resultMap="RM">
+        SELECT * FROM tt_command_dedup
+        WHERE tenant_id = #{tenantId} AND actor_id = #{actorId}
+          AND operation = #{operation} AND request_id = #{requestId}
+    </select>
+
+    <update id="completeDedup">
+        UPDATE tt_command_dedup SET
+            process_status = 'COMPLETED',
+            result_code = #{resultCode},
+            resource_type = #{resourceType},
+            resource_id = #{resourceId},
+            resource_revision = #{resourceRevision},
+            response_json = #{responseJson},
+            updated_at = #{updatedAt}
+        WHERE tenant_id = #{tenantId} AND actor_id = #{actorId}
+          AND operation = #{operation} AND request_id = #{requestId}
+          AND process_status = 'PROCESSING'
+    </update>
+
+</mapper>

@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.2；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P01实施计划](phases/P01/IMPLEMENTATION.md)。当前所有实现用例均为NOT_RUN，实施时才能根据真实输出标记PASS。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P03实施计划](phases/P03/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10在真实执行前均为NOT_RUN。
 
 ## 1. 验收分层与环境
 
@@ -38,10 +38,46 @@
 - 夹具不能引用公共Mapper、runtime实现类或其他场景内部类，不能通过Spring Bean名/反射绕过契约。
 - ApprovalFixture的专有数据与公共状态必须同事务成功或回滚；其物化器只能写测试场景自有表，不能修改公共DDL或公共表。
 - Maven依赖无环；common无业务状态；api不依赖实现；kernel不依赖Spring、MyBatis、web、storage或任何scenario/capability。
-- ArchUnit或等价源码检查必须证明所有项目自定义Java `class`定义以`Mxz`开头，并明确不把该规则施加到接口、枚举、Record或注解定义。
+- ArchUnit或等价源码检查必须证明kernel纯Java与模块边界；项目自定义类型不使用`Mxz`类名前缀。
 - 平台不得按`reminder`、`recurring_todo`、`approval`等scenarioKey编写if/switch；扩展通过显式注册表装配并在启动时检测重复key。
 
 任一条失败即表示“新场景不改底层”尚未证明，不能用S01/S02自身可运行替代。
+
+### 2.1 P02工程结构与测试镜像验收
+
+以下项目只在P02真实实施后判定；当前均为NOT_RUN：
+
+| 编号 | 验收对象 | 通过标准 |
+| --- | --- | --- |
+| Q01 | 业务优先包结构 | 13个模块全部符合02的业务功能→技术职责映射，不存在未经批准的平铺包或顶层`impl/util/misc` |
+| Q02 | 路径与声明 | 每个Java文件路径与`package`一致；MyBatis XML namespace与迁移后的类型一致；无空目录或旧包转发壳 |
+| Q03 | 测试镜像 | 每个测试文件的包与被测生产类型完全一致；测试类型只使用规定后缀，测试代码不集中在boot-loader代替模块内测试 |
+| Q04 | 所有者测试 | 除`package-info.java`外，每个顶层生产类型恰有一个可识别所有者测试；映射覆盖率100%，其他豁免均有审核理由 |
+| Q05 | 测试有效性 | 所有者测试具有业务、契约、边界或失败路径断言；禁用、空方法、仅非空、仅启动上下文或复制实现算法不计入 |
+| Q06 | 职责拆分 | 多职责大类先有特征测试再拆分；拆分按业务责任和变化原因，公开入口、事务、SQL、Bean和序列化行为不变 |
+| Q07 | 覆盖与架构门禁 | 新增/修改行覆盖率≥90%、分支覆盖率≥80%，各模块总覆盖率不下降；模块依赖、kernel纯Java和扩展边界检查通过 |
+| Q08 | 无行为变化 | P01全部单元、契约、真MySQL、双进程、API/DDL/SPI黄金对比通过；Maven模块、公共DDL、公开API和稳定SPI差异为0 |
+
+包移动、职责拆分和行为改变不得放在同一提交。Q01—Q04必须由可重复的自动化检查产生失败结果，而不只依赖人工目录观察。
+
+### 2.2 Jackson 3专项验收
+
+以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；当前均为NOT_RUN：
+
+| 编号 | 验收对象 | 通过标准 |
+| --- | --- | --- |
+| J01 | 版本与BOM | 使用Spring Boot 4.0.8 BOM管理的Jackson 3.1.5，不覆盖版本属性、不使用动态版本 |
+| J02 | 依赖纯度 | 业务/一方直接依赖与源码不含Jackson 2 core/databind/datatype；仅允许annotations，以及Flyway传递的唯一Jackson 2残留（不得被业务引用） |
+| J03 | 包名与直接依赖 | databind/core/dataformat引用全部使用`tools.jackson`；直接使用Jackson类型的模块声明直接依赖，注解继续使用`com.fasterxml.jackson.annotation` |
+| J04 | Mapper装配 | 生产代码统一注入不可变`JsonMapper`；全局策略由boot-loader单点配置，无运行期可变配置和无理由的额外Mapper |
+| J05 | MVC转换器 | 使用Boot自动配置的Jackson 3转换器；不存在`MappingJackson2HttpMessageConverter`或Jackson 2强制替换逻辑 |
+| J06 | HTTP黄金契约 | E01—E13、I01—I07以及未知字段、重复键、非法类型、尾随内容、空值、枚举、时间、数字和错误信封与P01兼容 |
+| J07 | 持久化JSON | P01产生的配置、快照、Signal、Action、TransitionPlan和幂等响应可读；新写内容满足03/04格式且可稳定重放 |
+| J08 | 哈希与幂等 | 所有JSON摘要和Action Key使用显式规范化，迁移前后`request/config/snapshot/payload`哈希及幂等判定稳定 |
+| J09 | 场景与运行回归 | S01/S02、日历、通知、Worker、恢复、真MySQL和双进程测试全部通过，无Bean歧义或启动退化 |
+| J10 | 迁移收口 | 源码、依赖树、打包制品和配置扫描均无Jackson 2核心残留；不存在双Mapper临时桥接或未记录豁免 |
+
+若Jackson默认行为与P01黄金契约不同，先以显式配置恢复兼容；确需改变公开行为时，必须退出专项迁移并按08重新评审公共API，不得把差异直接接受为升级结果。
 
 ## 3. 一期纵向场景矩阵
 
@@ -146,5 +182,7 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it verify
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
+
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

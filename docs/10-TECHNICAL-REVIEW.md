@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文只汇总设计理由、已处理问题和实施期验证风险，不覆盖01—08正式契约，也不表示实现已经完成。
 
-版本2.2；前：[场景路线](09-SCENARIO-ROADMAP.md)，入口：[00](00-READING-ORDER.md)。
+版本2.3；前：[场景路线](09-SCENARIO-ROADMAP.md)，入口：[00](00-READING-ORDER.md)。
 
 ## 1. 总体技术结论
 
@@ -10,7 +10,7 @@
 
 这里的“通用”有可验证边界：场景目录中的S01—S17和能力目录中的已知能力项可以在现有抽象下演进；新增场景必须做到kernel生产源码和公共平台DDL零修改。未来若出现当前五类扩展契约确实无法表达的新基础原语，应新增兼容的契约版本并复审，而不是修改既有语义或让旧场景随之改变。因此不能承诺未经定义的所有未来需求绝对零新增契约，但可以保证既有能力不被破坏、已知规划不要求推翻底层。
 
-首期采用本地固定身份，但不是简化内核原型：固定身份只存在于接入适配器，首期仍完成稳定核心、公共存储、Signal/Action运行时、场景专有数据原子物化和双进程恢复。产品交付面明确为本地API优先后端，目标使用者是开发者、集成者和运维者，不把尚未建设的前端误报为可用能力。当前仍只有文档，没有Java工程、SQL执行、真实依赖解析、双进程结果或性能证据。S02首版细则、控制代次、父级优先锁序、完整事务规模和最小运维闭环已经确认；只有07全部证据PASS后才能表示“实现已验证”。
+首期采用本地固定身份，但不是简化内核原型：固定身份只存在于接入适配器，首期已经完成稳定核心、公共存储、Signal/Action运行时、场景专有数据原子物化和双进程恢复。产品交付面明确为本地API优先后端，目标使用者是开发者、集成者和运维者，不把尚未建设的前端误报为可用能力。P01的Java工程、SQL、依赖解析、双进程和性能证据已经冻结在P01 DELIVERY；这些证据不能自动证明P02或X05完成，后续阶段仍须按07重新验证受影响范围。
 
 ## 2. 关键问题关闭记录
 
@@ -32,7 +32,7 @@
 | R14 | API随场景增加Controller方法 | 04以通用定义、实例和动态commandKey路由；场景payload在边界强类型化 | 设计关闭；20个端点待验证 |
 | R15 | JSON变成任意脚本或任意执行入口 | JSON只作版本化配置/快照；禁止类名、URL、SQL、表达式任意执行 | 设计关闭 |
 | R16 | 验收只能证明提醒，不能证明平台通用 | 07增加三类扩展夹具、架构规则、真库、双进程和故障矩阵 | 设计关闭；证据未运行 |
-| R17 | 实施先铺空模块，长期不能形成闭环或过早冻结错误抽象 | T02先用最终技术链打通S01 ONCE，T03再收敛核心；T02—T06发现问题可回正，T07才以扩展夹具冻结稳定门槛 | 设计关闭；未授权实施 |
+| R17 | 实施先铺空模块，长期不能形成闭环或过早冻结错误抽象 | P01以最终技术链先打通S01 ONCE，再收敛核心并以扩展夹具冻结稳定门槛 | 已由P01交付验证 |
 | R18 | 未来能力和场景没有模块落点 | 场景/能力目录给出永久入口、三维状态和归属；02给出五个场景族、八个能力域、一期13模块和未来23模块映射 | 设计关闭；OUTLINE和模块名称不等于批准或实现 |
 | R19 | 技术版本或数据库假设可能不可用 | 03锁定目标版本，T01必须记录真实解析、MySQL版本、时区和隔离级别 | 设计关闭；ENV_PENDING |
 | R20 | 文档评审完成被误报成代码完成 | 00分离REVIEWED、T00 READY与工程NOT_STARTED；07/08要求真实命令、测试数和证据路径 | 设计关闭 |
@@ -60,6 +60,10 @@
 | R42 | MySQL 9.7.3被误当成必然的服务端版本字符串 | 03区分官方镜像标签/digest与`SELECT VERSION()`；9.7.3是Docker镜像补丁基线 | 设计关闭；T01实测 |
 | R43 | definition控制迁移要求写Transition但表中没有前后controlState | 05增加from/to_control_state并固定定义初始、定义后续、实例初始和实例后续四种字段组合；I05同步返回 | 设计关闭；A38待验证 |
 | R44 | 文档要求Signal/Action用revision回写，但队列表没有revision列 | 队列技术状态统一用主键 + RUNNING + executionToken；只有业务资源迁移另校验definition/instance revision | 设计关闭；A04/A20待验证 |
+| R45 | 模块内按controller/service/impl等横向堆放，业务边界不可见 | 02固定“业务功能优先、技术职责次级”的包映射，P02以Q01/Q02自动检查 | 契约关闭；P02待验证 |
+| R46 | 测试集中在启动模块且生产类型缺少直接所有者测试 | 02固定测试包镜像和每个顶层生产类型一个所有者测试，P02以Q03—Q07补齐 | 契约关闭；P02待验证 |
+| R47 | Spring Boot 4工程仍显式使用Jackson 2及其MVC转换器 | 03固定Boot BOM管理的Jackson 3.1.5、`tools.jackson`包、JsonMapper和原生转换器；作为X05独立阶段 | 契约关闭；P02后专项验证 |
+| R48 | Jackson默认属性顺序或解析行为变化导致幂等、哈希和历史JSON不兼容 | 04固定黄金契约，03要求显式规范化哈希，07以J06—J08验证 | 契约关闭；X05待验证 |
 
 ## 3. 关键时序复核
 
@@ -96,6 +100,8 @@ Signal和Action都通过数据库租约与executionToken领取。租约过期后
 | cache/JimDB价值和边界未定 | 当前无cache模块 | C14有明确场景与一致性要求时 |
 | 未预见场景可能要求新基础原语 | 只允许增加兼容契约版本并复审 | 现有五类SPI无法表达时 |
 | MQ、工作流引擎、动态插件、AI运行能力及多时区等尚无一期需求 | 02明确不创建依赖、表、Bean、配置或空SPI | 对应09候选被明确选入实施时 |
+| 包移动可能触发反射、Spring扫描或MyBatis namespace隐式耦合 | P02先清点并建立特征测试，每批同步更新且保持可编译 | P02 T01—T04 |
+| Jackson 3与P01可观察JSON存在默认差异 | 先以黄金契约和显式配置保持兼容，不把升级当作API变更许可 | X05实施时 |
 
 这些限制不阻塞本地一期后端实现，也不能被写成已经具备的生产能力。
 
@@ -109,9 +115,13 @@ Signal和Action都通过数据库租约与executionToken领取。租约过期后
 - MySQL 9.7是LTS线；9.7.3发布说明限定为MySQL Server Docker镜像安全补丁，所以镜像制品与服务端报告版本分别验收：[MySQL发布模型](https://dev.mysql.com/doc/refman/9.7/en/mysql-releases.html)、[MySQL 9.7.3发布说明](https://dev.mysql.com/doc/relnotes/mysql/9.7/en/news-9-7-3.html)。
 - `SKIP LOCKED`适合队列型候选领取，但不会提供一致性视图，所以06只把它用于领取，业务提交仍重新加锁：[MySQL 9.7锁定读说明](https://dev.mysql.com/doc/refman/9.7/en/innodb-locking-reads.html)。
 - MySQL默认隔离级别及锁行为必须以实际测试会话核验：[MySQL 9.7事务隔离说明](https://dev.mysql.com/doc/refman/9.7/en/innodb-transaction-isolation-levels.html)。
+- Spring Boot 4默认JSON支持与自定义入口以官方说明为准：[Spring Boot JSON支持](https://docs.spring.io/spring-boot/4.0/reference/features/json.html)。
+- Spring Boot 4升级的模块化与Jackson变化以官方迁移指南为准：[Spring Boot 4.0迁移指南](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide)。
+- Jackson 3的坐标、包名、annotations兼容例外和Mapper不可变模型以官方迁移指南为准：[Jackson 3迁移指南](https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md)。
+- Spring MVC的Jackson 3消息转换器及定制方式以Spring Framework参考为准：[MVC消息转换器](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/message-converters.html)。
 
 ## 6. 最终评审判定
 
 稳定核心、本地身份适配、场景专有数据物化及已知场景扩展路径在设计层面可以兼容；核心表和内核不应包含提醒、待办、审批或具体通知渠道的专有字段/分支。08要求首期完成核心，但没有要求实现未来23个模块或未来业务能力。
 
-当前文档已收敛日历、更新、读模型、SPI、数据库、安全运行和实施顺序；00以T00 READY表示具备实施条件，不表示设计绝对无误。Java工程、SQL、测试和部署继续保持NOT_STARTED；只有用户明确授权开始T01或开始实现后，才进入工程实施。
+P01已经以真实DELIVERY和标签形成发布基线。P02已RELEASED（`v20260917-P02`）。P03已RELEASED（`v20260917-P03`）；Jackson 3证据见[P03 DELIVERY](phases/P03/DELIVERY.md)。

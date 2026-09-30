@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+cn.net.mxz.timeimprint.task.boot.MxzLoopbackAddressEnvironmentPostProcessor

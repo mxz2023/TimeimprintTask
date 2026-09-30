@@ -1,26 +1,61 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.action.ActionExecutionMode;
-import cn.net.mxz.timeimprint.task.service.extension.action.ActionHandlerOutcome;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionContext;
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzActionExecutionResult;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ActionHandlerKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ActionHandler;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionExecutionMode;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionHandlerOutcome;
+import cn.net.mxz.timeimprint.task.service.extension.action.context.ActionExecutionContext;
+import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionExecutionResult;
+import cn.net.mxz.timeimprint.task.service.extension.action.registry.ActionHandlerKey;
+import cn.net.mxz.timeimprint.task.service.extension.action.spi.ActionHandler;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.stereotype.Component;
 
 /**
- * T07 test fixture: an ActionHandler registered as "webhook_action" that simulates a
- * webhook delivery by returning SUCCEEDED immediately. Proves that a new action handler
- * type can be registered via the stable ActionHandler SPI without modifying kernel
- * production sources or platform public DDL.
- *
- * This class lives in boot-loader test sources only.
+ * T07/A08 test fixture: EXTERNAL ActionHandler "webhook_action".
+ * Supports invoke counting and a hold gate so ITs can pause between effectStartedAt and the call.
  */
 @Component
 public class WebhookActionFixture implements ActionHandler {
 
     public static final String HANDLER_KEY = "webhook_action";
+
+    public static final AtomicInteger INVOKE_COUNT = new AtomicInteger();
+    private static final AtomicInteger FAIL_REMAINING = new AtomicInteger();
+    private static final AtomicReference<CountDownLatch> HOLD = new AtomicReference<>();
+    private static final AtomicReference<CountDownLatch> ENTERED = new AtomicReference<>();
+
+    public static void reset() {
+        INVOKE_COUNT.set(0);
+        FAIL_REMAINING.set(0);
+        HOLD.set(null);
+        ENTERED.set(null);
+    }
+
+    /** Next {@code n} execute() calls return RETRYABLE_FAILURE, then SUCCEEDED. */
+    public static void failNext(int n) {
+        FAIL_REMAINING.set(n);
+    }
+
+    /** Next execute() blocks after entering until {@link #releaseHold()}. */
+    public static void armHold() {
+        HOLD.set(new CountDownLatch(1));
+        ENTERED.set(new CountDownLatch(1));
+    }
+
+    public static boolean awaitEntered(long timeoutMs) throws InterruptedException {
+        CountDownLatch entered = ENTERED.get();
+        return entered != null && entered.await(timeoutMs, TimeUnit.MILLISECONDS);
+    }
+
+    public static void releaseHold() {
+        CountDownLatch hold = HOLD.get();
+        if (hold != null) {
+            hold.countDown();
+        }
+    }
 
     @Override
     public ActionHandlerKey registrationKey() {
@@ -29,14 +64,13 @@ public class WebhookActionFixture implements ActionHandler {
 
     @Override
     public ActionExecutionMode executionMode() {
-        // EXTERNAL so the fixture does not try to make real network calls;
-        // a real WebhookAction handler would be EXTERNAL and complete via callback.
         return ActionExecutionMode.EXTERNAL;
     }
 
     @Override
     public int timeoutSeconds() {
-        return 30;
+        // Must be <= LEASE_SECONDS - ACTION_LEASE_SAFETY_SECONDS (30-5).
+        return 20;
     }
 
     @Override
@@ -44,12 +78,30 @@ public class WebhookActionFixture implements ActionHandler {
         return Set.of(1);
     }
 
-    /**
-     * Simulates a successful webhook delivery without making any real HTTP calls.
-     * A production implementation would POST to the configured URL and handle retries.
-     */
     @Override
-    public MxzActionExecutionResult execute(MxzActionExecutionContext context) {
-        return new MxzActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "FIXTURE_OK", "webhook fixture success");
+    public ActionExecutionResult execute(ActionExecutionContext context) {
+        CountDownLatch entered = ENTERED.get();
+        if (entered != null) {
+            entered.countDown();
+        }
+        CountDownLatch hold = HOLD.get();
+        if (hold != null) {
+            try {
+                if (!hold.await(15, TimeUnit.SECONDS)) {
+                    return new ActionExecutionResult(
+                            ActionHandlerOutcome.UNKNOWN, "HOLD_TIMEOUT", "fixture hold timed out");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return new ActionExecutionResult(
+                        ActionHandlerOutcome.UNKNOWN, "HOLD_INTERRUPTED", "fixture hold interrupted");
+            }
+        }
+        INVOKE_COUNT.incrementAndGet();
+        if (FAIL_REMAINING.getAndDecrement() > 0) {
+            return new ActionExecutionResult(
+                    ActionHandlerOutcome.RETRYABLE_FAILURE, "FIXTURE_RETRY", "webhook fixture retryable");
+        }
+        return new ActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "FIXTURE_OK", "webhook fixture success");
     }
 }

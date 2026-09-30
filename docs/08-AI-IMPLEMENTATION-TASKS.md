@@ -2,7 +2,7 @@
 
 > 阅读入口与当前状态见[00开发导航](00-READING-ORDER.md)，当前阶段见[阶段索引](phases/README.md)。本文定义所有阶段共同遵守的实施和文档维护规则，不保存某一期的具体业务任务。
 
-版本2.2；前：[验收](07-ACCEPTANCE.md)，后：[演进路线](09-SCENARIO-ROADMAP.md)。每一期的范围、任务和证据放在独立阶段目录中，避免历史计划与当前工作混用。
+版本2.3；前：[验收](07-ACCEPTANCE.md)，后：[演进路线](09-SCENARIO-ROADMAP.md)。每一期的范围、任务和证据放在独立阶段目录中，避免历史计划与当前工作混用。
 
 ## 1. 文档分层
 
@@ -34,9 +34,11 @@ docs/phases/Pxx/
 
 `README.md`是该阶段范围和总体状态的唯一来源；`IMPLEMENTATION.md`是该阶段任务状态的唯一来源；`DELIVERY.md`是实际完成证据的唯一来源。00和阶段索引只做摘要与链接，不复制详细状态。
 
-阶段编号按P01、P02、P03递增且不复用。任何时刻最多一个阶段为CURRENT。未来阶段只有在用户从场景/能力索引及09路线中选择范围、规则细化完成并建立阶段包后，才能成为CURRENT。
+阶段编号按P01、P02、P03递增且不复用。任何时刻最多一个阶段为CURRENT。未来业务阶段只有在用户从场景/能力索引及09路线中选择范围、规则细化完成并建立阶段包后，才能成为CURRENT。纯工程维护或技术迁移可以从09的X候选进入阶段，但必须具有明确影响边界、兼容契约和独立验收编号，不得借此改变业务行为。
 
 阶段README必须记录基础发布标签或“初始实现”、核心文档版本和下一任务。开始实施后的第一个任务必须在写代码前记录不可变`baselineGitRef`；仓库尚不能形成提交时，改为保存核心文档、kernel生产源码和公共Flyway目录的SHA-256清单。发布时记录新的Git标签，保证以后可以重现该期开始前与交付后的准确状态。
+
+发布标签命名固定为`v` + `yyyyMMdd` + `-` + 阶段编号，例如`v20260915-P01`。打在该阶段 RELEASED 文档冻结提交上；不得使用仅阶段号（如`p01`）或其他随意名称。
 
 ## 3. 阶段状态
 
@@ -60,8 +62,10 @@ docs/phases/Pxx/
 5. README转为READY，00和阶段索引指向该阶段；仍须用户明确授权才能开始。
 6. 获得授权后转IMPLEMENTING，严格按IMPLEMENTATION任务顺序推进。
 7. 实现完成后转VERIFYING，创建DELIVERY并记录真实命令、环境、结果和证据。
-8. 全部验收通过且用户确认后转RELEASED，创建Git发布标签；DELIVERY和阶段任务不再改写。
+8. 全部验收通过且用户确认后转RELEASED，按`vyyyyMMdd-Pxx`创建Git发布标签（如`v20260915-P01`）；DELIVERY和阶段任务不再改写。
 9. 把仍然有效的平台规则合并到01—07、场景和能力规则合并到对应永久文档，更新实现状态和09排期；随后才能创建下一阶段。
+
+纯工程维护或技术迁移不要求虚构场景/能力条目，可由用户从09的X候选直接选择。此类阶段必须证明业务场景和能力三维状态不变，并把兼容边界写入02—07；其余授权、证据和发布流程完全相同。
 
 ## 5. 变化分类与审批
 
@@ -69,6 +73,7 @@ docs/phases/Pxx/
 | --- | --- | --- |
 | 场景内变化 | 场景模块、场景专有表、场景契约和本期验收 | 证明kernel语义和公共DDL没有变化 |
 | 兼容能力扩展 | 新能力实现、专有表、显式装配或兼容契约版本 | 补充跨场景夹具和旧场景回归，不破坏已有版本 |
+| 工程维护或技术迁移 | 包结构、测试结构、依赖或框架实现替换；不改变业务、公开API、公共表或稳定SPI | 独立阶段、兼容黄金契约、全量回归和可回滚提交；若实际触及核心边界立即升级为核心模型变化 |
 | 核心模型变化 | 01—07、kernel、公共表或稳定SPI | 先创建PROPOSED ADR，说明现有抽象为何不足、兼容/迁移影响和替代方案；用户接受并回写正式契约后实施 |
 
 只要新增需求要求修改kernel业务语义、公共表、公共API语义或既有SPI，就不能伪装成普通场景开发。实现者必须停止受影响工作并提出核心变更评审。
@@ -79,7 +84,7 @@ docs/phases/Pxx/
 
 - 当前阶段、总体状态和下一任务。
 - 使用的核心文档基线及当前阶段README/IMPLEMENTATION。
-- 目标场景与全部依赖能力的planningPosition、contractStatus和implementationStatus。
+- 目标场景与全部依赖能力的planningPosition、contractStatus和implementationStatus；纯工程维护阶段明确写“不适用”并证明现有状态不变。
 - 本次允许修改的文件或模块。
 - 明确禁止修改的kernel、公共DDL、API或其他范围。
 - 对应业务规则、核心不变量和验收编号。
@@ -91,11 +96,13 @@ docs/phases/Pxx/
 
 关键约束必须同时存在于正式文档和自动化验证中：
 
-- Maven Enforcer和ArchUnit验证模块依赖、kernel纯Java、场景/能力边界及`Mxz`类名前缀。
+- Maven Enforcer和ArchUnit验证模块依赖、kernel纯Java、场景/能力边界；不要求`Mxz`类名前缀。
 - 契约测试固定API字段、错误、schemaVersion、SPI注册键和结果语义。
 - information_schema测试固定公共表、字段、索引、FK、CHECK和唯一键。
 - 真MySQL及双进程测试验证幂等、锁序、租约、恢复和并发结果。
 - 新场景加入前后比较kernel生产源码和公共Flyway DDL；声明不变却产生差异时直接失败。
+- 工程结构阶段自动核对业务优先包规则、源码路径与`package`一致、测试包镜像及所有顶层生产类型的所有者测试覆盖。
+- Jackson迁移阶段自动核对Jackson 2核心制品清零、Jackson 3直接依赖、唯一JsonMapper装配、黄金JSON兼容和规范化哈希稳定性。
 - DELIVERY必须记录实际命令、退出码、测试数和证据路径，不能只写“已完成”。
 - 只有DELIVERY证据通过后，场景或能力的implementationStatus才能改为VERIFIED；代码存在但未验收仍是IN_PROGRESS。
 
@@ -103,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前阶段为[P01第一期](phases/P01/README.md)；总体状态、工程状态和下一动作只在P01 README维护。具体T01—T08见[P01实施任务](phases/P01/IMPLEMENTATION.md)。规划详情保存在场景/能力目录，09只维护排序关系；当前不得提前创建P02/P03空目录或虚构范围。
+当前无CURRENT阶段。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)与[P03 Jackson 3 原生迁移](phases/P03/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`）；P03证据见[DELIVERY](phases/P03/DELIVERY.md)。下一阶段须从[09](09-SCENARIO-ROADMAP.md) NEXT_REVIEW 选择，经规则细化与用户授权后创建；不得提前创建空P04或改写已冻结阶段。

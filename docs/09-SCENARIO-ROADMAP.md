@@ -2,24 +2,26 @@
 
 > 阅读入口与当前状态见[00开发导航](00-READING-ORDER.md)。本文只维护规划排序、跨项关系和技术候选；场景详细内容见[场景索引](scenarios/README.md)，能力详细内容见[能力索引](capabilities/README.md)。
 
-版本2.2；前：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，后：[技术评审](10-TECHNICAL-REVIEW.md)。本文中的`NEXT_REVIEW`和建议顺序都不是实施授权，也不表示已经创建下一阶段。
+版本2.3；前：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，后：[技术评审](10-TECHNICAL-REVIEW.md)。本文中的`NEXT_REVIEW`和建议顺序都不是实施授权，也不表示已经创建下一阶段。
 
 ## 1. 当前、接下来评审与长期规划
 
 | 层级 | 场景 | 能力 | 含义 |
 | --- | --- | --- | --- |
-| 当前阶段P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | 契约READY，但工程全部NOT_STARTED；等待用户授权T01 |
-| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13及被选场景需要的trigger/integration能力 | 下一批优先细化池；没有确定P02范围，不得编码 |
+| 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
+| 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
+| 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
+| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 当前无 CURRENT；由用户决定下一业务范围 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01必须先完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证。NEXT_REVIEW只决定下一次先讨论哪些需求；用户仍需从中明确选择范围、完成契约并创建阶段包。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。当前无CURRENT。NEXT_REVIEW中的业务场景须另建阶段并授权。
 
 ## 2. S01—S17总览
 
 | 编号 | 场景 | 排期位置 | 契约状态 | 实现状态 | 详细规划或契约 |
 | --- | --- | --- | --- | --- | --- |
-| S01 | 通用提醒 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | [S01](scenarios/S01-reminder.md) |
-| S02 | 周期待办 | P01 | READY_FOR_IMPLEMENTATION | NOT_STARTED | [S02](scenarios/S02-recurring-todo.md) |
+| S01 | 通用提醒 | P01 | RELEASED | VERIFIED | [S01](scenarios/S01-reminder.md) |
+| S02 | 周期待办 | P01 | RELEASED | VERIFIED | [S02](scenarios/S02-recurring-todo.md) |
 | S03 | 生日与纪念日 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S03](scenarios/S03-anniversary.md) |
 | S04 | 到期管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S04](scenarios/S04-deadline-management.md) |
 | S05 | 缴费管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S05](scenarios/S05-payment-management.md) |
@@ -92,23 +94,25 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 
 目标模块边界见[02](02-AI-CODING-GUIDE.md)，每个能力域当前和未来范围见[能力索引](capabilities/README.md)。模块名称是所有权规划，不表示模块已经创建；同一场景族先在模块内按包隔离，只有独立数据、生命周期、所有权或发布节奏形成后才拆模块。
 
-## 5. 技术候选X01—X03
+## 5. 技术候选X01—X05
 
 | 编号 | 技术候选 | 保留目的与实施前问题 | 状态 |
 | --- | --- | --- | --- |
 | X01 | MQ消息队列 | 未来跨服务事件、吞吐或积压需要；先验证MySQL队列瓶颈和外部接入，再比较MQ、Outbox及运维成本 | BACKLOG / OUTLINE / NOT_STARTED |
 | X02 | 工作流引擎 | 支撑S09/C06的分支、汇合、退回和升级；先明确流程复杂度，再选择自有有限状态机或引擎 | BACKLOG / OUTLINE / NOT_STARTED |
 | X03 | 动态加载插件 | 运行中增加/升级场景代码；需评估代码信任、依赖隔离、迁移、卸载和回滚 | BACKLOG / OUTLINE / NOT_STARTED |
+| X04 | 工程结构与测试镜像 | 业务功能优先、技术职责次级的包结构；测试包镜像与每个顶层生产类型的所有者测试 | P02 / READY_FOR_IMPLEMENTATION / VERIFIED |
+| X05 | Jackson 3原生迁移 | 在P02黄金契约基础上迁移到Boot 4 BOM管理的Jackson 3.1.5；保持HTTP、持久化JSON、幂等与哈希兼容 | P03 / READY_FOR_IMPLEMENTATION / VERIFIED |
 
 现有MySQL持久化队列不等于MQ；稳定扩展注册不等于动态加载；存在workflow能力域不等于已经选择流程引擎。
 
 ## 6. 建议演进顺序
 
-1. 完成P01的S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证。
-2. 从NEXT_REVIEW的S03/S04/S05/S14中由用户选择真实需求；先补齐相关calendar、trigger或integration能力契约。
-3. 团队身份和权限明确后再评审S07/S08/S09；S06和S15根据会议/资源系统边界决定。
-4. 外部协议明确后推进S11/S12/S16和多IM渠道。
-5. 有明确价值和数据样例后评审S10、S13、S17及复杂组合。
+1. P01 的 S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证已完成并 RELEASED（标签 `v20260915-P01`）。
+2. 完成P02的X04工程结构与测试镜像，形成可靠的所有者测试和JSON黄金基线。
+3. P02发布后以独立阶段优先迁移X05 Jackson 3，不与包移动混合。
+4. 从NEXT_REVIEW的S03/S04/S05/S14中由用户选择真实需求；先补齐相关calendar、trigger或integration能力契约。
+5. 团队身份和权限明确后再评审S07/S08/S09；其余场景按依赖和真实价值推进。
 
 顺序只用于减少依赖跳跃，不是自动排期。没有用户选择、完整READY契约、CURRENT阶段和实施授权时，不得创建代码、空模块、空表、空Bean或假集成。
 
@@ -125,6 +129,11 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-09-10 | S01、S02 | 底层对象调整为通用定义、实例、Signal、TransitionPlan和Action | 2026-09-12复审纳入2.0契约 |
 | 2026-09-12 | S01、S02 | 本地固定身份但首期交付完整稳定核心；确认S02首版默认与控制规则 | 契约READY，工程NOT_STARTED，未授权编码 |
 | 2026-09-12 | S01—S17、C01—C19、X01—X03 | 规划迁入场景/能力永久目录并采用三维状态 | 文档基线2.2；没有新增实现或P02范围 |
+| 2026-09-15 | P01、S01、S02、CAL-01—CAL-05、NOT-01—NOT-03 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260915-P01`；implementationStatus=VERIFIED |
+| 2026-09-16 | X04、X05 | 用户要求先收敛工程结构、测试镜像和Jackson 3迁移方案 | 文档基线2.3；P02只实施X04，X05排在P02发布后的独立阶段 |
+| 2026-09-17 | P02、X04 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260917-P02`；X04 implementationStatus=VERIFIED |
+| 2026-09-17 | P03、X05 | 用户要求建阶段；P03 为 CURRENT / READY | 对应 Jackson 3；尚未授权实施 |
+| 2026-09-17 | P03、X05 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260917-P03`；X05 implementationStatus=VERIFIED |
 
 ## 8. 下一场景进入实施的检查
 
@@ -135,4 +144,4 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 5. 建立阶段README、IMPLEMENTATION及验收编号；只有该阶段成为唯一CURRENT且获得用户授权后开始编码。
 6. 完成后以DELIVERY真实证据更新implementationStatus；没选中的规划继续保留。
 
-自动交接检查必须核对S01—S17、C01—C19、X01—X03连续且每个编号具有唯一主要入口。检查只证明规划未丢失，不代表候选已经批准或实现。
+自动交接检查必须核对S01—S17、C01—C19、X01—X05连续且每个编号具有唯一主要入口。检查只证明规划未丢失，不代表候选已经批准或实现。

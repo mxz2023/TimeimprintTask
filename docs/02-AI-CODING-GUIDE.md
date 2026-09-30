@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是架构、模块依赖、扩展接口和Java编码规则的正式来源；当前不包含cache模块。
 
-版本 2.2；先读[平台公共业务契约](01-MVP-SPEC.md)，下一份为[环境契约](03-INTEGRATION-CONTRACTS.md)。本文定义稳定底座、扩展边界和目标工程结构；01定义公共语义与首期范围，[场景目录](scenarios/README.md)定义场景，[能力目录](capabilities/README.md)定义可复用能力，09记录演进顺序。
+版本 2.3；先读[平台公共业务契约](01-MVP-SPEC.md)，下一份为[环境契约](03-INTEGRATION-CONTRACTS.md)。本文定义稳定底座、扩展边界和目标工程结构；01定义公共语义与首期范围，[场景目录](scenarios/README.md)定义场景，[能力目录](capabilities/README.md)定义可复用能力，09记录演进顺序。
 
 ## 1. 架构目标
 
@@ -134,6 +134,51 @@ boot-loader ────────────→ 选择并装配全部运行�
 - `boot-loader` 是组合根，可以依赖运行实现，但不得承载业务规则。
 - 父 POM 用 Maven Enforcer 检查依赖收敛和禁用依赖，ArchUnit 检查生产源码边界；仅靠包命名不算隔离完成。
 
+### 4.1 业务优先的包结构
+
+每个Maven模块内部统一使用`<模块根包>.<业务功能>.<技术职责>[.<细分职责>]`。先回答“这个类服务哪个业务功能”，再回答“它在该功能中承担什么技术角色”。禁止新增`service.definition`、`repository.definition`、`controller.definition`这类技术分层优先的路径，应改为`definition.service`、`definition.adapter`、`definition.controller`。
+
+| 模块 | 一级业务功能 | 允许的二级技术职责 |
+| --- | --- | --- |
+| `timeimprint-task-domain` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `request`、`view`、`response` |
+| `timeimprint-task-service-kernel` | `definition`、`instance`、`participant`、`transition`、`shared` | `model`、`identity`、`state`、`revision` |
+| `timeimprint-task-service-extension-api` | `scenario`、`trigger`、`command`、`action`、`policy`、`materialization`、`shared` | `spi`、`context`、`registry`、`result` |
+| `timeimprint-task-service-application` | `definition`、`instance`、`signal`、`action`、`inbox`、`transition`、`extension`、`access`、`shared` | `service`、`port`、`model`、`validation`、`registry`、`limit`、`paging`、`transaction` |
+| `timeimprint-task-service-runtime` | `trigger`、`signal`、`action`、`shared` | `worker`、`recovery`、`configuration`、`lifecycle` |
+| `timeimprint-task-service-storage-mysql` | `definition`、`instance`、`participant`、`trigger`、`signal`、`transition`、`action`、`inbox`、`command`、`audit`、`shared` | `adapter`、`mapper`、`row`、`committer`、`configuration`、`mapping`、`time`、`transaction` |
+| `timeimprint-task-service-capability-calendar` | `schedule` | `configuration`、`calculation`、`provider` |
+| `timeimprint-task-service-capability-notification` | `notification`、`inapp` | `handler`、`adapter`、`mapper`、`row`、`port` |
+| `timeimprint-task-service-scenario-basic` | `reminder`、`recurringtodo` | `extension`、`command`、`projection` |
+| `timeimprint-task-gateway` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `gateway`、`mapper` |
+| `timeimprint-task-web` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `controller`、`filter`、`error`、`configuration` |
+
+`common`和`boot-loader`是没有业务切片的例外：`common`按`time`、`hashing`等稳定技术能力分包，`boot-loader`只允许`bootstrap`、`configuration`、`health`、`lifecycle`。不得为追求形式一致而虚构业务分类。
+
+附加规则：
+
+- Java目录必须与`package`完全一致；不保留空目录、视觉分组目录或第二套包路由。
+- `impl`、`util`、`misc`、无边界的`model`不得作为新类的归宿；实现类放入具体的`adapter`、`handler`、`provider`或`committer`。
+- MyBatis XML资源的namespace和目录必须与Mapper包同步，不得在Java类移动后保留旧包兼容壳。
+- 一个生产类只承担一个主要变化原因。同时跨越请求转换、用例编排、业务校验、序列化或存储适配中三项及以上的类，必须先用特征测试固定行为，再按职责拆分。行数只是识别信号，不是单独拆分标准。
+- 包移动、类拆分、业务行为变更和主要依赖升级不得混在同一个提交中。纯移动提交必须能证明除全限定类名、import、Spring/MyBatis声明外没有逻辑差异。
+- 本次结构收敛不增删Maven模块，不改HTTP路径、JSON字段、表结构、SPI注册键或业务语义。
+
+### 4.2 测试镜像与所有者测试
+
+每个模块的`src/test/java`必须镜像本模块`src/main/java`的包路径。测试包不增加`.test`后缀，跨模块端到端测试仍位于`boot-loader`，但不能代替所属模块的所有者测试。
+
+| 生产类型 | 必须存在的所有者测试 | 最低验证内容 |
+| --- | --- | --- |
+| 具体类、record、enum | `XxxTest` | 公开行为、边界、不变量或序列化契约 |
+| 接口、端口、SPI | `XxxContractTest` | 签名、结果语义、实现约束或架构边界 |
+| MyBatis Mapper | `XxxMysqlIT` | XML映射、参数、行映射和真MySQL结果 |
+| Spring组合配置 | `XxxContextTest` | Bean数量、条件、主候选者和启动失败语义 |
+| 包或模块边界 | `XxxArchitectureTest` | 允许依赖、禁止包和命名规则 |
+
+所有顶层生产类型都必须有且只有一个所有者测试；`package-info.java`是唯一默认豁免。未来的生成代码只能通过带原因的显式白名单豁免。私有嵌套数据类由外层类测试覆盖；有独立业务行为的嵌套类必须提取为顶层类型。
+
+构建必须自动比较生产类型和所有者测试，映射率必须为100%。测试必须包含可失败的业务、契约或架构断言；空断言、只构造对象、只检查类存在或只为提高覆盖率的测试不计为合格所有者测试。新增或修改行覆盖率不低于90%，新增或修改分支覆盖率不低于80%，模块总覆盖率不得低于迁移前记录的基线。
+
 ## 5. 五类扩展契约
 
 | 契约 | 责任 | 明确禁止 |
@@ -237,7 +282,7 @@ tt_audit_log
 ## 9. Spring、Java与交付纪律
 
 - 使用Java 21 LTS并编译release=21；Spring AI、Spring Boot、MyBatis和MySQL版本以03当前基线为准，完成T01实测前不得宣称环境已确认。
-- 所有项目自定义 Java `class` 定义的类名必须以 `Mxz` 开头；该前缀不适用于接口、枚举、Record 或注解定义。
+- 项目自定义 Java 类型不使用 `Mxz` 类名前缀；按模块与职责命名即可。
 - 自有应用对象使用构造器注入；第三方对象和组合装配使用 `@Bean`。事务必须经过 Spring 代理边界。
 - 时间使用可注入 Clock；数据库租约使用数据库 UTC 时间。业务时间精确到秒。
 - Mapper 使用 XML 参数化 SQL；动态排序使用白名单；禁止用内存仓储替代 MySQL。

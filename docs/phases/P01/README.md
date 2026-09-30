@@ -5,23 +5,25 @@
 | 项目 | 值 |
 | --- | --- |
 | 阶段编号 | P01 |
-| 阶段角色 | CURRENT |
-| 总体状态 | VERIFYING |
+| 阶段角色 | RELEASED |
+| 总体状态 | RELEASED |
 | 核心文档基线 | 2.2（2026-09-12） |
 | 基础发布 | 无；P01是初始实现 |
 | baselineGitRef | 无可用不可变提交基线；见[BASELINE-SHA256.txt](BASELINE-SHA256.txt)（写代码前核心文档清单） |
-| 工程状态 | VERIFYING |
-| 下一任务 | 补齐A01—A42全矩阵与性能门槛后提交人工验收；见[DELIVERY](DELIVERY.md) |
-| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | [DELIVERY.md](DELIVERY.md) |
-| 手动HTTP联调 | [MANUAL-HTTP.md](MANUAL-HTTP.md)（curl；以04为准，本文不替代契约） |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20260915-P01`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-09-15 用户确认通过 |
+| 下一任务 | 无；从[场景索引](../../scenarios/README.md)/[09](../../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
+| 交付证据 | [DELIVERY.md](DELIVERY.md)（冻结，不再改写） |
+| 手动HTTP联调 | [MANUAL-HTTP.md](MANUAL-HTTP.md)（curl）；可选本地 Vue 控制台 [TaskWebsite](../../TaskWebsite/README.md) |
 
-READY只表示当前没有已知的阻塞性文档分歧并具备实施条件，不表示设计绝对无误、环境可用、代码完成或测试通过。当前总体状态为VERIFYING：核心闭环与mysql-it证据已写入DELIVERY，全量验收矩阵与性能门槛仍待补齐。
+P01 已由用户人工验收通过并形成发布基线。证据见[DELIVERY](DELIVERY.md)；S01/S02 与 CAP01/CAP03 的 P01 范围已标 VERIFIED。本阶段 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 此前已经完成
 
 - 将旧项目命名统一为TimeImprintTask、工程前缀`timeimprint-task`、表前缀`tt_`。
-- 明确`Mxz`只约束项目自定义Java `class`名称，不约束接口、枚举、Record和注解。
+- 明确项目自定义 Java 类型不使用 `Mxz` 类名前缀。
 - 完成2.2业务、场景、能力、架构、技术环境、API、数据库、调度和验收契约评审。
 - 固定本地身份接入但完整稳定核心的首期边界，以及S01/S02第一版业务规则。
 - 固定Command/Signal边界、TransitionPlan提交、幂等、父级锁序、事务规模、租约恢复、公开/内部读模型和12张表结构。
@@ -80,8 +82,6 @@ P01是首次实现阶段，允许按02创建约定的13个模块，并按05创�
 - 实现场景/能力索引中不属于P01或仍为OUTLINE的能力项与场景。
 - 部署生产环境、连接非允许数据库、写真实凭据或发送真实外部通知。
 
-## 7. 完成条件
+## 7. 完成条件（已满足）
 
-只有T01—T08全部达到[IMPLEMENTATION](IMPLEMENTATION.md)门槛，07全部必要验收具有可复现PASS证据，`DELIVERY.md`记录真实环境与结果，并经用户最终验收后，P01才能从READY/IMPLEMENTING/VERIFYING转为RELEASED。
-
-实施中发现契约问题时，先更新对应场景/能力契约、01—07、本README、验收和任务，再继续受影响工作；不得为了维持阶段状态而迁就错误设计。
+T01—T08 均已 PASS，`DELIVERY.md` 已记录真实环境与结果，并经 2026-09-15 用户人工验收；P01 已转为 RELEASED（Git 标签 `v20260915-P01`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。

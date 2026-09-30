@@ -1,8 +1,8 @@
 # 03 · 技术基线、环境与模块装配契约
 
-> 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是技术版本、配置、装配、迁移和运行环境的正式来源；文档基线不代表实际环境已经验证。
+> 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是技术版本、配置、装配、迁移和运行环境的正式来源；P01实际环境证据见其DELIVERY，后续阶段仍须重新验证受影响部分。
 
-版本2.2；前：[架构](02-AI-CODING-GUIDE.md)，后：[API](04-API.md)。本文定义一期13模块使用的技术基线、配置、迁移加载、扩展注册、运行观测和环境验收边界，不声称已完成本机验证。
+版本2.3；前：[架构](02-AI-CODING-GUIDE.md)，后：[API](04-API.md)。本文定义13模块使用的技术基线、配置、迁移加载、扩展注册、运行观测和环境验收边界；P01验证结论以[P01 DELIVERY](phases/P01/DELIVERY.md)为准，不能外推为P02或X05已验证。
 
 ## 1. 固定技术基线
 
@@ -12,6 +12,7 @@
 | Maven | 3.9.x；T01固定可获取的Wrapper版本，禁止动态版本范围 |
 | Spring AI | 2.0.x稳定线；T01固定实施时可获取的具体稳定补丁版，禁止使用里程碑、候选版或Snapshot |
 | Spring Boot | 4.0.x稳定线，当前具体版本固定4.0.8，由父POM/BOM统一管理 |
+| JSON | P01发布实现仍为Jackson 2兼容模式；已批准目标为Spring Boot 4.0.8 BOM管理的Jackson 3.1.5，在P02发布后的独立阶段迁移 |
 | MyBatis Starter | `org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1` |
 | MySQL | 9.7.x LTS；本地验收部署制品固定为官方MySQL Server Docker镜像`9.7.2`（digest在T01锁定）；InnoDB、utf8mb4及公司要求的utf8mb4_bin。说明：T01实测时Docker Hub `library/mysql`尚无`9.7.3`标签，故锁定当时可获取的同线官方镜像`9.7.2` |
 | 隔离与时间 | READ COMMITTED；连接session `time_zone='+00:00'`；DATETIME(0)存UTC；首期业务ZoneId为Asia/Shanghai |
@@ -29,6 +30,39 @@ T01必须验证Spring AI 2.0.x具体补丁版能够在dependencyManagement中解
 MySQL 9.7 LTS的InnoDB支持READ COMMITTED和队列领取所需的SKIP LOCKED；SKIP LOCKED只用于领取队列候选，不能作为一般一致性查询。官方9.7.3说明明确指出该补丁仅更新MySQL Server Docker镜像，因此“镜像标签/digest”和数据库内`SELECT VERSION()`返回值必须分别记录，验收不得硬编码两者字符串相同。[MySQL 9.7.3发布说明](https://dev.mysql.com/doc/relnotes/mysql/9.7/en/news-9-7-3.html)；[MySQL 9.7事务隔离](https://dev.mysql.com/doc/refman/9.7/en/innodb-transaction-isolation-levels.html)；[MySQL 9.7锁定读取](https://dev.mysql.com/doc/refman/9.7/en/innodb-locking-reads.html)
 
 既有本地MySQL不符合9.7 LTS目标时，T01记录实际版本并使用上述固定官方镜像验证，或者提交明确的兼容性变更审核。T01必须保存镜像标签、不可变digest、`SELECT VERSION()`、`@@version_comment`和平台架构；标签或digest不符时失败，服务端返回9.7 LTS线内实际版本即可，不要求伪装成9.7.3。禁止使用其他项目数据库、H2、内存仓储或本机锁替代目标验证。
+
+### 1.1 Jackson 3目标契约
+
+本节是[P03](phases/P03/README.md)（X05）的实施契约。P01/P02已发布制品保持Jackson 2兼容行为；只有P03获授权后才可修改Jackson依赖、import、Mapper Bean或HTTP消息转换器。
+
+迁移目标固定如下：
+
+- 版本只使用Spring Boot 4.0.8 BOM当前管理的Jackson 3.1.5，父POM不另行覆盖`jackson.version`，不使用动态范围。
+- `jackson-databind`使用`tools.jackson.core:jackson-databind`；`jackson-core`、databind及相关Java包迁移到`tools.jackson.*`。
+- `jackson-annotations`是官方例外，继续使用`com.fasterxml.jackson.core:jackson-annotations`和`com.fasterxml.jackson.annotation.*`。禁止对注解包做机械替换。
+- 删除`jackson-datatype-jsr310`、`jackson-datatype-jdk8`和`jackson-module-parameter-names`的显式依赖与手工注册；Jackson 3 databind已内建Java时间、Optional和参数名支持。
+- 生产代码统一注入`tools.jackson.databind.json.JsonMapper`。只有真正格式无关的边界才可使用`ObjectMapper`，并必须在代码评审中说明原因。
+- Jackson 3 Mapper按不可变对象使用，通过Boot的`JsonMapperBuilderCustomizer`或`JsonMapper.builder()`在构建前配置，禁止在Bean创建后调用可变`configure/set*`风格的兼容API。
+- 全局JSON配置只属于`boot-loader` 的`configuration.json`组合根；`runtime`、`web`或业务模块不得另建全局Mapper。
+- Spring MVC使用Boot自动配置的Jackson 3 `JacksonJsonHttpMessageConverter`；删除强制Jackson 2的`MappingJackson2HttpMessageConverter`替换逻辑。
+- 直接引用Jackson类型的模块必须声明直接依赖，不得依赖其他项目模块传递Jackson。
+- 迁移完成后，业务与一方案代码、直接依赖与打包入口不得再引入 Jackson 2 的`jackson-core`、`jackson-databind`和`com.fasterxml.jackson.datatype:*`；仅允许官方保留的 annotations 制品。已知例外：Flyway 11 在插件复制路径仍反射依赖`com.fasterxml.jackson.databind.ObjectMapper`，允许其作为**唯一**传递残留，且禁止业务代码 import 或注入该坐标。双 Mapper 只可用于迁移分支的临时对照，不得进入阶段交付。
+
+迁移前必须通过黄金样例固定04定义的HTTP JSON、数据库JSON、幂等响应重放、S01/S02配置/快照/投影、Signal/Action/TransitionPlan载荷和哈希输入。任何用于`request_hash`、`payload_hash`、`config_hash`、`snapshot_hash`或Action Key的JSON必须使用项目显式定义的规范化规则，不得依赖Jackson 2或3的默认属性顺序。
+
+### 1.2 Jackson 3迁移顺序与回滚
+
+P03（X05）独立阶段必须按以下顺序执行，每一步保持可编译并运行对应的J01—J10子集：
+
+1. 从P02发布标签记录依赖树、打包制品、Mapper Bean和转换器清单，运行HTTP、持久化JSON及哈希黄金契约。
+2. 按实际直接使用关系把各模块POM切换到Jackson 3坐标；保留annotations官方例外，移除不再需要的datatype和parameter-names模块。
+3. 迁移非注解import、API差异和异常类型；禁止机械替换`com.fasterxml.jackson.annotation`。
+4. 在boot-loader建立唯一Jackson 3 JsonMapper构建配置，逐项显式恢复P01解析与输出行为；业务模块只注入，不自行配置。
+5. 删除Jackson 2 MVC转换器覆盖，使用Boot原生Jackson 3转换器并运行全部HTTP契约。
+6. 验证P01历史JSON可读、新旧哈希与幂等结果一致，再执行单元、打包、真MySQL和双进程全量回归。
+7. 扫描源码、依赖树和最终制品，清除Jackson 2核心残留、双Mapper桥接与临时豁免后才可交付。
+
+迁移不修改数据库JSON内容或API版本，因此不需要数据迁移脚本。任一黄金契约无法恢复、历史JSON不可读或哈希变化时，停止并回退到P03的`baselineGitRef`；不得通过批量重写数据库JSON、清空幂等记录或同时发布API变更规避失败。若确需改变兼容行为，先将阶段转BLOCKED并按08单独评审。
 
 ## 2. 模块构建与装配
 

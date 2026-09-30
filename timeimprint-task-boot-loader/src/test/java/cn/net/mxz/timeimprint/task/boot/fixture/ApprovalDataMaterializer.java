@@ -1,10 +1,10 @@
 package cn.net.mxz.timeimprint.task.boot.fixture;
 
-import cn.net.mxz.timeimprint.task.service.extension.context.MxzScenarioDataMaterializationContext;
-import cn.net.mxz.timeimprint.task.service.extension.registry.ScenarioDataMaterializerKey;
-import cn.net.mxz.timeimprint.task.service.extension.spi.ScenarioDataMaterializer;
-import cn.net.mxz.timeimprint.task.service.kernel.domain.mutation.MxzJsonPayload;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.context.ScenarioDataMaterializationContext;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializerKey;
+import cn.net.mxz.timeimprint.task.service.extension.materialization.spi.ScenarioDataMaterializer;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -26,9 +26,9 @@ public class ApprovalDataMaterializer implements ScenarioDataMaterializer {
             + "VALUES (?, ?, ?, ?)";
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public ApprovalDataMaterializer(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public ApprovalDataMaterializer(JdbcTemplate jdbcTemplate, JsonMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
     }
@@ -40,11 +40,11 @@ public class ApprovalDataMaterializer implements ScenarioDataMaterializer {
     }
 
     @Override
-    public int materialize(MxzScenarioDataMaterializationContext context) {
+    public int materialize(ScenarioDataMaterializationContext context) {
         var def = context.definitionSnapshot();
         String metaJson;
         try {
-            Map<String, Object> fields = context.mutation().payload() instanceof MxzJsonPayload jp
+            Map<String, Object> fields = context.mutation().payload() instanceof JsonPayload jp
                     ? jp.fields() : Map.of();
             metaJson = objectMapper.writeValueAsString(fields);
         } catch (Exception e) {

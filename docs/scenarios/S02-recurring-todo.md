@@ -8,12 +8,27 @@
 | scenarioKey | `recurring_todo` |
 | 首次交付阶段 | P01 |
 | planningPosition | P01 |
-| contractStatus | READY_FOR_IMPLEMENTATION |
-| implementationStatus | NOT_STARTED |
+| contractStatus | RELEASED |
+| implementationStatus | VERIFIED |
 | 配置schemaVersion | 1 |
 | 所属模块 | `timeimprint-task-service-scenario-basic` |
 | 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
-| DELIVERY证据 | 无；P01尚未实施 |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `v20260915-P01` |
+
+## 具体事例
+
+本节帮助理解用途。事例不增加命令、状态或配置；与正文冲突时以正文为准。一条定义是长期规则，每一次发生各自生成一份待办。上一份没结清，下一份仍按原来的日历出现。
+
+- 明天下午交一份材料：到期后完成或跳过，规则是一次性的，没有再下一份。
+- 每天晚上10点记账：昨晚没记，今晚仍再出一份，两份各自办理。
+- 每个周一交周报：上周一没交不影响本周一再出一份。
+- 每月15日提交报销材料。
+- 从今天起每7天备份一次手机。
+- 今晚的待办先向后推迟再通知；可以推迟的次数有上限，也不能推迟到通知失效之后。
+- 到期后仍未办理，会按设定间隔再催几次，直到完成、跳过或通知失效。
+- 暂停一周：暂停期间不再出新的待办；暂停前已经到期的那份仍可完成或跳过，但不能再往后推迟。
+
+只需要到点通知、不需要办理的事项使用 [S01](S01-reminder.md)。从「实际完成日」再数间隔的保养，见 [S14](S14-maintenance-follow-up.md) 规划。
 
 ## 1. 用途与边界
 

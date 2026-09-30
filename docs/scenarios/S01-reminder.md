@@ -8,12 +8,28 @@
 | scenarioKey | `reminder` |
 | 首次交付阶段 | P01 |
 | planningPosition | P01 |
-| contractStatus | READY_FOR_IMPLEMENTATION |
-| implementationStatus | NOT_STARTED |
+| contractStatus | RELEASED |
+| implementationStatus | VERIFIED |
 | 配置schemaVersion | 1 |
 | 所属模块 | `timeimprint-task-service-scenario-basic` |
 | 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
-| DELIVERY证据 | 无；P01尚未实施 |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `v20260915-P01` |
+
+## 具体事例
+
+本节帮助理解用途。事例不增加命令、状态或配置；与正文冲突时以正文为准。一期每个定义只用一条日历规则：一次性、每天、每周、每月或每 N 天。到点只发通知，不要求打勾。
+
+- 明天下午3点取快递：只响这一次，响过就结束。
+- 每天早上8点喝水。
+- 每周三晚上7点倒垃圾。
+- 每月1日查看银行卡余额：只通知，不记录你是否已经查看。
+- 从今天起每3天浇花。
+- 吃药时间只发给登记的家属；没有单独登记接收人时，才发给所有者本人。
+- 同一时刻发给最多10名接收人，每人一条站内信。
+- 出差期间暂停每天喝水：暂停中不补已经错过的次数，恢复后从下一时刻继续。
+- 把每天8点改成9点：还没响的按新时间，已经响过的记录保持原样。
+
+需要你完成、跳过或稍后提醒的事项使用 [S02](S02-recurring-todo.md)。带周岁、农历或续期历史的日子使用对应的后续场景规划，不写入本场景。
 
 ## 1. 用途与边界
 

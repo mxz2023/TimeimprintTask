@@ -4,19 +4,21 @@
 
 ## 当前阶段
 
-| 阶段 | 角色 | 已完成 | 状态与下一动作 |
-| --- | --- | --- | --- |
-| P01 第一期稳定核心与基础场景 | CURRENT | 工程可运行；S01/S02与夹具mysql-it已有证据；见[P01 DELIVERY](P01/DELIVERY.md) | 只见[P01 README](P01/README.md) |
-
-任何时刻只能有一个CURRENT阶段；当前唯一CURRENT阶段是P01。阶段索引不复制总体状态和下一动作，避免与阶段README形成两个维护点。
+| 阶段 | 状态 | 范围与下一动作 |
+| --- | --- | --- |
+| （无） | — | 尚无 CURRENT；从[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择下一业务或技术范围后创建阶段并授权 |
 
 ## 已发布阶段
 
-当前没有已发布阶段，也没有可作为实现事实引用的DELIVERY或Git发布标签。文档设计过程不是产品交付历史。
+| 阶段 | 状态 | 交付与标签 |
+| --- | --- | --- |
+| P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`v20260915-P01`](P01/README.md)；人工验收 2026-09-15 |
+| [P02工程结构与测试镜像](P02/README.md) | RELEASED | [DELIVERY](P02/DELIVERY.md)；Git 标签 `v20260917-P02`；人工验收 2026-09-17 |
+| [P03 Jackson 3 原生迁移](P03/README.md) | RELEASED | [DELIVERY](P03/DELIVERY.md)；Git 标签 `v20260917-P03`；人工验收 2026-09-17 |
 
 ## 未来阶段
 
-P02、P03尚未定义，也不得提前创建空任务。未来工作从[场景索引](../scenarios/README.md)、[能力索引](../capabilities/README.md)和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建下一阶段目录。
+业务与后续技术工作仍从场景/能力索引和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建。不提前创建空 P04 目录。
 
 ## 更新规则
 

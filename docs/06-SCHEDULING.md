@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是规划、事务、锁、异步执行、恢复和并发结果的正式来源；协议已评审不代表代码已经实现。
 
-版本2.2；前：[数据库](05-DATABASE.md)，后：[验收](07-ACCEPTANCE.md)。本文定义命令、时间规划、Signal处理、TransitionPlan提交、Action执行、租约恢复和暂停屏障。公共业务规则以01为准，场景专有规则以[场景目录](scenarios/README.md)为准，能力规则以[能力目录](capabilities/README.md)为准。
+版本2.3；前：[数据库](05-DATABASE.md)，后：[验收](07-ACCEPTANCE.md)。本文定义命令、时间规划、Signal处理、TransitionPlan提交、Action执行、租约恢复和暂停屏障。公共业务规则以01为准，场景专有规则以[场景目录](scenarios/README.md)为准，能力规则以[能力目录](capabilities/README.md)为准。
 
 ## 1. 全局不变量
 

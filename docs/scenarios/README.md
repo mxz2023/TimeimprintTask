@@ -32,7 +32,7 @@
 
 S01/S02 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。其余场景在进入 CURRENT 阶段并获授权前不得编码；S03/S04/S05/S14 只是下一批优先评审对象，不是 P02 范围或实施许可。
 
-READY或RELEASED场景的`Sxx-<scenario-key>.md`是其业务含义、默认配置和行为边界的唯一正式来源。OUTLINE文件是长期规划入口，明确保存已知内容与未知问题，但不是可编码契约。跨场景公共规则写入01—03，通用能力规则写入[capabilities](../capabilities/README.md)，HTTP线协议写入04，数据与运行实现规则写入05—06，可执行证据写入07。
+READY或RELEASED场景的`Sxx-<scenario-key>.md`是其业务含义、默认配置和行为边界的唯一正式来源。OUTLINE文件是长期规划入口，明确保存已知内容与未知问题，但不是可编码契约。各文件中的「具体事例」只帮助理解用途；与正文冲突时以正文为准，事例不单独构成可编码规则。跨场景公共规则写入01—03，通用能力规则写入[capabilities](../capabilities/README.md)，HTTP线协议写入04，数据与运行实现规则写入05—06，可执行证据写入07。
 
 场景规则变更时，必须先修改对应场景文档并记录兼容性判断，再同步能力、API、数据、运行、验收和当前阶段任务。已发布场景不得原地改变既有schemaVersion或历史实例含义；不兼容变化使用新schemaVersion、迁移策略或新scenarioKey。
 

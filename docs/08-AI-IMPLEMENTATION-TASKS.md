@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前无CURRENT阶段。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)与[P03 Jackson 3 原生迁移](phases/P03/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`）；P03证据见[DELIVERY](phases/P03/DELIVERY.md)。下一阶段须从[09](09-SCENARIO-ROADMAP.md) NEXT_REVIEW 选择，经规则细化与用户授权后创建；不得提前创建空P04或改写已冻结阶段。
+当前 CURRENT 为 [P04 S02 站内信标题](phases/P04/README.md)，总体状态 DRAFT。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)与[P03 Jackson 3 原生迁移](phases/P03/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`）；P03证据见[DELIVERY](phases/P03/DELIVERY.md)。P04 未授权不得编码。S03 及以后仍须另选范围并授权；不得改写已冻结阶段。

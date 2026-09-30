@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| （无） | — | 尚无 CURRENT；从[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择下一业务或技术范围后创建阶段并授权 |
+| [P04 S02 站内信标题](P04/README.md) | DRAFT | 催办标题为「催办：」加实例标题；见[IMPLEMENTATION](P04/IMPLEMENTATION.md)。未授权不得编码 |
 
 ## 已发布阶段
 
@@ -18,7 +18,7 @@
 
 ## 未来阶段
 
-业务与后续技术工作仍从场景/能力索引和[09演进路线](../09-SCENARIO-ROADMAP.md)选择范围，经规则细化、核心影响分析和用户确认后创建。不提前创建空 P04 目录。
+P04 已作为 CURRENT，范围只限 S02 站内信标题。S03、S04、S05、S14 仍在[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW，不随本阶段自动进入实施。
 
 ## 更新规则
 

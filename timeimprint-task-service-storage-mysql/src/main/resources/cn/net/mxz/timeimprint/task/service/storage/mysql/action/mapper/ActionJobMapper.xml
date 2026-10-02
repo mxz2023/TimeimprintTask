@@ -231,6 +231,21 @@
           AND status IN ('READY', 'RETRY_WAIT')
     </update>
 
+    <select id="selectReadyIdsByInstance" resultType="long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE instance_id = #{instanceId}
+          AND status IN ('READY', 'RETRY_WAIT')
+        ORDER BY action_job_id ASC
+    </select>
+
+    <select id="selectReadyIdsByInstanceExceptTransition" resultType="long">
+        SELECT action_job_id FROM tt_action_job
+        WHERE instance_id = #{instanceId}
+          AND transition_id != #{keepTransitionId}
+          AND status IN ('READY', 'RETRY_WAIT')
+        ORDER BY action_job_id ASC
+    </select>
+
     <update id="cancelReadyByInstance">
         UPDATE tt_action_job SET
             status = 'CANCELLED',

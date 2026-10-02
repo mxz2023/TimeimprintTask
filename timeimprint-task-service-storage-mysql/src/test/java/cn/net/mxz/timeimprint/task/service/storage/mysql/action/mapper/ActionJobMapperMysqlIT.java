@@ -47,9 +47,11 @@ class ActionJobMapperMysqlIT {
                 "selectExpiredRunningIds/1",
                 "selectList/6",
                 "selectReadyDueIds/2",
-                "selectReadyDueIdsNewestFirst/2"), actual);
+                "selectReadyDueIdsNewestFirst/2",
+                "selectReadyIdsByInstance/1",
+                "selectReadyIdsByInstanceExceptTransition/2"), actual);
 
-        String resource = "/mapper/ActionJobMapper.xml";
+        String resource = "ActionJobMapper.xml";
         try (InputStream in = ActionJobMapper.class.getResourceAsStream(resource)) {
             assertNotNull(in, "missing classpath resource " + resource);
             String xml = new String(in.readAllBytes(), StandardCharsets.UTF_8);

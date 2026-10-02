@@ -196,6 +196,9 @@ public class RecurringTodoCommandHandler {
                 String purpose = String.valueOf(payload.getOrDefault("purpose", "INITIAL"));
                 int slotIndex = asInt(payload.get("slotIndex"), 0);
                 String recipientId = String.valueOf(payload.getOrDefault("recipientId", "local-actor"));
+                // Copy the shifted notification text. Do not rebuild the chase prefix from the snapshot.
+                String title = payload.get("title") == null ? "" : String.valueOf(payload.get("title"));
+                String body = payload.get("body") == null ? "" : String.valueOf(payload.get("body"));
                 Instant actionExpires = old.expiresAt() != null ? old.expiresAt() : expiresAt;
                 newActions.add(RecurringTodoScenarioExtension.buildActionIntent(
                         def.definitionId(),
@@ -205,7 +208,9 @@ public class RecurringTodoCommandHandler {
                         newGeneration,
                         recipientId,
                         newAvailable,
-                        actionExpires));
+                        actionExpires,
+                        title,
+                        body));
                 remainingTimes.add(newAvailable.toString());
             }
 

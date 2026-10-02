@@ -30,8 +30,9 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
- * E09 实例级命令管道：command-dedup → 父级锁（definition）→ 子级锁（instance）
- * → TaskCommandHandler → TransitionPlanCommitter → dedup complete。
+ * E09 实例级命令管道：command-dedup → 普通读取实例以取得 definitionId
+ * → 锁 definition → 锁 instance → TaskCommandHandler → TransitionPlanCommitter → dedup complete。
+ * 普通读取只决定加锁顺序，不作为能否执行命令或版本冲突的依据。
  */
 @Service
 public class InstanceCommandService {
@@ -123,10 +124,12 @@ public class InstanceCommandService {
                 throw new ApplicationException("RETRY_LATER", "dedup in progress");
             }
 
+            var located = instanceRepository.findById(instanceId)
+                    .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "instance"));
+            var defSnap = definitionRepository.findByIdForUpdate(located.definitionId())
+                    .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "definition"));
             var instSnap = instanceRepository.findByIdForUpdate(instanceId)
                     .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "instance"));
-            var defSnap = definitionRepository.findByIdForUpdate(instSnap.definitionId())
-                    .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "definition"));
 
             if (instSnap.revision() != expectedRevision) {
                 commandDedupRepository.complete(

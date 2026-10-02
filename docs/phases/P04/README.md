@@ -8,13 +8,13 @@
 | --- | --- |
 | 阶段 | P04 |
 | 排期身份 | CURRENT |
-| 总体状态 | DRAFT |
+| 总体状态 | IMPLEMENTING |
 | 文档基线 | 2.3 |
 | 基础发布 | P03；Git 标签 `v20260917-P03` |
-| 下一动作 | 用户确认本 README 范围后，才可将状态改为 READY；未授权不得编码 |
+| 下一动作 | 2026-10-02 已授权。按 [IMPLEMENTATION](IMPLEMENTATION.md) 从 T01 起实施，完成前不创建 DELIVERY |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 
-DRAFT 只保存已确认的展示口径和任务。不创建 DELIVERY，不把任务标成实现完成。
+IMPLEMENTING 表示范围已确认并已获实施授权。不创建 DELIVERY，任务完成以 [IMPLEMENTATION](IMPLEMENTATION.md) 的证据为准。
 
 ## 2. 已确认口径
 

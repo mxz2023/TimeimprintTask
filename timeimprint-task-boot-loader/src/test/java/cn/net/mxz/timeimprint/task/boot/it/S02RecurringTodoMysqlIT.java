@@ -160,6 +160,14 @@ class S02RecurringTodoMysqlIT {
                 Integer.class,
                 instanceId);
         assertTrue(actionCount != null && actionCount >= 1, "Expected at least 1 action job, got: " + actionCount);
+        assertNotificationText(instanceId, "S02 DAILY IT", "recurring todo basic loop");
+        Long historicalId = jdbc.queryForObject(
+                "SELECT MIN(notification_id) FROM tt_notification WHERE instance_id = ?",
+                Long.class,
+                instanceId);
+        jdbc.update(
+                "UPDATE tt_notification SET title = '', body = NULL WHERE notification_id = ?",
+                historicalId);
 
         String snapshotJson = jdbc.queryForObject(
                 "SELECT scenario_snapshot_json FROM tt_task_instance WHERE instance_id = ?",
@@ -195,6 +203,11 @@ class S02RecurringTodoMysqlIT {
                 Integer.class,
                 instanceId);
         assertEquals(0, remainingReady, "Expected all remaining actions cancelled after complete");
+        String historicalTitle = jdbc.queryForObject(
+                "SELECT title FROM tt_notification WHERE notification_id = ?",
+                String.class,
+                historicalId);
+        assertEquals("", historicalTitle, "existing empty title must not be backfilled");
     }
 
     @Test
@@ -287,6 +300,39 @@ class S02RecurringTodoMysqlIT {
                 Integer.class,
                 instanceId);
         assertEquals(readyBefore, readyAfter, "same number of movable actions after snooze");
+        Integer copied = jdbc.queryForObject(
+                """
+                SELECT COUNT(*) FROM tt_notification
+                WHERE instance_id = ? AND purpose = 'CHASE' AND title = ? AND body = ?
+                """,
+                Integer.class,
+                instanceId,
+                "催办：S02 snooze IT",
+                "snooze shifts READY chase actions");
+        assertTrue(copied != null && copied >= 1, "snooze must keep the shifted chase title and body");
+    }
+
+    private void assertNotificationText(long instanceId, String title, String body) {
+        Integer initial = jdbc.queryForObject(
+                """
+                SELECT COUNT(*) FROM tt_notification
+                WHERE instance_id = ? AND purpose = 'INITIAL' AND title = ? AND body = ?
+                """,
+                Integer.class,
+                instanceId,
+                title,
+                body);
+        assertTrue(initial != null && initial >= 1, "INITIAL title and body");
+        Integer chase = jdbc.queryForObject(
+                """
+                SELECT COUNT(*) FROM tt_notification
+                WHERE instance_id = ? AND purpose = 'CHASE' AND title = ? AND body = ?
+                """,
+                Integer.class,
+                instanceId,
+                "催办：" + title,
+                body);
+        assertTrue(chase != null && chase >= 1, "CHASE title and body");
     }
 
     private JsonNode post(String path, Object body) throws Exception {

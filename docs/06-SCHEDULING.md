@@ -37,7 +37,7 @@ command dedup（仅同步命令）
   → audit
 ```
 
-Signal领取事务只锁候选Signal并提交。处理事务先普通读取Signal的父级标识，再按definition→trigger binding→instance→Signal顺序取得锁；命令事务不反向锁Signal。Planner先普通扫描候选主键，再按definition→trigger binding锁定单个候选。Action的领取和过期回收事务只锁Action→Attempt，不再请求父级锁；执行前屏障、EXTERNAL副作用开始标记和LOCAL_TRANSACTIONAL结果物化事务按definition→instance→Action→Attempt顺序锁定。EXTERNAL调用完成后的结果事务只锁Action→Attempt→能力自有结果行，不持有Action锁再进入definition/instance业务迁移。同一类别涉及多行时一律按主键升序锁定。
+Signal领取事务只锁候选Signal并提交。处理事务先普通读取Signal的父级标识，再按definition→trigger binding→instance→Signal顺序取得锁；命令事务不反向锁Signal。实例命令先普通读取父级编号，再锁定义、再锁实例。Planner先普通扫描候选主键，再按definition→trigger binding锁定单个候选。Action的领取和过期回收事务只锁Action→Attempt，不再请求父级锁；执行前屏障、EXTERNAL副作用开始标记和LOCAL_TRANSACTIONAL结果物化事务按definition→instance→Action→Attempt顺序锁定。EXTERNAL调用完成后的结果事务只锁Action→Attempt→能力自有结果行，不持有Action锁再进入definition/instance业务迁移。同一类别涉及多行时一律按主键升序锁定。
 
 ## 3. 定义创建与时间窗口规划
 

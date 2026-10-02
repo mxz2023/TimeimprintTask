@@ -11,11 +11,11 @@
 | 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
 | 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
-| CURRENT | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) DRAFT：S02 站内信标题，以及实例命令改为先锁定义再锁实例 |
+| CURRENT | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) IMPLEMENTING：S02 站内信标题，以及实例命令改为先锁定义再锁实例 |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不在 P04 范围内；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。当前 CURRENT 为 [P04](phases/P04/README.md)（DRAFT），范围是 S02 站内信标题和实例命令锁序。NEXT_REVIEW 中的业务场景须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。当前 CURRENT 为 [P04](phases/P04/README.md)（IMPLEMENTING），范围是 S02 站内信标题和实例命令锁序。NEXT_REVIEW 中的业务场景须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -135,6 +135,8 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-09-17 | P02、X04 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260917-P02`；X04 implementationStatus=VERIFIED |
 | 2026-09-17 | P03、X05 | 用户要求建阶段；P03 为 CURRENT / READY | 对应 Jackson 3；尚未授权实施 |
 | 2026-09-17 | P03、X05 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20260917-P03`；X05 implementationStatus=VERIFIED |
+| 2026-10-02 | P04 | 用户确认催办标题与实例命令锁序；阶段改为 READY | 尚未授权实施 |
+| 2026-10-02 | P04 | 用户授权实施；阶段改为 IMPLEMENTING | 按 T01—T05 编码，未建 DELIVERY |
 
 ## 8. 下一场景进入实施的检查
 

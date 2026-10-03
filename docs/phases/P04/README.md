@@ -8,13 +8,13 @@
 | --- | --- |
 | 阶段 | P04 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P03；Git 标签 `v20260917-P03` |
-| 下一动作 | 2026-10-02 已授权。按 [IMPLEMENTATION](IMPLEMENTATION.md) 从 T01 起实施，完成前不创建 DELIVERY |
+| 下一动作 | 2026-10-03 真库全量与性能门槛已通过，见 [DELIVERY](DELIVERY.md)。人工确认后才可标 RELEASED |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 
-IMPLEMENTING 表示范围已确认并已获实施授权。不创建 DELIVERY，任务完成以 [IMPLEMENTATION](IMPLEMENTATION.md) 的证据为准。
+VERIFYING 表示 T00—T05 已完成，正在记录全量验收。通过结果只写在 [DELIVERY](DELIVERY.md)。全量未通过时不得标 RELEASED。
 
 ## 2. 已确认口径
 

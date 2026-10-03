@@ -116,6 +116,9 @@ class PerfGateDualProcessIT {
 
     @BeforeAll
     void startChildWorker() throws Exception {
+        // 专用库与功能库分开，但领取仍按到期时间全库排序。历史 ACTIVE 绑定会继续规划出
+        // 到期信号，占满批次。测量前暂停本 suite 以外的绑定，并把已到期行推后，不删库。
+        isolatePerfDatabaseForSuite();
         childLog = Files.createTempFile("perf-child-", ".log");
         String java = ProcessHandle.current().info().command().orElse("java");
         List<String> cmd = new ArrayList<>();
@@ -228,6 +231,7 @@ class PerfGateDualProcessIT {
     }
 
     private RunResult executeRun(String label, boolean warmup) throws Exception {
+        isolatePerfDatabaseForSuite();
         String runId = label + "-" + UUID.randomUUID().toString().substring(0, 8);
         String titlePrefix = "perf-" + SUITE_ID + "-" + runId + "-tgt-";
 
@@ -407,6 +411,73 @@ class PerfGateDualProcessIT {
                 """,
                 Integer.class,
                 titlePrefix + "%");
+    }
+
+    /** 保持专用性能库对本次 suite 可测：暂停外来绑定，推迟已到期行。 */
+    private void isolatePerfDatabaseForSuite() {
+        pauseForeignBindings();
+        deferDueSignals();
+        deferDueActions();
+    }
+
+    private void pauseForeignBindings() {
+        String prefix = "perf-" + SUITE_ID + "-%";
+        String sql =
+                """
+                UPDATE tt_trigger_binding
+                SET binding_state = 'PAUSED', updated_at = UTC_TIMESTAMP(0)
+                WHERE trigger_binding_id IN (
+                  SELECT trigger_binding_id FROM (
+                    SELECT b.trigger_binding_id
+                    FROM tt_trigger_binding b
+                    JOIN tt_task_definition d ON d.definition_id = b.definition_id
+                    WHERE b.binding_state = 'ACTIVE'
+                      AND d.title NOT LIKE ?
+                    LIMIT 2000
+                  ) x
+                )
+                """;
+        runBatched(sql, prefix, "pause foreign bindings");
+    }
+
+    private void deferDueSignals() {
+        String sql =
+                """
+                UPDATE tt_task_signal
+                SET next_attempt_at = UTC_TIMESTAMP() + INTERVAL 6 HOUR,
+                    updated_at = UTC_TIMESTAMP(0)
+                WHERE process_status IN ('READY','RETRY_WAIT')
+                  AND next_attempt_at < UTC_TIMESTAMP() + INTERVAL 2 HOUR
+                LIMIT 2000
+                """;
+        runBatched(sql, null, "defer due signals");
+    }
+
+    private void deferDueActions() {
+        String sql =
+                """
+                UPDATE tt_action_job
+                SET next_attempt_at = UTC_TIMESTAMP() + INTERVAL 6 HOUR,
+                    available_at = UTC_TIMESTAMP() + INTERVAL 6 HOUR,
+                    updated_at = UTC_TIMESTAMP(0)
+                WHERE status IN ('READY','RETRY_WAIT')
+                  AND (
+                    next_attempt_at IS NULL OR next_attempt_at < UTC_TIMESTAMP() + INTERVAL 2 HOUR
+                    OR available_at IS NULL OR available_at < UTC_TIMESTAMP() + INTERVAL 2 HOUR
+                  )
+                LIMIT 2000
+                """;
+        runBatched(sql, null, "defer due actions");
+    }
+
+    private void runBatched(String sql, String bindPrefix, String label) {
+        for (int batch = 0; batch < 250; batch++) {
+            int updated = bindPrefix == null ? jdbc.update(sql) : jdbc.update(sql, bindPrefix);
+            if (updated == 0) {
+                return;
+            }
+        }
+        throw new IllegalStateException("still busy after 250 batches: " + label);
     }
 
     private Integer countBacklog(String titlePrefix) {

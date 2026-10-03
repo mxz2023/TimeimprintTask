@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P04 标题与锁序](P04/README.md) | IMPLEMENTING | 催办标题，以及实例命令先锁定义再锁实例；见[IMPLEMENTATION](P04/IMPLEMENTATION.md)。正在按任务顺序实施 |
+| [P04 标题与锁序](P04/README.md) | VERIFYING | 催办标题，以及实例命令先锁定义再锁实例。全量证据见[DELIVERY](P04/DELIVERY.md)；真库与性能门槛已复跑通过，待人工确认 RELEASED |
 
 ## 已发布阶段
 

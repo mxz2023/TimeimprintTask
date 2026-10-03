@@ -17,7 +17,7 @@
 
 集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。
 
-真库测试默认只允许`timeimprint-task_test`；其他专用测试库必须在测试配置明确列入允许名单。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除由该runId记录的根资源及子表数据，不得无条件或模糊删除。
+真库测试允许的数据库只有：功能验收库`timeimprint_task_local`，以及性能门槛专用库`timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
 
 受控交错、故障注入和可推进Clock只能存在于测试源集/配置，不得暴露为生产HTTP端点或装入生产制品。所有报告和日志必须脱敏。
 

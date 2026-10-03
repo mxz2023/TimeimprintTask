@@ -172,44 +172,26 @@ WHERE status IN ('READY','RETRY_WAIT','RUNNING')
 
 ### 1.4 重置本地业务数据（联调清库）
 
-**在做什么：** 清空 `timeimprint_task_local` 里手工/IT 留下的业务行，方便从空库重跑 §3 / §4 或 TaskWebsite。
-**为什么：** 定义、Signal、Action、收件箱互相引用；只删一部分容易留下孤儿行或 Worker 继续啃脏任务。
+**在做什么：** 清空功能库 `timeimprint_task_local` 与性能库 `timeimprint_task_perf` 里手工/IT 留下的业务行，方便从空库重跑自动化验收或 §3 / §4 联调。
+**为什么：** 定义、Signal、Action、收件箱互相引用；只删一部分容易留下孤儿行或 Worker 继续啃脏任务。性能库若不清理，历史到期行还会占满领取批次。
 **注意：**
 
-- **仅本地联调库**；不要对共享/生产库执行。
+- **仅本地联调/验收库**；不要对共享/生产库执行。
 - **保留** `flyway_schema_history`（表结构仍靠已执行迁移；禁止对本地联调依赖 `flyway clean`）。
 - 建议先停 Task 进程（或暂时 `WORKER_ENABLED=false`），清完再启动，避免截断过程中 Worker 仍领取旧行。
-- 清库后终端里的 `DEF_ID` / `INST_ID` / `SIG_ID` / `INBOX_ID` 全部作废，须重新创建。
+- 清库后终端里的 `DEF_ID` / `INST_ID` / `SIG_ID` / `INBOX_ID` 全部作废；自动化 IT 下次会自行创建数据，手工联调须重新创建。
 
-**一键清空业务表（推荐）：**
+**一键清空功能库 + 性能库（推荐）：**
 
 ```bash
-docker exec tit-mysql-t01 mysql -utit -ptit_local timeimprint_task_local -e "
-SET FOREIGN_KEY_CHECKS=0;
-TRUNCATE TABLE tt_inbox;
-TRUNCATE TABLE tt_notification;
-TRUNCATE TABLE tt_action_attempt;
-TRUNCATE TABLE tt_action_job;
-TRUNCATE TABLE tt_task_transition;
-TRUNCATE TABLE tt_task_signal;
-TRUNCATE TABLE tt_task_participant;
-TRUNCATE TABLE tt_task_instance;
-TRUNCATE TABLE tt_trigger_binding;
-TRUNCATE TABLE tt_command_dedup;
-TRUNCATE TABLE tt_audit_log;
-TRUNCATE TABLE tt_task_definition;
-SET FOREIGN_KEY_CHECKS=1;
-SHOW TABLES LIKE 'tt_%';
-SELECT
-  (SELECT COUNT(*) FROM tt_task_definition) AS definitions,
-  (SELECT COUNT(*) FROM tt_task_instance) AS instances,
-  (SELECT COUNT(*) FROM tt_task_signal) AS signals,
-  (SELECT COUNT(*) FROM tt_action_job) AS actions,
-  (SELECT COUNT(*) FROM tt_inbox) AS inbox;
-"
+scripts/reset-acceptance-dbs.sh
+# 或跳过确认：
+scripts/reset-acceptance-dbs.sh --yes
 ```
 
-期望：各计数均为 `0`；`flyway_schema_history` 仍在（本命令未碰它）。若只想压住脏 Action 而不清全库，用上一节的 `UPDATE … MANUAL_CLEAN`。
+脚本默认容器 `tit-mysql-t01`、用户 `tit` / `tit_local`，库名为 `timeimprint_task_local` 与 `timeimprint_task_perf`。若存在夹具表 `tt_test_approval_data` 也会清空。期望：业务表计数均为 `0`；`flyway_rows` 大于 0。
+
+若只想压住脏 Action 而不清全库，用上一节的 `UPDATE … MANUAL_CLEAN`。
 
 ---
 

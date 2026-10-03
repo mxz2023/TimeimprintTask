@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P03实施计划](phases/P03/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10在真实执行前均为NOT_RUN。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P04实施计划](phases/P04/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED。
 
 ## 1. 验收分层与环境
 
@@ -45,7 +45,7 @@
 
 ### 2.1 P02工程结构与测试镜像验收
 
-以下项目只在P02真实实施后判定；当前均为NOT_RUN：
+以下项目在P02真实实施后判定；证据见[P02 DELIVERY](phases/P02/DELIVERY.md)，已RELEASED：
 
 | 编号 | 验收对象 | 通过标准 |
 | --- | --- | --- |
@@ -62,7 +62,7 @@
 
 ### 2.2 Jackson 3专项验收
 
-以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；当前均为NOT_RUN：
+以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；证据见[P03 DELIVERY](phases/P03/DELIVERY.md)，已RELEASED：
 
 | 编号 | 验收对象 | 通过标准 |
 | --- | --- | --- |

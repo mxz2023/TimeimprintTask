@@ -149,57 +149,73 @@ class IMatrixMysqlIT {
         String occurredAt = Instant.now().minusSeconds(5).truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString();
 
         Map<String, Object> body = i01Body(requestId, signalKey, occurredAt, definitionId, instanceId, Map.of("k", 1));
-        JsonNode first = post("/internal/v1/task-signals/event", body);
-        assertEquals("OK", first.path("code").asText(), first.toString());
-        assertNotNull(first.path("traceId").asText(null));
-        JsonNode data = first.path("data");
-        assertFieldSet(data, SIGNAL_ACCEPTED_FIELDS);
-        assertFalse(data.path("duplicated").asBoolean());
-        assertEquals("READY", data.path("processStatus").asText());
-        String signalId = data.path("signalId").asText();
+        String signalId = null;
+        try {
+            JsonNode first = post("/internal/v1/task-signals/event", body);
+            assertEquals("OK", first.path("code").asText(), first.toString());
+            assertNotNull(first.path("traceId").asText(null));
+            JsonNode data = first.path("data");
+            assertFieldSet(data, SIGNAL_ACCEPTED_FIELDS);
+            assertFalse(data.path("duplicated").asBoolean());
+            assertEquals("READY", data.path("processStatus").asText());
+            signalId = data.path("signalId").asText();
 
-        // 同 key 同摘要 → duplicated=true（业务去重；requestId 另计）
-        JsonNode replay = post(
-                "/internal/v1/task-signals/event",
-                i01Body(UUID.randomUUID().toString(), signalKey, occurredAt, definitionId, instanceId, Map.of("k", 1)));
-        assertEquals("OK", replay.path("code").asText(), replay.toString());
-        assertTrue(replay.path("data").path("duplicated").asBoolean());
-        assertEquals(signalId, replay.path("data").path("signalId").asText());
+            // 同 key 同摘要 → duplicated=true（业务去重；requestId 另计）
+            JsonNode replay = post(
+                    "/internal/v1/task-signals/event",
+                    i01Body(UUID.randomUUID().toString(), signalKey, occurredAt, definitionId, instanceId, Map.of("k", 1)));
+            assertEquals("OK", replay.path("code").asText(), replay.toString());
+            assertTrue(replay.path("data").path("duplicated").asBoolean());
+            assertEquals(signalId, replay.path("data").path("signalId").asText());
 
-        // 同 key 不同摘要 → IDEMPOTENCY_CONFLICT
-        JsonNode conflict = post(
-                "/internal/v1/task-signals/event",
-                i01Body(UUID.randomUUID().toString(), signalKey, occurredAt, definitionId, instanceId, Map.of("k", 2)));
-        assertEquals("IDEMPOTENCY_CONFLICT", conflict.path("code").asText(), conflict.toString());
+            // 同 key 不同摘要 → IDEMPOTENCY_CONFLICT
+            JsonNode conflict = post(
+                    "/internal/v1/task-signals/event",
+                    i01Body(UUID.randomUUID().toString(), signalKey, occurredAt, definitionId, instanceId, Map.of("k", 2)));
+            assertEquals("IDEMPOTENCY_CONFLICT", conflict.path("code").asText(), conflict.toString());
 
-        // 缺必填 / 非法 UUID → INVALID_REQUEST（Bean Validation）
-        Map<String, Object> bad = new LinkedHashMap<>(body);
-        bad.put("requestId", "not-a-uuid");
-        JsonNode invalid = post("/internal/v1/task-signals/event", bad);
-        assertEquals("INVALID_REQUEST", invalid.path("code").asText(), invalid.toString());
+            // 缺必填 / 非法 UUID → INVALID_REQUEST（Bean Validation）
+            Map<String, Object> bad = new LinkedHashMap<>(body);
+            bad.put("requestId", "not-a-uuid");
+            JsonNode invalid = post("/internal/v1/task-signals/event", bad);
+            assertEquals("INVALID_REQUEST", invalid.path("code").asText(), invalid.toString());
 
-        // 未知定义 → RESOURCE_NOT_FOUND
-        JsonNode missing = post(
-                "/internal/v1/task-signals/event",
-                i01Body(
-                        UUID.randomUUID().toString(),
-                        "i01-missing-" + UUID.randomUUID(),
-                        occurredAt,
-                        9_999_999_999L,
-                        null,
-                        Map.of()));
-        assertEquals("RESOURCE_NOT_FOUND", missing.path("code").asText(), missing.toString());
+            // 未知定义 → RESOURCE_NOT_FOUND
+            JsonNode missing = post(
+                    "/internal/v1/task-signals/event",
+                    i01Body(
+                            UUID.randomUUID().toString(),
+                            "i01-missing-" + UUID.randomUUID(),
+                            occurredAt,
+                            9_999_999_999L,
+                            null,
+                            Map.of()));
+            assertEquals("RESOURCE_NOT_FOUND", missing.path("code").asText(), missing.toString());
 
-        // 畸形时间：Instant.parse 失败 → 当前落入通用错误（DELIVERY 记为时间格式维度 PARTIAL）
-        Map<String, Object> badTime = i01Body(
-                UUID.randomUUID().toString(),
-                "i01-badtime-" + UUID.randomUUID(),
-                "not-an-instant",
-                definitionId,
-                instanceId,
-                Map.of());
-        JsonNode timeResp = post("/internal/v1/task-signals/event", badTime);
-        assertNotEquals("OK", timeResp.path("code").asText(), timeResp.toString());
+            // 畸形时间：Instant.parse 失败 → 当前落入通用错误（DELIVERY 记为时间格式维度 PARTIAL）
+            Map<String, Object> badTime = i01Body(
+                    UUID.randomUUID().toString(),
+                    "i01-badtime-" + UUID.randomUUID(),
+                    "not-an-instant",
+                    definitionId,
+                    instanceId,
+                    Map.of());
+            JsonNode timeResp = post("/internal/v1/task-signals/event", badTime);
+            assertNotEquals("OK", timeResp.path("code").asText(), timeResp.toString());
+        } finally {
+            // event 没有产品读取器；留下 READY 会让后续用例的 live-schema 就绪变成 DOWN。
+            if (signalId != null && !signalId.isBlank()) {
+                jdbc.update(
+                        """
+                        UPDATE tt_task_signal
+                        SET process_status='IGNORED', result_code='TEST_CLEANUP',
+                            processed_at=UTC_TIMESTAMP(0), updated_at=UTC_TIMESTAMP(0),
+                            lease_owner=NULL, lease_until=NULL, execution_token=NULL
+                        WHERE signal_id=?
+                        """,
+                        Long.valueOf(signalId));
+            }
+        }
     }
 
     @Test

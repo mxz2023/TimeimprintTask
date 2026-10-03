@@ -100,6 +100,16 @@ public interface ActionJobMapper {
                                   @Param("completedAt") LocalDateTime completedAt,
                                   @Param("updatedAt") LocalDateTime updatedAt);
 
+    /**
+     * READY/RETRY_WAIT action ids for one instance, smallest primary key first.
+     * Callers lock each id with {@link #selectByIdForUpdate} before updating.
+     */
+    List<Long> selectReadyIdsByInstance(@Param("instanceId") long instanceId);
+
+    /** Same as {@link #selectReadyIdsByInstance}, excluding one transition. */
+    List<Long> selectReadyIdsByInstanceExceptTransition(@Param("instanceId") long instanceId,
+                                                        @Param("keepTransitionId") long keepTransitionId);
+
     /** Cancel all READY/RETRY_WAIT actions for a given instance (e.g. complete/skip). */
     int cancelReadyByInstance(@Param("instanceId") long instanceId,
                               @Param("outcomeCode") String outcomeCode,

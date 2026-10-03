@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前任务见[P03实施计划](phases/P03/IMPLEMENTATION.md)。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10在真实执行前均为NOT_RUN。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前无 CURRENT 阶段（见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）。
 
 ## 1. 验收分层与环境
 
@@ -17,7 +17,7 @@
 
 集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。
 
-真库测试默认只允许`timeimprint-task_test`；其他专用测试库必须在测试配置明确列入允许名单。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除由该runId记录的根资源及子表数据，不得无条件或模糊删除。
+真库测试允许的数据库只有：功能验收库`timeimprint_task_local`，以及性能门槛专用库`timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
 
 受控交错、故障注入和可推进Clock只能存在于测试源集/配置，不得暴露为生产HTTP端点或装入生产制品。所有报告和日志必须脱敏。
 
@@ -45,7 +45,7 @@
 
 ### 2.1 P02工程结构与测试镜像验收
 
-以下项目只在P02真实实施后判定；当前均为NOT_RUN：
+以下项目在P02真实实施后判定；证据见[P02 DELIVERY](phases/P02/DELIVERY.md)，已RELEASED：
 
 | 编号 | 验收对象 | 通过标准 |
 | --- | --- | --- |
@@ -62,7 +62,7 @@
 
 ### 2.2 Jackson 3专项验收
 
-以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；当前均为NOT_RUN：
+以下项目属于[P03](phases/P03/README.md)（X05）专项阶段；证据见[P03 DELIVERY](phases/P03/DELIVERY.md)，已RELEASED：
 
 | 编号 | 验收对象 | 通过标准 |
 | --- | --- | --- |
@@ -98,7 +98,7 @@
 
 每个M用例都须走E02预览→E03创建→E04/E05查询→时间Signal→Action→E07/E08/E10—E13查询。先断言窗口期只有WAITING实例和计划Signal、没有Action；再断言时间Signal迁移后Action、Transition、通知和收件唯一，且参与人/接收人一致。全程断言7天窗口、occurrenceKey、规则快照和controlGeneration。超出7天的M04/M09先断言未物化且游标正确，再推进窗口。
 
-S01在通知Action意图提交后显示“提醒已触发”，不将收件生成或已读当作业务终结条件。S02默认1个INITIAL和3个CHASE，默认催办偏移为60/240/720分钟、通知有效期1440分钟、最多snooze 3次；技术重试不增加业务槽位或收件数。
+S01在通知Action意图提交后显示“提醒已触发”，不将收件生成或已读当作业务终结条件。S02默认1个INITIAL和3个CHASE，默认催办偏移为60/240/720分钟、通知有效期1440分钟、最多snooze 3次；技术重试不增加业务槽位或收件数。S02收件标题与正文以实例快照为准：INITIAL标题为标题快照，CHASE标题为「催办：」紧接该标题快照，正文均为描述快照。
 
 ## 4. 状态、故障和并发必测项
 

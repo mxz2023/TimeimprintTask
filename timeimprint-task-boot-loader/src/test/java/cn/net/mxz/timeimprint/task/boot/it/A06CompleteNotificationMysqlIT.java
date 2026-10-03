@@ -213,6 +213,82 @@ class A06CompleteNotificationMysqlIT {
         assertTrue(succeeded <= 1, "at most one action may succeed (INITIAL if won race)");
     }
 
+    @Test
+    void completeAndDueSignalDoNotLockWait() throws Exception {
+        ZoneId zone = ZoneId.of("Asia/Shanghai");
+        ZonedDateTime occurrence = ZonedDateTime.now(zone).minusMinutes(1).withNano(0);
+        Map<String, Object> trigger = Map.of(
+                "bindingKey", "primary",
+                "providerKey", "calendar",
+                "schemaVersion", 1,
+                "config",
+                Map.of(
+                        "type", "DAILY",
+                        "startDate", occurrence.toLocalDate().toString(),
+                        "localTime", TIME_FMT.format(occurrence.toLocalTime().withNano(0)),
+                        "zoneId", "Asia/Shanghai"));
+        JsonNode created = post(
+                "/api/v1/task-definitions",
+                Map.of(
+                        "requestId", UUID.randomUUID().toString(),
+                        "scenarioKey", "recurring_todo",
+                        "scenarioSchemaVersion", 1,
+                        "title", "A06 lock order",
+                        "description", "signal and complete",
+                        "scenarioConfig",
+                        Map.of(
+                                "chaseOffsetsMinutes", List.of(60),
+                                "notificationExpireAfterMinutes", 1440,
+                                "maxSnoozeCount", 1),
+                        "participants",
+                        List.of(Map.of(
+                                "principalType", "USER", "principalId", "local-actor", "roleCode", "OWNER")),
+                        "triggerBindings", List.of(trigger)));
+        assertEquals("OK", created.path("code").asText(), created.toString());
+        long definitionId = Long.parseLong(created.path("data").path("definitionId").asText());
+        Long instanceId = jdbc.queryForObject(
+                "SELECT instance_id FROM tt_task_instance WHERE definition_id = ? ORDER BY occurrence_at ASC LIMIT 1",
+                Long.class,
+                definitionId);
+        Long signalId = jdbc.queryForObject(
+                "SELECT signal_id FROM tt_task_signal WHERE definition_id = ? AND instance_id = ? LIMIT 1",
+                Long.class,
+                definitionId,
+                instanceId);
+        JsonNode before = get("/api/v1/task-instances/" + instanceId);
+        long revision = before.path("data").path("revision").asLong();
+
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Future<Void> signalFuture = pool.submit(() -> {
+                start.await(5, TimeUnit.SECONDS);
+                gateway.processSignal(signalId);
+                return null;
+            });
+            Future<JsonNode> completeFuture = pool.submit(() -> {
+                start.await(5, TimeUnit.SECONDS);
+                return post(
+                        "/api/v1/task-instances/" + instanceId + "/commands/complete",
+                        Map.of(
+                                "requestId", UUID.randomUUID().toString(),
+                                "expectedRevision", revision,
+                                "commandSchemaVersion", 1,
+                                "payload", Map.of()));
+            });
+            start.countDown();
+            signalFuture.get(40, TimeUnit.SECONDS);
+            JsonNode completeResult = completeFuture.get(40, TimeUnit.SECONDS);
+            String code = completeResult.path("code").asText();
+            assertTrue(
+                    "OK".equals(code) || "STATE_CONFLICT".equals(code) || "REVISION_CONFLICT".equals(code),
+                    completeResult.toString());
+            assertTrue(!completeResult.toString().contains("Lock wait timeout"), completeResult.toString());
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
     private JsonNode post(String path, Object body) throws Exception {
         String json = objectMapper.writeValueAsString(body);
         HttpRequest req = HttpRequest.newBuilder(URI.create(url(path)))

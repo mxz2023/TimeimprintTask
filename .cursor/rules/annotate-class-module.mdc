@@ -1,0 +1,18 @@
+---
+description: 提到类和方法时标注所属 Maven 模块
+alwaysApply: true
+---
+
+# 类和方法须标模块
+
+面向用户提到 Java 类、方法时：
+
+1. **同一条回复里首次出现**，紧随类名写出所属 Maven 模块，格式为 `类名`（`timeimprint-task-…` 模块）。方法与类写在一起时，标类所在模块即可。
+2. 同一条回复里再次出现同一类，可不再重复模块名。
+3. 模块名使用仓库真实目录，例如 `timeimprint-task-web`、`timeimprint-task-service-scenario-basic`。不确定时先核对源码位置，不要猜测。
+
+## 写法
+
+差：`ReminderScenarioExtension.processSignal 到点返回计划。`
+
+好：`ReminderScenarioExtension.processSignal`（`timeimprint-task-service-scenario-basic` 模块）到点返回计划。

@@ -195,15 +195,19 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         snapshot.put("actionGeneration", 1);
 
         long definitionId = context.definitionSnapshot().definitionId();
+        String titleSnapshot = instSnapshot.titleSnapshot();
+        String body = notificationBody(instSnapshot.descriptionSnapshot());
         List<ActionJobIntent> actions = new ArrayList<>();
         actions.add(buildExpandableActionIntent(
-                definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1, dueAt, expiresAt));
+                definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1, dueAt, expiresAt,
+                notificationTitle("INITIAL", titleSnapshot), body));
 
         for (int i = 0; i < chaseOffsets.size(); i++) {
             Instant chaseAt = dueAt.plus(chaseOffsets.get(i), ChronoUnit.MINUTES);
             if (chaseAt.isBefore(expiresAt)) {
                 actions.add(buildExpandableActionIntent(
-                        definitionId, instSnapshot.instanceId(), "CHASE", i + 1, 1, chaseAt, expiresAt));
+                        definitionId, instSnapshot.instanceId(), "CHASE", i + 1, 1, chaseAt, expiresAt,
+                        notificationTitle("CHASE", titleSnapshot), body));
             }
         }
 
@@ -248,6 +252,22 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
                 new JsonPayload(snapshot));
     }
 
+    /**
+     * INITIAL uses the instance title snapshot. CHASE prefixes the same snapshot with
+     * the full-width 「催办：」 and no space. An empty description becomes an empty body.
+     */
+    static String notificationTitle(String purpose, String titleSnapshot) {
+        String title = titleSnapshot == null ? "" : titleSnapshot;
+        if ("CHASE".equals(purpose)) {
+            return "催办：" + title;
+        }
+        return title;
+    }
+
+    static String notificationBody(String descriptionSnapshot) {
+        return descriptionSnapshot == null ? "" : descriptionSnapshot;
+    }
+
     /** Template Action; platform expands to one job per final recipient. */
     static ActionJobIntent buildExpandableActionIntent(
             long definitionId,
@@ -256,13 +276,17 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
             int slotIndex,
             int actionGeneration,
             Instant availableAt,
-            Instant expiresAt) {
+            Instant expiresAt,
+            String title,
+            String body) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("purpose", purpose);
         payload.put("slotIndex", slotIndex);
         payload.put("actionGeneration", actionGeneration);
         payload.put("definitionId", definitionId);
         payload.put("instanceId", instanceId);
+        payload.put("title", title);
+        payload.put("body", body);
 
         return new ActionJobIntent(
                 InAppNotificationHandler.HANDLER_KEY,
@@ -278,7 +302,8 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
 
     public static ActionJobIntent buildActionIntent(
             long definitionId, long instanceId, String purpose, int slotIndex, int actionGeneration,
-            String recipientId, Instant availableAt, Instant expiresAt) {
+            String recipientId, Instant availableAt, Instant expiresAt,
+            String title, String body) {
 
         String canon = instanceId + ":" + purpose + ":" + slotIndex + ":" + actionGeneration
                 + ":" + recipientId + ":in_app_notification";
@@ -292,6 +317,8 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         payload.put("instanceId", instanceId);
         payload.put("recipientType", "USER");
         payload.put("recipientId", recipientId);
+        payload.put("title", title == null ? "" : title);
+        payload.put("body", body == null ? "" : body);
 
         return new ActionJobIntent(
                 InAppNotificationHandler.HANDLER_KEY,

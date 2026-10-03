@@ -11,11 +11,12 @@
 | 已发布P01 | [S01](scenarios/S01-reminder.md)、[S02](scenarios/S02-recurring-todo.md) | calendar的CAL-01—CAL-05、notification的NOT-01—NOT-03 | P01 RELEASED（标签 `v20260915-P01`）；场景/能力项 VERIFIED |
 | 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
-| CURRENT | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) VERIFYING：S02 站内信标题，以及实例命令改为先锁定义再锁实例；证据见 [DELIVERY](phases/P04/DELIVERY.md) |
-| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不在 P04 范围内；由用户另行决定是否进入下一阶段 |
+| 已发布P04 | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) RELEASED（标签 `v20261003-P04`）：S02 站内信标题，以及实例命令改为先锁定义再锁实例；人工验收 2026-10-03 |
+| CURRENT | 无 | 无 | 从下方 NEXT_REVIEW 选择范围后创建下一阶段 |
+| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不自动进入实施；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。当前 CURRENT 为 [P04](phases/P04/README.md)（VERIFYING），范围是 S02 站内信标题和实例命令锁序。NEXT_REVIEW 中的业务场景须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。当前无 CURRENT 阶段。NEXT_REVIEW 中的业务场景须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -140,6 +141,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-02 | P04 | 用户授权开始全量验收；阶段改为 VERIFYING | 单元测试与打包通过；真库全量 92 项中 2 项就绪失败，未 RELEASED |
 | 2026-10-02 | P04 | 用户要求处理遗留 event 信号并重跑 | 信号改为 IGNORED 后真库 92 项通过；双进程 7 项中性能门槛失败，未 RELEASED |
 | 2026-10-03 | P04 | 用户要求性能库与测试逻辑一致 | 性能门槛测量前暂停外来绑定并推迟到期行；`PerfGateDualProcessIT` 2 项通过；未 RELEASED |
+| 2026-10-03 | P04 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20261003-P04`；DELIVERY/IMPLEMENTATION/README 冻结 |
 
 ## 8. 下一场景进入实施的检查
 

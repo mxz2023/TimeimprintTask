@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P04 标题与锁序](P04/README.md) | VERIFYING | 催办标题，以及实例命令先锁定义再锁实例。全量证据见[DELIVERY](P04/DELIVERY.md)；真库与性能门槛已复跑通过，待人工确认 RELEASED |
+| 无 | — | 从 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
 
 ## 已发布阶段
 
@@ -15,10 +15,11 @@
 | P01 第一期稳定核心与基础场景 | RELEASED | [DELIVERY](P01/DELIVERY.md)；Git 标签 [`v20260915-P01`](P01/README.md)；人工验收 2026-09-15 |
 | [P02工程结构与测试镜像](P02/README.md) | RELEASED | [DELIVERY](P02/DELIVERY.md)；Git 标签 `v20260917-P02`；人工验收 2026-09-17 |
 | [P03 Jackson 3 原生迁移](P03/README.md) | RELEASED | [DELIVERY](P03/DELIVERY.md)；Git 标签 `v20260917-P03`；人工验收 2026-09-17 |
+| [P04 标题与锁序](P04/README.md) | RELEASED | [DELIVERY](P04/DELIVERY.md)；Git 标签 `v20261003-P04`；人工验收 2026-10-03 |
 
 ## 未来阶段
 
-P04 已作为 CURRENT，范围是 S02 站内信标题和实例命令锁序。S03、S04、S05、S14 仍在[09演进路线](../09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW，不随本阶段自动进入实施。
+S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW，不自动进入实施。须用户另选范围、建立阶段包并授权。
 
 ## 更新规则
 

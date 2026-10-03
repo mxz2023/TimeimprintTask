@@ -7,14 +7,18 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P04 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P03；Git 标签 `v20260917-P03` |
-| 下一动作 | 2026-10-03 真库全量与性能门槛已通过，见 [DELIVERY](DELIVERY.md)。人工确认后才可标 RELEASED |
-| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261003-P04`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-03 用户确认通过 |
+| 下一动作 | 无；从 [09](../../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
+| 交付证据 | [DELIVERY](DELIVERY.md)（冻结，不再改写） |
 
-VERIFYING 表示 T00—T05 已完成，正在记录全量验收。通过结果只写在 [DELIVERY](DELIVERY.md)。全量未通过时不得标 RELEASED。
+用户已于 2026-10-02 授权并完成 T00—T05；证据见 [DELIVERY](DELIVERY.md)。2026-10-03 人工验收通过，阶段已 RELEASED（标签 `v20261003-P04`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 已确认口径
 

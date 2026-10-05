@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P05 飞书整体接入](P05/README.md) | CURRENT / DRAFT | 出站卡片 + 入站按钮同期交付；S02 完成/跳过/稍后+1h；S01 无按钮。下一动作：认可 §6 默认后做 T01→READY |
+| [P05 飞书整体接入](P05/README.md) | CURRENT / DRAFT | 新建 `timeimprint-task-adapter`；notification 依赖其用飞书；出站卡片+入站三按钮。下一动作：认可 §6（含模块名）后 T01→READY |
 
 ## 已发布阶段
 

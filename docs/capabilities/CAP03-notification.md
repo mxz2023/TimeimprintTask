@@ -50,13 +50,14 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 | `FEISHU` | `EXTERNAL` | 本期实现出站；并启用同应用入站命令桥 |
 | `WECHAT` / `DINGTALK` / `TELEGRAM` 等 | `EXTERNAL` | 仅预留键名与「出站/入站」扩展点；禁止本期实现 |
 
-后续 IM：同模块内新增渠道包（出站 Handler + 可选入站命令桥），加入允许枚举与配置；不得改 kernel；场景不得依赖具体渠道 SDK。
+后续 IM：在 **`timeimprint-task-adapter`** 内新增渠道包（如 `wechat`）封装第三方 SDK；`capability-notification` 只依赖 adapter 使用其客户端，场景不得依赖 adapter 或具体 SDK。P05 新建该通用模块（见[P05](../phases/P05/README.md)）。
 
 ### 出站（消息）
 
-- 飞书主路径：`POST /open-apis/im/v1/messages?receive_id_type=open_id`，`msg_type=interactive`（S02 含完成/跳过/稍后提醒按钮；S01 仅展示）。
-- `tenant_access_token` 取自 app_id/app_secret；调用前写 `effectStartedAt`；`uuid`（≤50）由平台 `actionKey` 导出；受理号记 `message_id`。
-- 错误分类：可重试 / 永久失败 / `UNKNOWN`；关闭 SDK 隐藏重试或纳入 `timeoutSeconds`。
+- 飞书主路径：经 **`timeimprint-task-adapter`** 的飞书客户端调用 `POST /open-apis/im/v1/messages?receive_id_type=open_id`，`msg_type=interactive`（S02 含完成/跳过/稍后提醒按钮；S01 仅展示）。notification Handler 不直接依赖飞书官方 SDK 坐标。
+- `tenant_access_token`、HTTP 超时与 SDK 隐藏重试策略由 adapter 拥有；notification 只传业务载荷并解释结果。
+- 调用前写 `effectStartedAt`；`uuid`（≤50）由平台 `actionKey` 导出；受理号记 `message_id`。
+- 错误分类：可重试 / 永久失败 / `UNKNOWN`。
 - 飞书不写入 `tt_inbox`。
 
 ### 入站（同步命令）
@@ -69,7 +70,7 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 - S01 卡片无按钮；不接受对 S01 实例的飞书命令回调。
 - 从 `action.value` 解析 `commandKey`、`instanceId`、`definitionId`、发信时 `revision`（作 `expectedRevision`）；用 `operator.open_id` 映射平台 Actor；调用 application 实例命令服务。
 - **文字回复**：可经 `im.message.receive_v1` 扩展，**P05 不实现、不验收**。
-- 验签、加密、Verification Token 留在 web/gateway；重复 `event_id` 幂等。
+- 验签、加密、Verification Token 辅助能力在 **adapter**；HTTP 路由在 web/gateway；重复 `event_id` 幂等。
 - 入站桥是外层适配，不是第二套业务状态机；权限与终态规则仍由场景 + Policy 拥有。
 
 ### 配置选择（运行时）
@@ -107,6 +108,6 @@ OUTLINE 能力项不能创建空渠道Bean、假回执或真实外部凭据配�
 
 ## 数据、失败与演进
 
-notification拥有通知和收件能力表及其迁移；公共Action表仍由平台拥有。网络渠道必须声明EXTERNAL并在事务外调用，IN_APP保持LOCAL_TRANSACTIONAL。新增渠道优先作为notification内部实现，只有独立发布、重大SDK冲突、安全隔离或独立所有权成立时才拆模块。
+notification拥有通知和收件能力表及其迁移；公共Action表仍由平台拥有。网络渠道必须声明EXTERNAL并在事务外调用，IN_APP保持LOCAL_TRANSACTIONAL。第三方官方 SDK 与底层 HTTP/验签封装优先落在通用模块 `timeimprint-task-adapter`；notification（及 web 回调）依赖 adapter，不各自引入 SDK。只有独立发布节奏或所有权要求时再拆更细适配器模块。
 
 通知schema和渠道payload必须版本化。仍有未终结Action引用的旧版本必须可读；否则应用不得就绪。已经产生的通知、收件和Attempt不能因场景修改或渠道升级被覆盖。

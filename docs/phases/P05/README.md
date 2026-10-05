@@ -4,10 +4,24 @@
 
 | 半边 | 职责 | 主要归属 |
 | --- | --- | --- |
-| 出站消息 | 可配置多渠投递；飞书发交互卡片 | [CAP03](../../capabilities/CAP03-notification.md) NOT-05 |
-| 入站命令 | 验签接收飞书回调/事件 → 映射为平台命令 | 飞书适配层（web 入口 + application 命令）；回调协议细节见 CAP03 NOT-05 / 本 README，不另起平行权威 |
+| 第三方 SDK | 飞书（及未来微信/钉钉等）客户端、令牌、验签与 HTTP 调用封装 | 新建通用模块 `timeimprint-task-adapter` |
+| 出站消息 | 可配置多渠投递；调用 adapter 发交互卡片 | [CAP03](../../capabilities/CAP03-notification.md) NOT-05（`capability-notification` 依赖 adapter） |
+| 入站命令 | webhook 入口 → 用 adapter 验签 → 映射平台命令 | `web`/`gateway` + application 命令桥；验签能力来自 adapter |
 
-默认行为不变：只发站内信。配置把 `FEISHU` 加入投递渠道后，才出站发飞书；入站 webhook 仅在飞书接入启用时装配。微信、钉钉、Telegram 不实现，但渠道键与「出站渠道 / 入站命令桥」扩展点必须可复用。
+默认行为不变：只发站内信。配置把 `FEISHU` 加入投递渠道后，才出站发飞书；入站 webhook 仅在飞书接入启用时装配。微信、钉钉、Telegram **本期不实现**，但必须落在同一 `adapter` 模块的包扩展点上，供后续接入。
+
+### 模块落点（已确认）
+
+| 模块 | P05 职责 |
+| --- | --- |
+| **`timeimprint-task-adapter`（新建）** | 通用第三方 SDK 宿主：本期仅 `feishu` 包（token、发消息、回调验签辅助）；未来 `wechat`/`dingtalk`/`telegram` 等同级包；**不含**业务命令与 TransitionPlan |
+| `timeimprint-task-service-capability-notification` | 依赖 adapter；渠道展开、`feishu_im_notification` Handler、卡片业务载荷（按钮与 value）；不直接声明飞书官方 SDK 坐标（由 adapter 拥有） |
+| `timeimprint-task-service-application` | 接收人×渠道展开；入站命令桥调用现有实例命令 |
+| `timeimprint-task-web` / `gateway` | 回调 HTTP 入口与编排；验签调用 adapter |
+| `timeimprint-task-boot-loader` | 装配 adapter + notification；配置键 |
+| `timeimprint-task-service-runtime` | 沿用 EXTERNAL 执行路径 |
+
+禁止：`kernel`、`scenario-basic` 依赖 `adapter`；在 notification 内另引一份飞书 SDK。
 
 对应 [09](../../09-SCENARIO-ROADMAP.md) 的 [C12](../../09-SCENARIO-ROADMAP.md) 飞书子集。不取代 NEXT_REVIEW 的 S03/S04/S05/S14。任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
@@ -40,7 +54,8 @@
 | 接入形态 | **整体接入**：出站消息 + 入站命令同步；不是「只发不收」 |
 | 本期实现渠道 | 仅飞书；不实现微信、钉钉、Telegram、京 ME、邮件 |
 | 交付切片 | **同期交付**出站交互卡片 + 入站 `card.action.trigger` 按钮；文字回复 `im.message.receive_v1` **只保留契约、P05 不实现** |
-| 通用性 | 出站按 `channelKey` 列表展开；入站按「渠道命令桥」映射到平台 `commandKey`；后续 IM 复用同一形状 |
+| 通用性 | 出站按 `channelKey` 列表展开；入站按「渠道命令桥」映射到平台 `commandKey`；第三方 SDK 统一进 `timeimprint-task-adapter`，notification 只依赖 adapter 使用飞书 |
+| 模块策略 | **新建** `timeimprint-task-adapter`（P05 起模块数 13→14）；飞书官方 SDK 与 HTTP 封装只属于 adapter；后续其他三方 SDK 先入该模块再被业务能力依赖 |
 | 默认行为 | `delivery-channels` 默认仅 `IN_APP`；与 P01—P04 一致 |
 | 开启飞书 | 配置加入 `FEISHU` + 凭据/映射/回调验签后，出站与入站同时可用 |
 | 多渠选择 | 合法组合 `[IN_APP]` 或 `[IN_APP, FEISHU]`；`IN_APP` 必须保留 |
@@ -77,15 +92,17 @@
 
 允许（READY 且授权后）：
 
-- `capability-notification` 内渠道展开、飞书出站 Handler、卡片载荷构造。
-- `web`/`gateway` 飞书回调 Controller + 验签；application 层「外部命令桥」调用现有实例命令服务。
-- 03 配置键；06/CAP03/07/术语表；S01/S02 补充飞书卡片与按钮说明。
+- **新建** Maven 模块 `timeimprint-task-adapter`（及根 POM / Enforcer / ArchUnit / boot-loader 装配）；期内只实现 `feishu` 包。
+- `capability-notification` 增加对 adapter 的依赖；渠道展开、飞书 Handler、卡片业务载荷。
+- `web`/`gateway` 飞书回调 Controller + 编排；验签走 adapter；application 命令桥调用现有实例命令。
+- T01 起同步修订 [02](../../02-AI-CODING-GUIDE.md) 模块表（13→14）与「渠道可抽至 adapter」说明；03 配置键；06/CAP03/07/术语表；S01/S02 补充飞书卡片与按钮说明。
 - 测试：单元、契约、真库 IT（Mock 飞书发信与回调）、必要双进程回归。
 
 禁止：
 
+- 在 `capability-notification`（或 web）中直接引入飞书官方 SDK 坐标，绕过 adapter。
 - 其他 IM 的生产实现；在业务状态事务中调飞书网络。
-- 飞书 SDK / webhook 进入 kernel 或 scenario 模块。
+- 飞书 SDK / webhook 进入 kernel 或 scenario 模块；adapter 依赖 kernel/scenario/application。
 - 默认开启飞书；仓库真实密钥；空 Bean 假回执。
 - 实现文字回复入站、日期时间选择器 snooze、或非约定按钮。
 - 改写已 RELEASED 的 P01—P04；把 S03+ 拉进本期。
@@ -96,7 +113,7 @@
 
 | 类别 | 判断 |
 | --- | --- |
-| 变化类型 | 兼容能力扩展；出站属 notification，入站为外层适配 + 复用现有命令管道；不改公共表与稳定 SPI 签名 |
+| 变化类型 | 兼容能力扩展 + **新增 adapter 模块**；须在 T01 修订 02 模块表与依赖规则；不改公共表与稳定 SPI 签名语义 |
 | 场景 | S01/S02 RELEASED/VERIFIED；补充飞书可执行命令与卡片按钮语义 |
 | 能力 | NOT-05 DRAFT（含入站桥约定）；C12 飞书子集 |
 | INV | [INV-05](../../02-AI-CODING-GUIDE.md)、[INV-08](../../02-AI-CODING-GUIDE.md)、[INV-09](../../02-AI-CODING-GUIDE.md) |
@@ -112,7 +129,8 @@
 | revision 冲突 | 用卡片内 revision 作 `expectedRevision`；冲突则 toast 提示冲突，不静默覆盖 |
 | 跳过原因 | 飞书「跳过」使用固定原因文案「飞书卡片跳过」（须满足 1—500 码点）；若产品要用户填因，须另批 |
 | 缺 `recipient-map` | 仍创建飞书 Action，执行时 `PERMANENT_FAILURE` |
-| 回调方式 | 开发者服务器 HTTP webhook（非长连接）；本地联调公网隧道仅运维说明，不进 CI |
-| 测试 | WireMock 模拟发信；测试 POST 伪造 `card.action.trigger` |
+| 回调方式 | 开发者服务器 HTTP webhook（非长连接）；验签实现位于 adapter；本地联调公网隧道仅运维说明，不进 CI |
+| 测试 | WireMock 模拟发信（可挂在 adapter 测试）；业务 IT POST 伪造 `card.action.trigger` |
+| 模块名 | 固定 `timeimprint-task-adapter`（若改名须先改本文再 T01） |
 
 本文件在 DRAFT 期间可修订；READY 后禁止扩大范围；RELEASED 后冻结。

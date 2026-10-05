@@ -213,7 +213,8 @@
 | timeimprint-task-service-runtime | Planner、Signal和Action后台运行时 |
 | timeimprint-task-service-storage-mysql | MySQL存储适配器和平台公共迁移 |
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
-| timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起含飞书） |
+| timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主（P05 起；本期 feishu，后续其他三方同模块按包扩展） |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |

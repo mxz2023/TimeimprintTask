@@ -1,8 +1,22 @@
-# P05 · 飞书 IM 通知渠道（通用 IM 框架首渠）
+# P05 · 飞书整体接入（出站通知 + 入站命令）
 
-本阶段在已发布的站内信（`IN_APP`）之上，引入**可配置的多渠道投递框架**，并实现第一个外部 IM 渠道：**飞书**。默认行为不变：只发站内信；通过运行配置把 `FEISHU` 加入投递渠道列表后，才为每个通知槽位额外创建飞书 Action。微信、钉钉、Telegram 等不在本期实现，但渠道键、扩展点与配置形状必须允许后续按同模式接入，并由同一配置列表选择启用哪些渠道。
+本阶段把**飞书**作为第一个外部 IM 渠道**整体接入**：不仅投递通知，还要在消息触达后，用飞书卡片按钮（及可选文字回复）驱动平台已有命令（如完成、跳过、稍后提醒）。架构上拆成两半、同一阶段契约：
 
-本阶段对应 [09](../../09-SCENARIO-ROADMAP.md) 的 [C12](../../09-SCENARIO-ROADMAP.md)（多 IM 渠道）之飞书子集，能力项为 [CAP03](../../capabilities/CAP03-notification.md) 的 NOT-05。不取代 NEXT_REVIEW 中的 S03/S04/S05/S14。详细任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+| 半边 | 职责 | 主要归属 |
+| --- | --- | --- |
+| 出站消息 | 可配置多渠投递；飞书发交互卡片 | [CAP03](../../capabilities/CAP03-notification.md) NOT-05 |
+| 入站命令 | 验签接收飞书回调/事件 → 映射为平台命令 | 飞书适配层（web 入口 + application 命令）；回调协议细节见 CAP03 NOT-05 / 本 README，不另起平行权威 |
+
+默认行为不变：只发站内信。配置把 `FEISHU` 加入投递渠道后，才出站发飞书；入站 webhook 仅在飞书接入启用时装配。微信、钉钉、Telegram 不实现，但渠道键与「出站渠道 / 入站命令桥」扩展点必须可复用。
+
+对应 [09](../../09-SCENARIO-ROADMAP.md) 的 [C12](../../09-SCENARIO-ROADMAP.md) 飞书子集。不取代 NEXT_REVIEW 的 S03/S04/S05/S14。任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+
+官方依据（编码前定稿时再锁字段）：
+
+- 发消息：[发送消息](https://open.feishu.cn/document/server-docs/im-v1/message/create?lang=zh-CN)（`im/v1/messages`，`msg_type=interactive`）
+- 令牌：[tenant_access_token](https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal)
+- 卡片回传：[card.action.trigger](https://open.feishu.cn/document/feishu-cards/card-callback-communication?lang=zh-CN)（须 **3 秒内**响应）
+- 文字回复（可选辅路径）：[im.message.receive_v1](https://open.feishu.cn/document/server-docs/im-v1/message/events/receive?lang=zh-CN)
 
 ## 1. 阶段身份
 
@@ -15,68 +29,90 @@
 | 基础发布 | P04；Git 标签 `v20261003-P04` |
 | 工程状态 | NOT_STARTED |
 | Git发布标签 | 未打；发布时使用 `vyyyyMMdd-P05` |
-| 下一动作 | 细化 NOT-05 / 配置与验收至 READY；**禁止编码**，直至用户授权实施 |
+| 下一动作 | 若认可 §6 已采纳默认，执行 T01 写入 03/07 等并转 READY；**禁止编码**，直至用户授权实施 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 实施进入 VERIFYING 前不得创建 `DELIVERY.md` |
+| 交付证据 | 进入 VERIFYING 前不得创建 `DELIVERY.md` |
 
 ## 2. 已确认产品口径
 
 | 口径 | 结论 |
 | --- | --- |
-| 本期实现渠道 | 仅飞书 IM；不实现微信、钉钉、Telegram、京 ME、邮件 |
-| 通用性 | 投递按稳定 `channelKey` 列表展开；场景不绑定具体 IM；后续渠道以同包内新 Handler + 配置项接入 |
-| 默认行为 | `delivery-channels` 默认为仅 `IN_APP`；与 P01—P04 观察行为一致 |
-| 开启飞书 | 配置把 `FEISHU` 加入 `delivery-channels`，并提供飞书应用凭据与用户映射后生效 |
-| 多渠选择 | 同一配置列表可同时包含多个渠道；本期合法组合为 `[IN_APP]` 或 `[IN_APP, FEISHU]`（`IN_APP` 必须保留；禁止只发飞书而关闭站内信，除非后续阶段另批） |
-| 场景范围 | 不新增场景；S01/S02 继续产生通知意图，由平台按启用渠道展开 Action |
-| 身份 | 仍为本地固定 Actor；平台 `recipientId` → 飞书 `open_id` 由配置映射表完成 |
+| 接入形态 | **整体接入**：出站消息 + 入站命令同步；不是「只发不收」 |
+| 本期实现渠道 | 仅飞书；不实现微信、钉钉、Telegram、京 ME、邮件 |
+| 交付切片 | **同期交付**出站交互卡片 + 入站 `card.action.trigger` 按钮；文字回复 `im.message.receive_v1` **只保留契约、P05 不实现** |
+| 通用性 | 出站按 `channelKey` 列表展开；入站按「渠道命令桥」映射到平台 `commandKey`；后续 IM 复用同一形状 |
+| 默认行为 | `delivery-channels` 默认仅 `IN_APP`；与 P01—P04 一致 |
+| 开启飞书 | 配置加入 `FEISHU` + 凭据/映射/回调验签后，出站与入站同时可用 |
+| 多渠选择 | 合法组合 `[IN_APP]` 或 `[IN_APP, FEISHU]`；`IN_APP` 必须保留 |
+| S02 卡片按钮 | 固定三个：**完成**（`complete`）、**跳过**（`skip`）、**稍后提醒**（`snooze`） |
+| S02 稍后提醒 | 无时间选择器；点击时取业务时间 `T + 1 小时` 作为 `snoozeUntil`；仍须满足既有 snooze 规则（`T < snoozeUntil < expiresAt`、次数上限等），否则 toast 拒绝 |
+| S01 卡片 | **仅展示**标题/正文，**无按钮**（S01 无实例命令） |
+| 场景范围 | 不新增场景；S01/S02 通知意图由配置展开；入站命令复用现有实例命令语义 |
+| 身份 | 本地固定 Actor；`recipientId` ↔ 飞书 `open_id` 配置映射；入站以 `operator.open_id` 反查平台主体 |
 
 ## 3. 目标与范围
 
-P05 必须完成（进入 READY 后写入正式契约，授权后编码）：
+### 3.1 出站消息
 
-1. **渠道展开**：通知模板 Action 按「最终接收人 × 启用渠道」展开为独立 Action Job；`actionKey` 规范输入含 `channelKey`；各渠道失败相互隔离。
-2. **通用渠道契约**：在 `capability-notification` 内定义稳定 `channelKey`、执行模式、超时、用户地址解析、错误分类与结果物化边界；场景模块不得依赖飞书 SDK 或具体渠道 Handler。
-3. **飞书 Handler**：`EXTERNAL` 模式；调用前写 `effectStartedAt`；事务外调飞书开放接口；记录受理号；可重试 / 永久失败 / `UNKNOWN` 分类明确；关闭 SDK 隐藏重试或纳入超时预算。
-4. **配置**：投递渠道列表、飞书凭据、超时、接收人映射；缺映射或未启用时不得假装发送；仓库不提交真实密钥。
-5. **验收**：默认仅站内信回归；开启飞书后双渠并存；飞书失败不影响已提交站内信与 S01 终态；WireMock/夹具证明 EXTERNAL 协议，不宣称生产飞书账号已验收。
+1. 接收人 × 启用渠道展开 Action；`actionKey` 含 `channelKey`；渠道失败隔离。
+2. 飞书 Handler 为 `EXTERNAL`：先 `effectStartedAt`，再调 `im/v1/messages`；`uuid` 幂等（≤50）；受理号 `message_id`。
+3. **消息形态为交互卡片**（`msg_type=interactive`）：展示标题/正文；S02 挂上述三按钮；S01 无按钮。
+4. 配置：投递列表、凭据、超时、映射；仓库无真实密钥。
+
+### 3.2 入站命令
+
+1. 对外 HTTP 回调入口（开发者服务器 webhook；验签/加密按飞书规范）；**不得**把飞书 SDK 放进 kernel。
+2. **本阶段主路径**：订阅 `card.action.trigger`；从 `action.value` 解析命令；调用与 HTTP 相同的应用层命令管道；**3 秒内**返回 toast / 更新卡片。
+3. **文字回复**：契约注明未来可用 `im.message.receive_v1`，**P05 不编码、不验收**。
+4. 入站成功只表示平台命令已提交；与站内信已读、飞书送达是不同事实。
+5. 重复回调必须幂等（`event_id` / 平台 `requestId` 派生）。
+
+### 3.3 验收边界
+
+- 默认仅站内信回归；开启飞书后出站卡片 + 入站模拟回调可驱动 S02 完成/跳过/稍后+1h。
+- 飞书出站失败不回滚站内信、不改写 S01 终态。
+- CI 用 Mock HTTP / 伪造回调，不依赖真实飞书租户。
 
 ## 4. 允许与禁止
 
 允许（READY 且授权后）：
 
-- `timeimprint-task-service-capability-notification` 内新增渠道包（如 `im` / `feishu`）、渠道展开与飞书 `ActionHandler`。
-- 将接收人展开改为「接收人 × 渠道」；场景模板改为渠道中立（去掉对 `InAppNotificationHandler` 的硬依赖）。
-- [03](../../03-INTEGRATION-CONTRACTS.md) 增加通知渠道配置键；[06](../../06-SCHEDULING.md) / [CAP03](../../capabilities/CAP03-notification.md) / [07](../../07-ACCEPTANCE.md) 补飞书与多渠规则；术语表补充 `channelKey` / `FEISHU` 等。
-- 测试：单元、契约、真库 IT（Mock 飞书 HTTP）、必要的双进程回归。
+- `capability-notification` 内渠道展开、飞书出站 Handler、卡片载荷构造。
+- `web`/`gateway` 飞书回调 Controller + 验签；application 层「外部命令桥」调用现有实例命令服务。
+- 03 配置键；06/CAP03/07/术语表；S01/S02 补充飞书卡片与按钮说明。
+- 测试：单元、契约、真库 IT（Mock 飞书发信与回调）、必要双进程回归。
 
 禁止：
 
-- 实现微信、钉钉、Telegram、京 ME、邮件或其他 NOT-05 未批准渠道的生产 Handler。
-- 修改 kernel 业务语义、公共表 DDL、公开 HTTP 字段形状（E01—E13 收件模型仍属站内信）。
-- 在业务状态事务中调用飞书；把飞书 SDK 引入 kernel / scenario 模块。
-- 默认开启飞书；用空 Bean、假回执或仓库内真实凭据宣称完成。
-- 改写已 RELEASED 的 P01—P04；把 S03 及以后拉进本期。
-- 未授权实施时编码或创建 `DELIVERY.md`。
+- 其他 IM 的生产实现；在业务状态事务中调飞书网络。
+- 飞书 SDK / webhook 进入 kernel 或 scenario 模块。
+- 默认开启飞书；仓库真实密钥；空 Bean 假回执。
+- 实现文字回复入站、日期时间选择器 snooze、或非约定按钮。
+- 改写已 RELEASED 的 P01—P04；把 S03+ 拉进本期。
+- 未授权编码或预建 `DELIVERY.md`。
+- 用飞书回调绕过 Policy、revision、幂等或锁序。
 
 ## 5. 影响与不变量
 
 | 类别 | 判断 |
 | --- | --- |
-| 变化类型 | 兼容能力扩展（08 §5），非核心模型变化；不改公共表与稳定 SPI 签名语义 |
-| 场景三维 | S01/S02 保持 RELEASED / VERIFIED；契约仅补充「渠道由投递配置展开」 |
-| 能力三维 | NOT-01—NOT-03 不变；NOT-05（飞书子集）进入 DRAFT → 目标 READY → 实施后 VERIFIED |
-| C12 | 排期改为 P05；本期只验证飞书；其余 IM 仍 OUTLINE |
-| INV | 重点 [INV-05](../../02-AI-CODING-GUIDE.md)（声明式迁移）、[INV-08](../../02-AI-CODING-GUIDE.md)（接入不污染内核）、[INV-09](../../02-AI-CODING-GUIDE.md)（模块克制，渠道先包内隔离） |
+| 变化类型 | 兼容能力扩展；出站属 notification，入站为外层适配 + 复用现有命令管道；不改公共表与稳定 SPI 签名 |
+| 场景 | S01/S02 RELEASED/VERIFIED；补充飞书可执行命令与卡片按钮语义 |
+| 能力 | NOT-05 DRAFT（含入站桥约定）；C12 飞书子集 |
+| INV | [INV-05](../../02-AI-CODING-GUIDE.md)、[INV-08](../../02-AI-CODING-GUIDE.md)、[INV-09](../../02-AI-CODING-GUIDE.md) |
 
-## 6. 编码前必须决定（DRAFT 待收敛）
+## 6. 编码前仍须关闭（转 READY）
 
-以下条目须在转 READY 前写入 CAP03 / 03 / 07，不得留到编码时猜测：
+以下在用户未反对前按「已采纳默认」写入 T01 正式契约；若反对须先改本文：
 
-1. 飞书调用的具体 OpenAPI（例如机器人单聊发消息）路径、请求字段与成功受理号字段名。
-2. 文本消息格式：纯文本还是富文本；标题与正文如何拼进飞书消息。
-3. `delivery-channels` 是否允许不含 `IN_APP`（当前产品口径：**不允许**；若改变须用户重批）。
-4. 缺 `recipient-map` 时：该飞书 Action 记 `PERMANENT_FAILURE`，还是创建前直接跳过（倾向：创建 Action 并永久失败，便于投递汇总可见）。
-5. 测试夹具用 WireMock 还是进程内 Fake HTTP；禁止依赖外网真实飞书租户作为门禁。
+| 项 | 已采纳默认 |
+| --- | --- |
+| 出站 API | `POST /open-apis/im/v1/messages?receive_id_type=open_id`；`msg_type=interactive`；`uuid`←`actionKey` 摘要（≤50）；受理号 `message_id` |
+| `action.value` | 至少含 `commandKey`、`instanceId`、`definitionId`、发信时 `revision`；snooze 不内嵌绝对时间，点击时算 `T+1h` |
+| revision 冲突 | 用卡片内 revision 作 `expectedRevision`；冲突则 toast 提示冲突，不静默覆盖 |
+| 跳过原因 | 飞书「跳过」使用固定原因文案「飞书卡片跳过」（须满足 1—500 码点）；若产品要用户填因，须另批 |
+| 缺 `recipient-map` | 仍创建飞书 Action，执行时 `PERMANENT_FAILURE` |
+| 回调方式 | 开发者服务器 HTTP webhook（非长连接）；本地联调公网隧道仅运维说明，不进 CI |
+| 测试 | WireMock 模拟发信；测试 POST 伪造 `card.action.trigger` |
 
-本文件在 DRAFT 期间可随契约细化修订；转为 READY 后禁止扩大范围；RELEASED 后冻结。
+本文件在 DRAFT 期间可修订；READY 后禁止扩大范围；RELEASED 后冻结。

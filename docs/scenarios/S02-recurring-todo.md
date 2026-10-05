@@ -74,6 +74,8 @@ S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 实例仅支持`complete`、`skip`和`snooze`，都必须经过requestId幂等、expectedRevision并发校验、Policy和统一TransitionPlan提交。
 
+启用飞书渠道时，出站交互卡片对 ACTIVE/PENDING 实例固定提供三按钮，分别映射上述三命令；「稍后提醒」点击时取业务时间`T + 1小时`作为`snoozeUntil`，不提供时间选择器。跳过原因固定为「飞书卡片跳过」。卡片回调须走与 HTTP 相同的命令管道，规则见[CAP03 NOT-05](../capabilities/CAP03-notification.md)与[P05](../phases/P05/README.md)。
+
 ### 5.1 complete与skip
 
 - complete只允许`ACTIVE/PENDING`，到期后仍可执行；reason可省略，提供时最多500个Unicode码点。

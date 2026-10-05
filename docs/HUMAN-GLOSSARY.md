@@ -134,6 +134,8 @@
 | INITIAL / CHASE / ESCALATION | 首次提醒 / 催办 / 升级提醒用途 |
 | channelKey / delivery-channels | 通知投递渠道稳定键（如 IN_APP、FEISHU）/ 运行配置中的启用渠道列表；默认仅 IN_APP |
 | FEISHU / feishu_im_notification | 飞书 IM 渠道键 / 飞书通知 ActionHandler 键（P05） |
+| interactive / card.action.trigger | 飞书交互卡片消息类型 / 卡片回传交互回调（入站命令主路径） |
+| im.message.receive_v1 | 飞书接收消息事件（文字回复辅路径） |
 | open_id | 飞书用户标识；由配置把平台 recipientId 映射到该值 |
 | ALL_MISSED | 非暂停停机恢复时按顺序补齐每个漏掉的发生事实；过期通知只记录EXPIRED，不补发收件 |
 | MAX_PARTICIPANTS_PER_SCOPE / MAX_RECIPIENTS_PER_INSTANCE | 单个定义或实例参与人上限50 / 单个实例最终接收人上限10 |

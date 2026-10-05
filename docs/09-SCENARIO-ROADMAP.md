@@ -12,7 +12,7 @@
 | 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
 | 已发布P04 | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) RELEASED（标签 `v20261003-P04`）：S02 站内信标题，以及实例命令改为先锁定义再锁实例；人工验收 2026-10-03 |
-| CURRENT | 不新增场景 | notification 的 NOT-05（飞书子集）/ C12 | [P05](phases/P05/README.md) CURRENT / DRAFT：通用 IM 投递框架 + 仅实现飞书；默认 `IN_APP`，配置开启 `FEISHU`；未授权编码 |
+| CURRENT | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 | [P05](phases/P05/README.md) CURRENT / DRAFT：出站卡片 + 入站命令；默认 `IN_APP`，配置开启 `FEISHU`；未授权编码 |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不自动进入实施；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
@@ -144,6 +144,8 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-03 | P04 | 用户要求性能库与测试逻辑一致 | 性能门槛测量前暂停外来绑定并推迟到期行；`PerfGateDualProcessIT` 2 项通过；未 RELEASED |
 | 2026-10-03 | P04 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20261003-P04`；DELIVERY/IMPLEMENTATION/README 冻结 |
 | 2026-10-06 | P05、C12、NOT-05 | 用户选定飞书 IM 为 P05；要求通用 IM 框架、默认仅站内信、配置开启飞书 | 阶段包 DRAFT / CURRENT；微信/钉钉/Telegram 预留键，不实现 |
+| 2026-10-06 | P05 | 用户要求飞书整体接入：出站消息 + 入站卡片/文字命令同步 | README/NOT-05 扩为出站 interactive 与入站 card.action.trigger；文字回复为辅路径 |
+| 2026-10-06 | P05 | 用户确认：同期交付出站卡片+入站按钮；S02 三按钮；稍后=+1h；文字回复不实现 | S01 无按钮；§6 其余项采用已采纳默认，待 T01 写入正式契约 |
 
 ## 8. 下一场景进入实施的检查
 

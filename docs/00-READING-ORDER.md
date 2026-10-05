@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。P03已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P03`）。P04已于2026-10-03人工验收通过并 RELEASED（Git 标签 `v20261003-P04`）。当前 CURRENT 阶段为 [P05](phases/P05/README.md)（DRAFT）：飞书 IM 通知与可配置多渠框架；未授权前禁止编码。
+当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。P03已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P03`）。P04已于2026-10-03人工验收通过并 RELEASED（Git 标签 `v20261003-P04`）。当前 CURRENT 阶段为 [P05](phases/P05/README.md)（DRAFT）：飞书整体接入（出站卡片 + 入站命令）；未授权前禁止编码。
 
 ## 1. 阅读顺序
 
@@ -24,7 +24,7 @@
 | 已发布 | [P02工程结构与测试镜像](phases/P02/README.md) | 工程结构与测试镜像 RELEASED；交付见[DELIVERY](phases/P02/DELIVERY.md)，标签 `v20260917-P02` |
 | 已发布 | [P03 Jackson 3 原生迁移](phases/P03/README.md) | Jackson 3 RELEASED；交付见[DELIVERY](phases/P03/DELIVERY.md)，标签 `v20260917-P03` |
 | 已发布 | [P04 标题与锁序](phases/P04/README.md) | S02 站内信标题与实例命令锁序 RELEASED；交付见[DELIVERY](phases/P04/DELIVERY.md)，标签 `v20261003-P04` |
-| 当前 | [P05 飞书 IM 通知](phases/P05/README.md) | CURRENT / DRAFT；通用 IM 投递框架 + 仅飞书；默认站内信、配置开启；见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md) |
+| 当前 | [P05 飞书整体接入](phases/P05/README.md) | CURRENT / DRAFT；出站卡片 + 入站命令；默认站内信、配置开启；见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md) |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
@@ -76,7 +76,7 @@
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
 | 2.3文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | [P05](phases/P05/README.md) CURRENT / DRAFT | 飞书 IM + 可配置多渠；收敛待决问题后转 READY；未授权不得编码 |
+| 当前阶段 | [P05](phases/P05/README.md) CURRENT / DRAFT | 飞书整体接入（出站+入站）；收敛待决后转 READY；未授权不得编码 |
 | P04 发布 | RELEASED（`v20261003-P04`） | 人工验收 2026-10-03；证据[DELIVERY](phases/P04/DELIVERY.md) |
 | P03 发布 | RELEASED（`v20260917-P03`） | 人工验收 2026-09-17；证据[DELIVERY](phases/P03/DELIVERY.md) |
 | P02 发布 | RELEASED（`v20260917-P02`） | 人工验收 2026-09-17；证据[DELIVERY](phases/P02/DELIVERY.md) |

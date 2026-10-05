@@ -157,11 +157,11 @@ LOCAL_TRANSACTIONAL结果事务按definition→instance→Action→Attempt加锁
 
 ## 8. 通知能力执行
 
-场景产生notification意图时，capability-notification在Transition事务内保存tt_notification，并为每个接收人/渠道创建独立Action Job。渠道失败相互隔离；一个飞书失败不能回滚已经提交的站内信或改变S01“提醒已触发”。
+场景产生notification意图时，capability-notification在Transition事务内保存tt_notification，并为每个接收人/**启用投递渠道**创建独立Action Job。渠道失败相互隔离；一个飞书失败不能回滚已经提交的站内信或改变S01“提醒已触发”。投递渠道列表由运行配置拥有，默认仅`IN_APP`；P05可将`FEISHU`加入列表（见[CAP03 NOT-05](capabilities/CAP03-notification.md)、[P05](phases/P05/README.md)）。
 
 IN_APP没有外部网络副作用：结果事务原子插入tt_inbox、闭合Attempt并把Action置SUCCEEDED。唯一键冲突时只有内容和接收人一致才视为幂等成功，否则报告完整性错误。
 
-未来飞书、京ME、邮件Handler在事务外调用。每次必须携带平台actionKey或渠道支持的幂等键；记录受理号、错误分类和UNKNOWN。渠道SDK自身隐藏重试必须关闭或纳入一次调用的明确超时预算，防止平台与SDK叠加成不可控重试。
+飞书等网络渠道Handler在事务外调用。每次必须携带平台actionKey或渠道支持的幂等键；记录受理号、错误分类和UNKNOWN。渠道SDK自身隐藏重试必须关闭或纳入一次调用的明确超时预算，防止平台与SDK叠加成不可控重试。P05只实现飞书；微信、钉钉、Telegram等预留channelKey，不得空实现。
 
 ### 8.1 S02首版提醒与snooze
 

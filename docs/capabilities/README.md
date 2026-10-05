@@ -18,7 +18,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | CAP01 | `calendar` | 日历与时间 | `timeimprint-task-service-capability-calendar` | P01 | RELEASED | VERIFIED | 五种基础公历规则、北京时间、预览与滚动规划 | C01—C04、C08、C10、C11、C17及农历 | [CAP01](CAP01-calendar.md) |
 | CAP02 | `trigger` | 外部/条件/依赖触发 | `timeimprint-task-service-capability-trigger` | BACKLOG | OUTLINE | NOT_STARTED | 无 | C05、C07，服务S05、S11、S12等 | [CAP02](CAP02-trigger.md) |
-| CAP03 | `notification` | 通知与收件 | `timeimprint-task-service-capability-notification` | P01 | RELEASED | VERIFIED | 通知意图、IN_APP、收件、接收人投影、Action执行 | C09、C12、C18及C16的通知部分 | [CAP03](CAP03-notification.md) |
+| CAP03 | `notification` | 通知与收件 | `timeimprint-task-service-capability-notification` | P01 | RELEASED | VERIFIED | 通知意图、IN_APP、收件、接收人投影、Action执行 | C09、C12（P05 飞书子集 DRAFT）、C18及C16的通知部分 | [CAP03](CAP03-notification.md) |
 | CAP04 | `collaboration` | 协作与主体 | `timeimprint-task-service-capability-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | 无；P01公共Participant与本地身份不是本能力已实现 | C13、C16，服务S06—S09、S15 | [CAP04](CAP04-collaboration.md) |
 | CAP05 | `workflow` | 流程编排 | `timeimprint-task-service-capability-workflow` | BACKLOG | OUTLINE | NOT_STARTED | 无 | C06及S08、S09 | [CAP05](CAP05-workflow.md) |
 | CAP06 | `aggregation` | 聚合与统计 | `timeimprint-task-service-capability-aggregation` | BACKLOG | OUTLINE | NOT_STARTED | 无 | S10、S12、S13的计数、窗口和摘要 | [CAP06](CAP06-aggregation.md) |
@@ -42,7 +42,7 @@ CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](..
 | C09 | 提醒节制 | [notification](CAP03-notification.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C10 | 发生例外 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C11 | 有效区间与结束条件 | [calendar](CAP01-calendar.md) | NEXT_REVIEW | OUTLINE | NOT_STARTED |
-| C12 | 多IM渠道 | [notification](CAP03-notification.md) | BACKLOG | OUTLINE | NOT_STARTED |
+| C12 | 多IM渠道 | [notification](CAP03-notification.md) | P05 | DRAFT | NOT_STARTED |
 | C13 | 身份与权限 | [collaboration](CAP04-collaboration.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C14 | 缓存接入 | [09跨域平台候选](../09-SCENARIO-ROADMAP.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C15 | 前端与用户操作界面 | [09产品接入候选](../09-SCENARIO-ROADMAP.md) | BACKLOG | OUTLINE | NOT_STARTED |

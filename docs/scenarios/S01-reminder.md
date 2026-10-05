@@ -51,7 +51,7 @@ S01使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 ## 3. 通知与接收人
 
-每个occurrence只有一个业务`INITIAL`通知槽位。通知能力按最终接收人和渠道物化独立Action Job；P01只实现`IN_APP`。该终态迁移自身产生的Action允许继续执行，更早迁移遗留的未终结Action在实例TERMINAL后取消。
+每个occurrence只有一个业务`INITIAL`通知槽位。通知能力按最终接收人和**启用投递渠道**物化独立Action Job；P01—P04只装配`IN_APP`。P05起投递渠道由运行配置选择，默认仍仅`IN_APP`；配置加入`FEISHU`后同一槽位额外产生飞书Action，规则见[CAP03 NOT-05](../capabilities/CAP03-notification.md)与[P05](../phases/P05/README.md)。该终态迁移自身产生的Action允许继续执行，更早迁移遗留的未终结Action在实例TERMINAL后取消。
 
 所有S01通知固定`expiresAt = occurrenceAt + 24小时`。数据库时间`L >= expiresAt`且Action尚未开始成功执行时，Action转为`EXPIRED`且不得生成陈旧收件；实例仍保留TRIGGERED事实，渠道失败或过期不得反向改写场景终态。
 

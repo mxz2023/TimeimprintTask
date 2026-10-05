@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| 无 | — | 从 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| [P05 飞书 IM 通知](P05/README.md) | CURRENT / DRAFT | 通用 IM 投递框架 + 仅实现飞书；默认只发站内信，配置开启飞书。下一动作：收敛 NOT-05 待决问题至 READY；未授权前禁止编码 |
 
 ## 已发布阶段
 
@@ -19,7 +19,7 @@
 
 ## 未来阶段
 
-S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW，不自动进入实施。须用户另选范围、建立阶段包并授权。
+S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。均不自动进入实施。
 
 ## 更新规则
 

@@ -60,7 +60,7 @@ public class ActionExternalExecutor {
 
         record ClaimPack(String token, long definitionId, long instanceId, long transitionId, long controlGen,
                 String handlerKey, int schemaVersion, String actionKey, String tenantId,
-                String targetType, String targetId, String payloadJson) {}
+                String targetType, String targetId, String payloadJson, long instanceRevision) {}
 
         ClaimPack claimed = tx.execute(() -> {
             var peek = actionPort.findById(actionJobId);
@@ -126,7 +126,8 @@ public class ActionExternalExecutor {
                     action.tenantId(),
                     action.targetType(),
                     action.targetId(),
-                    action.payloadJson());
+                    action.payloadJson(),
+                    instOpt.get().revision());
         });
         if (claimed == null) {
             return;
@@ -173,6 +174,8 @@ public class ActionExternalExecutor {
         fields.put("tenantId", claimed.tenantId());
         fields.put("recipientType", claimed.targetType());
         fields.put("recipientId", claimed.targetId());
+        // 发信时刻的实例 revision：渠道卡片据此回传 expectedRevision（P05 飞书按钮冲突检测）。
+        fields.put("instanceRevision", claimed.instanceRevision());
         var execCtx = new ActionExecutionContext(
                 actionJobId,
                 claimed.definitionId(),

@@ -37,6 +37,15 @@ timeimprint:
     # 合法值：[IN_APP] 或 [IN_APP, FEISHU]；必须含 IN_APP。默认仅站内信（与 P01—P04 一致）。
     delivery-channels:
       - IN_APP
+    # 仅当 delivery-channels 加入 FEISHU 时才读取并校验；凭据只来自环境变量，禁止写入仓库。
+    # 启用示例：TIMEIMPRINT_NOTIFICATION_DELIVERYCHANNELS_1=FEISHU，并按需配置
+    # timeimprint.notification.feishu.recipient-map.<platformUserId>=<open_id>（缺映射时飞书 Action 为 PERMANENT_FAILURE）。
+    feishu:
+      app-id: ${FEISHU_APP_ID:}
+      app-secret: ${FEISHU_APP_SECRET:}
+      base-url: ${FEISHU_BASE_URL:https://open.feishu.cn}
+      # 单次 HTTP 调用超时；一次出站含「取令牌 + 发消息」，须 ≤ 5 才能落入 Handler 10 秒预算。
+      timeout-seconds: ${FEISHU_TIMEOUT_SECONDS:5}
 
 management:
   endpoints:

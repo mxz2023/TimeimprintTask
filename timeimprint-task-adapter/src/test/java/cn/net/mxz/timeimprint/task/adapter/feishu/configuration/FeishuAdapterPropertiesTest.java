@@ -19,4 +19,9 @@ class FeishuAdapterPropertiesTest {
         assertThrows(IllegalArgumentException.class, () -> new FeishuAdapterProperties(" ", 5));
         assertThrows(IllegalArgumentException.class, () -> new FeishuAdapterProperties("https://x", 0));
     }
+
+    @Test
+    void normalizedBaseUrlStripsTrailingSlashes() {
+        assertEquals("http://h:1", new FeishuAdapterProperties(" http://h:1// ", 1).normalizedBaseUrl());
+    }
 }

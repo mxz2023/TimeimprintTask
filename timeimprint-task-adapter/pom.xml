@@ -19,6 +19,10 @@
             <artifactId>timeimprint-task-common</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>

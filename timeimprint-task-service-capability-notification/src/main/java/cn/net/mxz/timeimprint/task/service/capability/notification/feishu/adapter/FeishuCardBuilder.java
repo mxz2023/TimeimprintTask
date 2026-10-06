@@ -47,8 +47,11 @@ public final class FeishuCardBuilder {
             elements.addObject().put("tag", "markdown").put("content", body);
         }
         if (withActions) {
+            // 等宽 weighted 会把三钮拉满整行、间距过大；改用 auto + 小间距，按钮按内容紧挨排列。
             ObjectNode set = elements.addObject();
             set.put("tag", "column_set").put("flex_mode", "none");
+            set.put("horizontal_spacing", "small");
+            set.put("horizontal_align", "right");
             ArrayNode columns = set.putArray("columns");
             List<String[]> buttons = List.of(
                     new String[] {"完成", "primary", COMMAND_COMPLETE},
@@ -56,7 +59,7 @@ public final class FeishuCardBuilder {
                     new String[] {"稍后提醒", "default", COMMAND_SNOOZE});
             for (String[] b : buttons) {
                 ObjectNode column = columns.addObject();
-                column.put("tag", "column").put("width", "weighted").put("weight", 1);
+                column.put("tag", "column").put("width", "auto");
                 ObjectNode button = column.putArray("elements").addObject();
                 button.put("tag", "button");
                 button.putObject("text").put("tag", "plain_text").put("content", b[0]);

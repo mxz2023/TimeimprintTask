@@ -39,8 +39,12 @@ class FeishuCardBuilderTest {
     @Test
     void actionCardHasThreeCallbackButtonsInOrder() {
         JsonNode card = mapper.readTree(builder.build("T", "B", true, 3, 11, 7));
-        JsonNode columns = card.path("body").path("elements").get(1).path("columns");
+        JsonNode actionRow = card.path("body").path("elements").get(1);
+        assertEquals("small", actionRow.path("horizontal_spacing").asString());
+        assertEquals("right", actionRow.path("horizontal_align").asString());
+        JsonNode columns = actionRow.path("columns");
         assertEquals(3, columns.size());
+        assertEquals("auto", columns.get(0).path("width").asString());
         assertEquals("完成", columns.get(0).path("elements").get(0).path("text").path("content").asString());
         assertEquals("跳过", columns.get(1).path("elements").get(0).path("text").path("content").asString());
         assertEquals("稍后提醒", columns.get(2).path("elements").get(0).path("text").path("content").asString());

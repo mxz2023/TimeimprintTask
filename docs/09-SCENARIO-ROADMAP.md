@@ -12,11 +12,12 @@
 | 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
 | 已发布P04 | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) RELEASED（标签 `v20261003-P04`）：S02 站内信标题，以及实例命令改为先锁定义再锁实例；人工验收 2026-10-03 |
-| CURRENT | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 | [P05](phases/P05/README.md) CURRENT / VERIFYING：出站卡片 + 入站命令；adapter 模块；T05 PASS，等待人工验收 |
-| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不自动进入实施；由用户另行决定是否进入下一阶段 |
+| 已发布P05 | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 飞书子集 | [P05](phases/P05/README.md) RELEASED（标签 `v20261007-P05`）：出站卡片 + 入站命令；adapter 模块；人工验收 2026-10-07 |
+| CURRENT | 无 | 无 | 从下方 NEXT_REVIEW 选择范围后创建下一阶段 |
+| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力；C12 其余 IM | 不自动进入实施；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。当前 CURRENT 为 [P05](phases/P05/README.md)（VERIFYING）：飞书整体接入（出站卡片 + 入站命令）；微信/钉钉/Telegram 等仍属 C12 后续。NEXT_REVIEW 中的业务场景须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。当前无 CURRENT 阶段。NEXT_REVIEW 中的业务场景须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -59,7 +60,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 | C09 | 提醒节制 | notification | BACKLOG | NOT_STARTED |
 | C10 | 发生例外 | calendar | BACKLOG | NOT_STARTED |
 | C11 | 有效区间与结束条件 | calendar | NEXT_REVIEW | NOT_STARTED |
-| C12 | 多IM渠道 | notification | P05 | NOT_STARTED |
+| C12 | 多IM渠道 | notification | P05（飞书子集）/ BACKLOG（其余） | 飞书子集 VERIFIED（`v20261007-P05`）；其余 IM NOT_STARTED |
 | C13 | 身份与权限 | collaboration | BACKLOG | NOT_STARTED |
 | C14 | 缓存接入 | 跨域平台候选 | BACKLOG | NOT_STARTED |
 | C15 | 前端与用户操作界面 | 产品接入候选 | BACKLOG | NOT_STARTED |
@@ -150,6 +151,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-06 | P05、T01 | 用户同意 §6 默认并执行 T01；阶段 READY | 02/03/06/07/CAP03 已写入；NOT-05 READY_FOR_IMPLEMENTATION；未授权编码 |
 | 2026-10-06 | P05 | 用户审核全部 Tx 通过并授权实施；阶段 IMPLEMENTING | baselineGitRef=`9d9dc87…`；从 T02 起编码 |
 | 2026-10-06 | P05、T05 | T05 完成依赖门禁与全量回归；阶段 VERIFYING | 建 [DELIVERY](phases/P05/DELIVERY.md)；真库 99 项、双进程 7 项通过；未 RELEASED、未打标签 |
+| 2026-10-07 | P05、NOT-05、C12 | 用户人工验收通过；阶段 RELEASED | Git 标签 `v20261007-P05`；NOT-05 VERIFIED（飞书子集）；DELIVERY/IMPLEMENTATION/README 冻结 |
 
 ## 8. 下一场景进入实施的检查
 

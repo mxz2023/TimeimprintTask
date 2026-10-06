@@ -4,7 +4,7 @@
 > 阶段身份与范围见 [README](README.md)，任务状态见 [IMPLEMENTATION](IMPLEMENTATION.md)，验收项定义见 [07 §6.1](../../07-ACCEPTANCE.md)。
 
 recordedAtUtc: 2026-10-06T02:27:32Z
-阶段状态: VERIFYING（证据已收集；尚未 RELEASED，未打 Git 标签，待人工验收）
+阶段状态: RELEASED（2026-10-07 用户人工验收通过；Git 标签 `v20261007-P05`；本文此后不再改写）
 
 ---
 
@@ -13,7 +13,9 @@ recordedAtUtc: 2026-10-06T02:27:32Z
 | 项目 | 值 |
 | --- | --- |
 | baselineGitRef | `9d9dc87f494a4738cf948b4fc38f14b947d456a2`（T01 READY 提交；授权实施起点，见 [README](README.md)） |
-| 证据所测代码基线 | `57161c5e2347163be82f0ad6b80982b132196cea`（T04 提交）之上的 T05 工作区改动；T05 改动在证据收集时**尚未提交**，提交后以提交哈希为准 |
+| 证据所测代码基线 | T05 证据收集时基于 `57161c5`（T04）之上工作区；其后合入 T05 `25fd827`、卡片右对齐 `cccf52b` |
+| VERIFYING 证据入仓 | `25fd827`（T05 DELIVERY 与门禁） |
+| RELEASED 冻结提交 | 见标签 `v20261007-P05` |
 | JDK | Amazon Corretto 21.0.12（`openjdk version "21.0.12" 2026-07-21 LTS`） |
 | 操作系统 | macOS 27.0.1（arm64） |
 | Maven Wrapper | 3.9.9 |
@@ -101,6 +103,10 @@ T05 为让门禁成立所做的生产改动：
 
 | 任务 | 状态 |
 | --- | --- |
-| T00—T05 | PASS（本证据）；阶段 VERIFYING，等待人工验收后才可 RELEASED 与打标签 `vyyyyMMdd-P05` |
+| T00—T05 | PASS（本证据）；阶段 RELEASED（标签 `v20261007-P05`） |
 
-[NOT-05](../../capabilities/CAP03-notification.md)（多渠道与飞书整体接入）的 implementationStatus 仍为 IN_PROGRESS；只有人工 RELEASED 后才可改为 VERIFIED。
+## 8. 人工验收
+
+2026-10-07 用户确认人工验收通过，并接受 [DELIVERY §6](DELIVERY.md) 已知限制（含 F02/F05 为单元/契约级、无真实飞书租户作为 CI 门禁）。验收前本机已对开启 `FEISHU` 的出站做冒烟：S01 提醒与 S02 待办到点后均产生 `in_app_notification` 与 `feishu_im_notification`，飞书侧 `FEISHU_MESSAGE_SENT`。
+
+[NOT-05](../../capabilities/CAP03-notification.md)（多渠道与飞书整体接入）implementationStatus 已改为 `VERIFIED`。本文此后不再改写。

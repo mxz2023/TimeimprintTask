@@ -1,6 +1,6 @@
 # P05 · 实施任务
 
-> 阶段身份与范围见 [README](README.md)。总体状态 VERIFYING；T02—T05 均 PASS，等待人工验收。
+> 阶段身份与范围见 [README](README.md)。阶段已 RELEASED（2026-10-07；标签 `v20261007-P05`）；本文冻结，不再改写。T00—T05 均已 PASS，证据见 [DELIVERY](DELIVERY.md)。
 
 ## 1. 任务状态
 
@@ -33,4 +33,4 @@
 | DRAFT → READY | T01 PASS（已完成） |
 | READY → IMPLEMENTING | 用户明确授权本阶段实施（已完成 2026-10-06） |
 | IMPLEMENTING → VERIFYING | T02—T04 PASS；建 DELIVERY（已完成，T05 PASS） |
-| VERIFYING → RELEASED | T05 与人工验收；标签 `vyyyyMMdd-P05` |
+| VERIFYING → RELEASED | T05 与人工验收；标签 `v20261007-P05`（已完成） |

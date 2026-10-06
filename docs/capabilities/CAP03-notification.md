@@ -10,7 +10,7 @@
 | contractStatus | RELEASED |
 | implementationStatus | VERIFIED |
 | P01使用场景 | [S01](../scenarios/S01-reminder.md)、[S02](../scenarios/S02-recurring-todo.md) |
-| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)；Git 标签 `v20260915-P01` |
+| DELIVERY证据 | [P01 DELIVERY](../phases/P01/DELIVERY.md)（标签 `v20260915-P01`）；[P05 DELIVERY](../phases/P05/DELIVERY.md)（NOT-05；标签 `v20261007-P05`） |
 
 ## 能力项
 
@@ -20,7 +20,7 @@
 | NOT-02 | IN_APP渠道和站内收件 | P01 | RELEASED | VERIFIED | S01、S02 |
 | NOT-03 | Action Job、Attempt、失效和受控重试映射 | P01 | RELEASED | VERIFIED | S01、S02 |
 | NOT-04 | 提醒节制、静默、频控、汇总与降级 | BACKLOG | OUTLINE | NOT_STARTED | C09 |
-| NOT-05 | 可配置多IM渠道 + 飞书整体接入（出站卡片与入站命令） | P05 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | C12；阶段 [P05](../phases/P05/README.md) VERIFYING，证据[DELIVERY](../phases/P05/DELIVERY.md)；人工 RELEASED 前保持 IN_PROGRESS |
+| NOT-05 | 可配置多IM渠道 + 飞书整体接入（出站卡片与入站命令） | P05 | RELEASED | VERIFIED | C12 飞书子集；阶段 [P05](../phases/P05/README.md) RELEASED（标签 `v20261007-P05`）；证据[DELIVERY](../phases/P05/DELIVERY.md) |
 | NOT-06 | 委托和多接收人增强 | BACKLOG | OUTLINE | NOT_STARTED | C16，主要协作规则归collaboration |
 | NOT-07 | 通知保留、删除和合规清理 | BACKLOG | OUTLINE | NOT_STARTED | C18 |
 
@@ -34,7 +34,7 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 
 ## NOT-05（P05：通用 IM 框架 + 飞书整体接入）
 
-> 契约状态：`READY_FOR_IMPLEMENTATION`。规则以本文与[03 §3.1](../03-INTEGRATION-CONTRACTS.md)、[06 §8](../06-SCHEDULING.md)、[07 F01—F10](../07-ACCEPTANCE.md)、[P05](../phases/P05/README.md)为准。
+> 契约状态：`RELEASED`；实现状态：`VERIFIED`（标签 `v20261007-P05`）。规则以本文与[03 §3.1](../03-INTEGRATION-CONTRACTS.md)、[06 §8](../06-SCHEDULING.md)、[07 F01—F10](../07-ACCEPTANCE.md)、[P05](../phases/P05/README.md)为准。
 
 ### 目标与例子
 

@@ -37,16 +37,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P05 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P04；Git 标签 `v20261003-P04` |
 | baselineGitRef | `9d9dc87f494a4738cf948b4fc38f14b947d456a2`（T01 READY 提交；授权实施起点） |
-| 工程状态 | IN_PROGRESS（证据见 DELIVERY；人工验收前不改 VERIFIED） |
-| Git发布标签 | 未打；发布时使用 `vyyyyMMdd-P05` |
-| 下一动作 | [T05](IMPLEMENTATION.md) PASS；等待人工验收，通过后 RELEASED 并打标签 `vyyyyMMdd-P05` |
-| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | [DELIVERY](DELIVERY.md) |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261007-P05`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-07 用户确认通过 |
+| 下一动作 | 无；从 [09](../../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md)（冻结，不再改写） |
+| 交付证据 | [DELIVERY](DELIVERY.md)（冻结，不再改写） |
+
+用户已于 2026-10-06 授权并完成 T00—T05；证据见 [DELIVERY](DELIVERY.md)。2026-10-07 人工验收通过，阶段已 RELEASED（标签 `v20261007-P05`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 已确认产品口径
 
@@ -116,7 +119,7 @@
 | --- | --- |
 | 变化类型 | 兼容能力扩展 + 新增 adapter 模块；[02](../../02-AI-CODING-GUIDE.md) 模块表已改为 14；不改公共表与稳定 SPI 签名语义 |
 | 场景 | S01/S02 RELEASED/VERIFIED；已补充飞书卡片与按钮语义 |
-| 能力 | NOT-05 `READY_FOR_IMPLEMENTATION`；C12 飞书子集 |
+| 能力 | NOT-05 `RELEASED` / `VERIFIED`（标签 `v20261007-P05`）；C12 飞书子集已交付，其余 IM 仍 BACKLOG |
 | INV | [INV-05](../../02-AI-CODING-GUIDE.md)、[INV-08](../../02-AI-CODING-GUIDE.md)、[INV-09](../../02-AI-CODING-GUIDE.md)（含 adapter 例外） |
 
 ## 6. 已锁定工程默认（T01 已写入正式契约）

@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前 CURRENT 为 [P05](phases/P05/README.md)（VERIFYING）：飞书整体接入；任务见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md)，证据见[DELIVERY](phases/P05/DELIVERY.md)；[T05](phases/P05/IMPLEMENTATION.md) PASS，等待人工验收。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)与[P04](phases/P04/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`）。S03 及以后仍须另选范围并授权；不得改写已冻结阶段。
+当前无 CURRENT 阶段；下一范围从[09演进路线](09-SCENARIO-ROADMAP.md)的 NEXT_REVIEW 选择并建立阶段包。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)、[P04](phases/P04/README.md)与[P05](phases/P05/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`、`v20261007-P05`）；P05证据见[DELIVERY](phases/P05/DELIVERY.md)。S03 及以后仍须另选范围并授权；不得改写已冻结阶段。

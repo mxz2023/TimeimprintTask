@@ -66,10 +66,11 @@ class FeishuOutboundMockSendTest {
         FeishuNotificationProperties props = new FeishuNotificationProperties();
         props.setAppId("cli_it");
         props.setAppSecret("secret_it");
+        props.setVerificationToken("vt_it");
         props.setBaseUrl("http://127.0.0.1:" + server.getAddress().getPort());
         props.setTimeoutSeconds(2);
         props.setRecipientMap(Map.of("local-actor", "ou_it"));
-        props.validateForOutbound(FeishuNotificationProperties.OUTBOUND_BUDGET_SECONDS);
+        props.validateWhenFeishuEnabled(FeishuNotificationProperties.OUTBOUND_BUDGET_SECONDS);
         var http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
         var tokens = new CachingFeishuTokenProvider(
                 props.adapterProperties(), props.credentials(), http, mapper, Clock.systemUTC());

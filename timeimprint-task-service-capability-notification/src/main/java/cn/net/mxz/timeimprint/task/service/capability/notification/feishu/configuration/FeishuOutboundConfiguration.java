@@ -28,7 +28,7 @@ public class FeishuOutboundConfiguration {
 
     @Bean
     FeishuMessageClient feishuMessageClient(FeishuNotificationProperties properties) {
-        properties.validateForOutbound(FeishuNotificationProperties.OUTBOUND_BUDGET_SECONDS);
+        properties.validateWhenFeishuEnabled(FeishuNotificationProperties.OUTBOUND_BUDGET_SECONDS);
         var adapterProps = properties.adapterProperties();
         // 平台自行管理重试（Action 状态机）：JDK HttpClient 无隐藏重试，仅设置连接超时。
         HttpClient http = HttpClient.newBuilder()

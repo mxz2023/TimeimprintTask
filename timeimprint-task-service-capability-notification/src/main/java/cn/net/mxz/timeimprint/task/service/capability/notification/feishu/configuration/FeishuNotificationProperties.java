@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 绑定 {@code timeimprint.notification.feishu.*}（03 §3.1）。
  *
- * <p>仅当 delivery-channels 含 FEISHU 时才会被 {@link #validateForOutbound(int)} 校验；默认仅 IN_APP 时不要求任何飞书配置。
+ * <p>仅当 delivery-channels 含 FEISHU 时才会被 {@link #validateWhenFeishuEnabled(int)} 校验；默认仅 IN_APP 时不要求任何飞书配置。
  * 凭据只来自运行配置，禁止写入仓库；本类不实现 toString，避免日志泄露密钥。
  */
 @Component
@@ -23,25 +23,29 @@ public class FeishuNotificationProperties {
 
     private String appId;
     private String appSecret;
-    /** T04 入站回调使用；出站不要求。 */
+    /** 入站回调必填（03：启用 FEISHU 时出站与入站配置须齐全）。 */
     private String verificationToken;
-    /** T04 入站回调使用；可选。 */
+    /** 入站回调可选；开发者后台开启加密时必填。 */
     private String encryptKey;
     private String baseUrl = FeishuAdapterProperties.DEFAULT_BASE_URL;
     private int timeoutSeconds = FeishuAdapterProperties.DEFAULT_TIMEOUT_SECONDS;
     private Map<String, String> recipientMap = new LinkedHashMap<>();
 
     /**
-     * 启用 FEISHU 出站时的启动校验；失败抛出 {@link IllegalStateException}。
+     * 启用 FEISHU 时的启动校验（出站凭据 + 入站 verification-token）；失败抛出 {@link IllegalStateException}。
      * recipient-map 允许为空或部分缺失：缺映射在执行期归为 PERMANENT_FAILURE，而不是启动失败。
      */
-    public void validateForOutbound(int handlerBudgetSeconds) {
+    public void validateWhenFeishuEnabled(int handlerBudgetSeconds) {
         if (isBlank(appId)) {
             throw new IllegalStateException("timeimprint.notification.feishu.app-id is required when FEISHU is enabled");
         }
         if (isBlank(appSecret)) {
             throw new IllegalStateException(
                     "timeimprint.notification.feishu.app-secret is required when FEISHU is enabled");
+        }
+        if (isBlank(verificationToken)) {
+            throw new IllegalStateException(
+                    "timeimprint.notification.feishu.verification-token is required when FEISHU is enabled");
         }
         if (isBlank(baseUrl)) {
             throw new IllegalStateException("timeimprint.notification.feishu.base-url must not be blank");

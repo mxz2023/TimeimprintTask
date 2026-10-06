@@ -524,14 +524,14 @@ public final class StructureQualityGate {
                 "timeimprint-task-gateway",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.gateway",
-                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "shared"),
+                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared"),
                         Set.of("gateway", "mapper"),
                         false));
         m.put(
                 "timeimprint-task-web",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.web",
-                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "shared"),
+                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared"),
                         Set.of("controller", "filter", "error", "configuration"),
                         false));
         return Map.copyOf(m);

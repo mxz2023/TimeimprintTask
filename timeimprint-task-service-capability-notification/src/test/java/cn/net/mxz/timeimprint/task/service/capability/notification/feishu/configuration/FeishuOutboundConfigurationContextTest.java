@@ -52,11 +52,25 @@ class FeishuOutboundConfigurationContextTest {
                         "timeimprint.notification.delivery-channels[0]=IN_APP",
                         "timeimprint.notification.delivery-channels[1]=FEISHU",
                         "timeimprint.notification.feishu.app-id=cli_x",
-                        "timeimprint.notification.feishu.app-secret=s_x")
+                        "timeimprint.notification.feishu.app-secret=s_x",
+                        "timeimprint.notification.feishu.verification-token=vt_x")
                 .run(ctx -> {
                     assertTrue(ctx.getStartupFailure() == null);
                     assertEquals(1, ctx.getBeansOfType(FeishuMessageClient.class).size());
                     assertNotNull(ctx.getBean(FeishuImNotificationHandler.class));
+                });
+    }
+
+    @Test
+    void feishuEnabledWithoutVerificationTokenFailsStartup() {
+        runner.withPropertyValues(
+                        "timeimprint.notification.delivery-channels[0]=IN_APP",
+                        "timeimprint.notification.delivery-channels[1]=FEISHU",
+                        "timeimprint.notification.feishu.app-id=cli_x",
+                        "timeimprint.notification.feishu.app-secret=s_x")
+                .run(ctx -> {
+                    assertNotNull(ctx.getStartupFailure());
+                    assertTrue(rootMessage(ctx.getStartupFailure()).contains("verification-token"));
                 });
     }
 

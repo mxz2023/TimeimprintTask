@@ -44,7 +44,7 @@
 | baselineGitRef | `9d9dc87f494a4738cf948b4fc38f14b947d456a2`（T01 READY 提交；授权实施起点） |
 | 工程状态 | IN_PROGRESS |
 | Git发布标签 | 未打；发布时使用 `vyyyyMMdd-P05` |
-| 下一动作 | [T03](IMPLEMENTATION.md) PASS；继续 [T04](IMPLEMENTATION.md)（入站回调 + 三命令） |
+| 下一动作 | [T04](IMPLEMENTATION.md) PASS；继续 [T05](IMPLEMENTATION.md)（门禁 + 全量回归 + DELIVERY） |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | 进入 VERIFYING 前不得创建 `DELIVERY.md` |
 

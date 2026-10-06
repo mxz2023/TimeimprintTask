@@ -46,17 +46,19 @@ class FeishuNotificationPropertiesContextTest {
         assertNull(p.openIdFor("other"));
         assertEquals("http://localhost:9", p.adapterProperties().baseUrl());
         assertEquals("cli_1", p.credentials().appId());
-        assertDoesNotThrow(() -> p.validateForOutbound(10));
+        assertDoesNotThrow(() -> p.validateWhenFeishuEnabled(10));
     }
 
     @Test
-    void validationRequiresCredentialsButNotRecipientMap() {
+    void validationRequiresCredentialsTokenButNotRecipientMap() {
         FeishuNotificationProperties p = new FeishuNotificationProperties();
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setAppId("a");
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setAppSecret("s");
-        assertDoesNotThrow(() -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
+        p.setVerificationToken("vt");
+        assertDoesNotThrow(() -> p.validateWhenFeishuEnabled(10));
     }
 
     @Test
@@ -64,17 +66,18 @@ class FeishuNotificationPropertiesContextTest {
         FeishuNotificationProperties p = new FeishuNotificationProperties();
         p.setAppId("a");
         p.setAppSecret("s");
+        p.setVerificationToken("vt");
         p.setBaseUrl("ftp://x");
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setBaseUrl("not a url");
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setBaseUrl("https://open.feishu.cn");
         p.setTimeoutSeconds(6);
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setTimeoutSeconds(0);
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
         p.setTimeoutSeconds(5);
         p.setRecipientMap(Map.of("u", " "));
-        assertThrows(IllegalStateException.class, () -> p.validateForOutbound(10));
+        assertThrows(IllegalStateException.class, () -> p.validateWhenFeishuEnabled(10));
     }
 }

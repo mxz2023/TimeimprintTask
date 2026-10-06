@@ -24,7 +24,7 @@
 | 已发布 | [P02工程结构与测试镜像](phases/P02/README.md) | 工程结构与测试镜像 RELEASED；交付见[DELIVERY](phases/P02/DELIVERY.md)，标签 `v20260917-P02` |
 | 已发布 | [P03 Jackson 3 原生迁移](phases/P03/README.md) | Jackson 3 RELEASED；交付见[DELIVERY](phases/P03/DELIVERY.md)，标签 `v20260917-P03` |
 | 已发布 | [P04 标题与锁序](phases/P04/README.md) | S02 站内信标题与实例命令锁序 RELEASED；交付见[DELIVERY](phases/P04/DELIVERY.md)，标签 `v20261003-P04` |
-| 当前 | [P05 飞书整体接入](phases/P05/README.md) | CURRENT / IMPLEMENTING；[T03](phases/P05/IMPLEMENTATION.md) PASS；下一 [T04](phases/P05/IMPLEMENTATION.md)；见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md) |
+| 当前 | [P05 飞书整体接入](phases/P05/README.md) | CURRENT / IMPLEMENTING；[T04](phases/P05/IMPLEMENTATION.md) PASS；下一 [T05](phases/P05/IMPLEMENTATION.md)；见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md) |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |

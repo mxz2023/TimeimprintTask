@@ -38,15 +38,15 @@
 | --- | --- |
 | 阶段 | P05 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P04；Git 标签 `v20261003-P04` |
 | baselineGitRef | `9d9dc87f494a4738cf948b4fc38f14b947d456a2`（T01 READY 提交；授权实施起点） |
-| 工程状态 | IN_PROGRESS |
+| 工程状态 | IN_PROGRESS（证据见 DELIVERY；人工验收前不改 VERIFIED） |
 | Git发布标签 | 未打；发布时使用 `vyyyyMMdd-P05` |
-| 下一动作 | [T04](IMPLEMENTATION.md) PASS；继续 [T05](IMPLEMENTATION.md)（门禁 + 全量回归 + DELIVERY） |
+| 下一动作 | [T05](IMPLEMENTATION.md) PASS；等待人工验收，通过后 RELEASED 并打标签 `vyyyyMMdd-P05` |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 进入 VERIFYING 前不得创建 `DELIVERY.md` |
+| 交付证据 | [DELIVERY](DELIVERY.md) |
 
 ## 2. 已确认产品口径
 

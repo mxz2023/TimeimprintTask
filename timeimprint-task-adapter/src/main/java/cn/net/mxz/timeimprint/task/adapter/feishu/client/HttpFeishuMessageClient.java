@@ -1,9 +1,11 @@
 package cn.net.mxz.timeimprint.task.adapter.feishu.client;
 
+import cn.net.mxz.timeimprint.task.adapter.feishu.auth.CachingFeishuTokenProvider;
 import cn.net.mxz.timeimprint.task.adapter.feishu.auth.FeishuAuthException;
 import cn.net.mxz.timeimprint.task.adapter.feishu.auth.FeishuTokenProvider;
 import cn.net.mxz.timeimprint.task.adapter.feishu.client.FeishuApiException.Category;
 import cn.net.mxz.timeimprint.task.adapter.feishu.configuration.FeishuAdapterProperties;
+import cn.net.mxz.timeimprint.task.adapter.feishu.configuration.FeishuCredentials;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
@@ -12,6 +14,7 @@ import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Set;
 import tools.jackson.databind.JsonNode;
@@ -48,6 +51,20 @@ public class HttpFeishuMessageClient implements FeishuMessageClient {
         this.tokenProvider = tokenProvider;
         this.httpClient = httpClient;
         this.jsonMapper = jsonMapper;
+    }
+
+    /**
+     * 组装「令牌缓存 + 发消息」的默认出站客户端。JDK {@link HttpClient} 只在 adapter 内创建，
+     * 业务模块（notification）无需也不得直接依赖 {@code java.net.http}。
+     * 平台自行管理重试（Action 状态机）：HttpClient 无隐藏重试，只设置连接超时。
+     */
+    public static HttpFeishuMessageClient create(
+            FeishuAdapterProperties properties, FeishuCredentials credentials, JsonMapper jsonMapper, Clock clock) {
+        HttpClient http = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(properties.timeoutSeconds()))
+                .build();
+        var tokens = new CachingFeishuTokenProvider(properties, credentials, http, jsonMapper, clock);
+        return new HttpFeishuMessageClient(properties, tokens, http, jsonMapper);
     }
 
     @Override

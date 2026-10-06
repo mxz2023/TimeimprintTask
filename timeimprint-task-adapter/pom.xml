@@ -30,4 +30,32 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-adapter-leaf</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <!-- P05 F10：adapter 仅允许依赖 common；禁止依赖 kernel/extension-api/application/runtime/storage/scenario/notification/gateway/web 等任何其它项目模块。 -->
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>cn.net.mxz:*</exclude>
+                                    </excludes>
+                                    <includes>
+                                        <include>cn.net.mxz:timeimprint-task-common</include>
+                                    </includes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

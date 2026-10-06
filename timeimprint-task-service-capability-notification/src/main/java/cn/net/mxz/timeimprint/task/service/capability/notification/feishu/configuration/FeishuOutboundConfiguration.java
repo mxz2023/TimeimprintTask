@@ -1,12 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.capability.notification.feishu.configuration;
 
-import cn.net.mxz.timeimprint.task.adapter.feishu.auth.CachingFeishuTokenProvider;
 import cn.net.mxz.timeimprint.task.adapter.feishu.client.FeishuMessageClient;
 import cn.net.mxz.timeimprint.task.adapter.feishu.client.HttpFeishuMessageClient;
 import cn.net.mxz.timeimprint.task.service.capability.notification.notification.configuration.NotificationDeliveryProperties;
-import java.net.http.HttpClient;
 import java.time.Clock;
-import java.time.Duration;
 import java.util.List;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -30,14 +27,8 @@ public class FeishuOutboundConfiguration {
     FeishuMessageClient feishuMessageClient(FeishuNotificationProperties properties) {
         properties.validateWhenFeishuEnabled(FeishuNotificationProperties.OUTBOUND_BUDGET_SECONDS);
         var adapterProps = properties.adapterProperties();
-        // 平台自行管理重试（Action 状态机）：JDK HttpClient 无隐藏重试，仅设置连接超时。
-        HttpClient http = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(adapterProps.timeoutSeconds()))
-                .build();
         JsonMapper mapper = JsonMapper.builder().build();
-        var tokens = new CachingFeishuTokenProvider(
-                adapterProps, properties.credentials(), http, mapper, Clock.systemUTC());
-        return new HttpFeishuMessageClient(adapterProps, tokens, http, mapper);
+        return HttpFeishuMessageClient.create(adapterProps, properties.credentials(), mapper, Clock.systemUTC());
     }
 
     /** 读取原始环境配置判断 FEISHU 是否启用，避免依赖其它 Bean 初始化顺序。 */

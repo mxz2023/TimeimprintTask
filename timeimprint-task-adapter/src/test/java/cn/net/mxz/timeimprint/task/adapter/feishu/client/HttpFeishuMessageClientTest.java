@@ -73,6 +73,24 @@ class HttpFeishuMessageClientTest {
     }
 
     @Test
+    void createWiresTokenProviderAndHttpClientInsideAdapter() {
+        server.enqueue(FeishuMockServerFixture.TOKEN_PATH, 200, OK_TOKEN);
+        server.enqueue(
+                FeishuMockServerFixture.MESSAGES_PATH, 200, "{\"code\":0,\"msg\":\"success\",\"data\":{\"message_id\":\"om_f\"}}");
+        HttpFeishuMessageClient created = HttpFeishuMessageClient.create(
+                new FeishuAdapterProperties(server.baseUrl(), 2),
+                new FeishuCredentials("cli_app", "secret_x"),
+                mapper,
+                Clock.systemUTC());
+
+        assertEquals("om_f", created.sendInteractiveCard("ou_1", CARD, "uuid-f"));
+        assertEquals(1, server.requestsTo(FeishuMockServerFixture.TOKEN_PATH).size());
+        assertEquals(
+                "Bearer t-abc",
+                server.requestsTo(FeishuMockServerFixture.MESSAGES_PATH).getFirst().headers().get("authorization"));
+    }
+
+    @Test
     void rejectsInvalidArguments() {
         assertThrows(IllegalArgumentException.class, () -> client.sendInteractiveCard(" ", CARD, "u"));
         assertThrows(IllegalArgumentException.class, () -> client.sendInteractiveCard("ou", "", "u"));

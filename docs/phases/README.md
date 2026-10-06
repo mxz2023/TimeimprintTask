@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P05 飞书整体接入](P05/README.md) | CURRENT / IMPLEMENTING | [T04](P05/IMPLEMENTATION.md) PASS；下一任务 [T05](P05/IMPLEMENTATION.md) |
+| [P05 飞书整体接入](P05/README.md) | CURRENT / VERIFYING | [T05](P05/IMPLEMENTATION.md) PASS；证据见 [DELIVERY](P05/DELIVERY.md)；等待人工验收（未 RELEASED、未打标签） |
 
 ## 已发布阶段
 

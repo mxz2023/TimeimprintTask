@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前 CURRENT 为[P05](phases/P05/README.md)（IMPLEMENTING；见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前 CURRENT 为[P05](phases/P05/README.md)（VERIFYING；见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）。
 
 ## 1. 验收分层与环境
 
@@ -172,7 +172,7 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 
 ## 6.1 P05 飞书验收项（F01—F10）
 
-在默认仅`IN_APP`回归通过的前提下，[P05](phases/P05/README.md) 还必须用 Mock/伪造回调证明下列项（不得依赖外网真实飞书租户作为 CI 门禁）。证据写入[P05 DELIVERY](phases/P05/DELIVERY.md)（实施进入 VERIFYING 后创建）。
+在默认仅`IN_APP`回归通过的前提下，[P05](phases/P05/README.md) 还必须用 Mock/伪造回调证明下列项（不得依赖外网真实飞书租户作为 CI 门禁）。证据写入[P05 DELIVERY](phases/P05/DELIVERY.md)（已于 VERIFYING 创建）。
 
 | 编号 | 内容 | 通过标准 |
 | --- | --- | --- |

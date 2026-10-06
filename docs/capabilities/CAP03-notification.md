@@ -20,7 +20,7 @@
 | NOT-02 | IN_APP渠道和站内收件 | P01 | RELEASED | VERIFIED | S01、S02 |
 | NOT-03 | Action Job、Attempt、失效和受控重试映射 | P01 | RELEASED | VERIFIED | S01、S02 |
 | NOT-04 | 提醒节制、静默、频控、汇总与降级 | BACKLOG | OUTLINE | NOT_STARTED | C09 |
-| NOT-05 | 可配置多IM渠道 + 飞书整体接入（出站卡片与入站命令） | P05 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | C12；阶段 [P05](../phases/P05/README.md) |
+| NOT-05 | 可配置多IM渠道 + 飞书整体接入（出站卡片与入站命令） | P05 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | C12；阶段 [P05](../phases/P05/README.md) VERIFYING，证据[DELIVERY](../phases/P05/DELIVERY.md)；人工 RELEASED 前保持 IN_PROGRESS |
 | NOT-06 | 委托和多接收人增强 | BACKLOG | OUTLINE | NOT_STARTED | C16，主要协作规则归collaboration |
 | NOT-07 | 通知保留、删除和合规清理 | BACKLOG | OUTLINE | NOT_STARTED | C18 |
 

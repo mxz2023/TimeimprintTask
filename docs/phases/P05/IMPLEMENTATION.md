@@ -1,6 +1,6 @@
 # P05 · 实施任务
 
-> 阶段身份与范围见 [README](README.md)。总体状态 IMPLEMENTING；按 T02→T05 编码。
+> 阶段身份与范围见 [README](README.md)。总体状态 VERIFYING；T02—T05 均 PASS，等待人工验收。
 
 ## 1. 任务状态
 
@@ -11,7 +11,7 @@
 | T02 | `baselineGitRef` + 创建 `timeimprint-task-adapter`（feishu 骨架）+ 渠道展开 | PASS | READY 且用户授权实施 | 基线写入 README；adapter 可编译；notification 依赖 adapter；默认仅 IN_APP 回归 |
 | T03 | adapter 飞书客户端 + notification 出站卡片 Handler | PASS | T02 PASS | EXTERNAL 发 interactive；SDK 仅在 adapter；Mock 发信 IT |
 | T04 | web 回调 + adapter 验签 → complete/skip/snooze(+1h) | PASS | T03 PASS | 验签入口；三命令映射；3 秒内 toast；幂等；伪造回调 IT |
-| T05 | 场景去渠道硬依赖、Enforcer/ArchUnit、全量回归 | NOT_STARTED | T04 PASS | 依赖门禁证明 kernel/scenario 无 adapter；mysql-it/dual-process-it；DELIVERY；F01—F10 |
+| T05 | 场景去渠道硬依赖、Enforcer/ArchUnit、全量回归 | PASS | T04 PASS | [DELIVERY](DELIVERY.md)：scenario 去 notification/adapter 依赖；ArchUnit 4 项 + Enforcer；`./mvnw -q -o test` 391 项、mysql-it 99 项、dual-process-it 7 项；F01—F10 逐项记录 |
 
 任务按序推进。T00—T01 文档；T02 起才改生产代码且须实施授权。
 
@@ -32,5 +32,5 @@
 | --- | --- |
 | DRAFT → READY | T01 PASS（已完成） |
 | READY → IMPLEMENTING | 用户明确授权本阶段实施（已完成 2026-10-06） |
-| IMPLEMENTING → VERIFYING | T02—T04 PASS；建 DELIVERY |
+| IMPLEMENTING → VERIFYING | T02—T04 PASS；建 DELIVERY（已完成，T05 PASS） |
 | VERIFYING → RELEASED | T05 与人工验收；标签 `vyyyyMMdd-P05` |

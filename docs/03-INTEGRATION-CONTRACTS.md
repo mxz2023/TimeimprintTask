@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是技术版本、配置、装配、迁移和运行环境的正式来源；P01实际环境证据见其DELIVERY，后续阶段仍须重新验证受影响部分。
 
-版本2.3；前：[架构](02-AI-CODING-GUIDE.md)，后：[API](04-API.md)。本文定义13模块使用的技术基线、配置、迁移加载、扩展注册、运行观测和环境验收边界；P01验证结论以[P01 DELIVERY](phases/P01/DELIVERY.md)为准，不能外推为P02或X05已验证。
+版本2.3；前：[架构](02-AI-CODING-GUIDE.md)，后：[API](04-API.md)。本文定义经批准模块使用的技术基线、配置、迁移加载、扩展注册、运行观测和环境验收边界；P01验证结论以[P01 DELIVERY](phases/P01/DELIVERY.md)为准。P05 起模块集合含`timeimprint-task-adapter`，见[02](02-AI-CODING-GUIDE.md)与[P05](phases/P05/README.md)。
 
 ## 1. 固定技术基线
 
@@ -66,7 +66,7 @@ P03（X05）独立阶段必须按以下顺序执行，每一步保持可编译�
 
 ## 2. 模块构建与装配
 
-父POM必须显式列出02批准的13个一期模块。所有service模块使用平级`timeimprint-task-service-*`名称；HTTP传输契约模块固定为`timeimprint-task-domain`，接入编排模块固定为`timeimprint-task-gateway`。不得再引入平行的`timeimprint-task-api`、`timeimprint-task-api-gateway`、`timeimprint-task-dao`、巨型`timeimprint-task-service`、`timeimprint-task-cache`或任何cache替代模块。
+父POM必须显式列出[02](02-AI-CODING-GUIDE.md)批准的模块（P01—P04 为13个；[P05](phases/P05/README.md) READY 后含`timeimprint-task-adapter`共14个）。所有service模块使用平级`timeimprint-task-service-*`名称；HTTP传输契约模块固定为`timeimprint-task-domain`，接入编排模块固定为`timeimprint-task-gateway`；第三方 SDK 宿主固定为`timeimprint-task-adapter`。不得再引入平行的`timeimprint-task-api`、`timeimprint-task-api-gateway`、`timeimprint-task-dao`、巨型`timeimprint-task-service`、`timeimprint-task-cache`或任何cache替代模块。
 
 `timeimprint-task-boot-loader`是唯一组合根，负责：
 
@@ -79,7 +79,7 @@ P03（X05）独立阶段必须按以下顺序执行，每一步保持可编译�
 
 其他模块不得通过扫描整个classpath、反射字符串类名或ServiceLoader绕过显式装配。允许Spring按类型收集已引入模块的实现，但boot-loader必须清楚声明制品依赖；新增扩展需要修改根POM和组合根不算修改内核。
 
-Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁止内核引入Spring/MyBatis/Web依赖。ArchUnit至少检查：kernel不引用框架和外层模块；场景不引用storage或其他场景；能力不反向引用场景；web不越过gateway/application访问Mapper。
+Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁止内核引入Spring/MyBatis/Web依赖。ArchUnit至少检查：kernel不引用框架和外层模块；场景不引用storage、其他场景或adapter；能力不反向引用场景；web不越过gateway/application访问Mapper；adapter不依赖kernel/scenario/application；飞书等官方 SDK 坐标只允许出现在adapter模块。
 
 ## 3. 配置入口
 
@@ -107,6 +107,24 @@ Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁�
 | `LOCAL_TENANT_ID` | local profile必填的固定租户标识；HTTP请求不得覆盖 |
 | `LOCAL_ACTOR_ID` | local profile必填的固定调用主体；HTTP请求不得覆盖 |
 
+### 3.1 通知投递与飞书（P05）
+
+下列项由 Spring 配置（如`application.yml` / 环境变量绑定）拥有，**不是**场景`scenarioConfig`字段。未启用飞书时不得要求飞书凭据。
+
+| 配置键 | 默认 / 约束 |
+| --- | --- |
+| `timeimprint.notification.delivery-channels` | 列表；默认仅`IN_APP`。P05 合法值：`[IN_APP]`或`[IN_APP, FEISHU]`；缺少`IN_APP`则启动失败 |
+| `timeimprint.notification.feishu.app-id` | 启用`FEISHU`时必填；不得写入仓库 |
+| `timeimprint.notification.feishu.app-secret` | 启用`FEISHU`时必填；不得写入仓库或日志 |
+| `timeimprint.notification.feishu.verification-token` | 启用飞书入站回调时必填；用于校验回调 |
+| `timeimprint.notification.feishu.encrypt-key` | 可选；若开发者后台开启加密则必填 |
+| `timeimprint.notification.feishu.base-url` | 默认`https://open.feishu.cn` |
+| `timeimprint.notification.feishu.timeout-seconds` | 必须落入该飞书 ActionHandler 声明的`timeoutSeconds`预算内 |
+| `timeimprint.notification.feishu.recipient-map.<platformUserId>` | 平台`recipientId`→飞书`open_id`；缺映射时仍创建飞书 Action，执行结果为`PERMANENT_FAILURE` |
+| 飞书卡片回调路径 | 固定`POST /callbacks/v1/feishu/card-action`（web 模块）；须在飞书开发者后台配置为可公网访问的请求地址；本地联调可用隧道，**不进 CI** |
+
+启用`FEISHU`时：出站与入站配置须齐全，否则启动失败。默认`delivery-channels`不含`FEISHU`时，不装配对外飞书发信，回调入口可拒绝或未映射。
+
 平台常量：`PLANNING_DAYS=7`、`PLAN_BATCH=100`、`MAX_TECH_ATTEMPTS=5`、`MAX_MANUAL_REDRIVES=3`。通用技术重试在第1—4次失败后分别延迟5、30、120、600秒，第5次失败进入DEAD。
 
 单次事务硬上限：
@@ -131,7 +149,7 @@ Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁�
 
 生产业务Clock使用`Clock.systemUTC()`并截断到整秒，业务显示按ZoneId转换；租约有效性以数据库`UTC_TIMESTAMP(0)`为准。HTTP请求不得传入或覆盖系统“当前时间”。
 
-首期没有飞书、京ME、邮件、Webhook、外部日历、用户目录、模型服务凭据、AI业务能力或cache配置。引入Spring AI版本基线不等于首期启用AI功能；未来某个实现只有在boot-loader明确启用时才校验其专属配置，已启用实现缺少凭据或端点必须启动失败，未启用实现不得要求无关凭据。
+P01 基线没有京ME、邮件、外部日历、用户目录、模型服务、AI业务能力或cache配置。[P05](phases/P05/README.md) 起可按 §3.1 **显式启用**飞书；默认仍不启用。引入Spring AI版本基线不等于启用AI功能；未来某个实现只有在boot-loader明确启用时才校验其专属配置，已启用实现缺少凭据或端点必须启动失败，未启用实现不得要求无关凭据。
 
 local profile通过本地ActorContextProvider始终生成上述固定tenant和actor，任何请求头或请求体都不能切换身份。test profile可启用受控测试身份提供器以覆盖跨身份、跨租户用例。其他profile必须装配正式可信身份提供器；缺失时公开API不就绪，不能回退到本地固定身份。
 

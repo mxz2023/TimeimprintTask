@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前 CURRENT 为 [P05](phases/P05/README.md)（DRAFT）：飞书整体接入（出站交互卡片 + 入站命令同步）；任务见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md)。未转 READY 且未获用户明确授权前禁止编码。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)与[P04](phases/P04/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`）。S03 及以后仍须另选范围并授权；不得改写已冻结阶段。
+当前 CURRENT 为 [P05](phases/P05/README.md)（READY）：飞书整体接入；任务见[IMPLEMENTATION](phases/P05/IMPLEMENTATION.md)。未获用户明确授权前禁止编码；授权后从 [T02](phases/P05/IMPLEMENTATION.md) 起实施。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)与[P04](phases/P04/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`）。S03 及以后仍须另选范围并授权；不得改写已冻结阶段。

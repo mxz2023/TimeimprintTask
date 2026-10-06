@@ -38,12 +38,12 @@
 | --- | --- |
 | 阶段 | P05 |
 | 排期身份 | CURRENT |
-| 总体状态 | DRAFT |
+| 总体状态 | READY |
 | 文档基线 | 2.3 |
 | 基础发布 | P04；Git 标签 `v20261003-P04` |
 | 工程状态 | NOT_STARTED |
 | Git发布标签 | 未打；发布时使用 `vyyyyMMdd-P05` |
-| 下一动作 | 若认可 §6 已采纳默认，执行 T01 写入 03/07 等并转 READY；**禁止编码**，直至用户授权实施 |
+| 下一动作 | 用户明确**授权实施**后转 IMPLEMENTING，按 [T02](IMPLEMENTATION.md) 起编码；未授权前**禁止编码** |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | 进入 VERIFYING 前不得创建 `DELIVERY.md` |
 
@@ -113,24 +113,24 @@
 
 | 类别 | 判断 |
 | --- | --- |
-| 变化类型 | 兼容能力扩展 + **新增 adapter 模块**；须在 T01 修订 02 模块表与依赖规则；不改公共表与稳定 SPI 签名语义 |
-| 场景 | S01/S02 RELEASED/VERIFIED；补充飞书可执行命令与卡片按钮语义 |
-| 能力 | NOT-05 DRAFT（含入站桥约定）；C12 飞书子集 |
-| INV | [INV-05](../../02-AI-CODING-GUIDE.md)、[INV-08](../../02-AI-CODING-GUIDE.md)、[INV-09](../../02-AI-CODING-GUIDE.md) |
+| 变化类型 | 兼容能力扩展 + 新增 adapter 模块；[02](../../02-AI-CODING-GUIDE.md) 模块表已改为 14；不改公共表与稳定 SPI 签名语义 |
+| 场景 | S01/S02 RELEASED/VERIFIED；已补充飞书卡片与按钮语义 |
+| 能力 | NOT-05 `READY_FOR_IMPLEMENTATION`；C12 飞书子集 |
+| INV | [INV-05](../../02-AI-CODING-GUIDE.md)、[INV-08](../../02-AI-CODING-GUIDE.md)、[INV-09](../../02-AI-CODING-GUIDE.md)（含 adapter 例外） |
 
-## 6. 编码前仍须关闭（转 READY）
+## 6. 已锁定工程默认（T01 已写入正式契约）
 
-以下在用户未反对前按「已采纳默认」写入 T01 正式契约；若反对须先改本文：
+下列项已于 T01 落入 [02](../../02-AI-CODING-GUIDE.md)、[03 §3.1](../../03-INTEGRATION-CONTRACTS.md)、[06 §8](../../06-SCHEDULING.md)、[07 F01—F10](../../07-ACCEPTANCE.md)、[CAP03 NOT-05](../../capabilities/CAP03-notification.md)；READY 后禁止扩大范围。
 
-| 项 | 已采纳默认 |
+| 项 | 锁定值 |
 | --- | --- |
 | 出站 API | `POST /open-apis/im/v1/messages?receive_id_type=open_id`；`msg_type=interactive`；`uuid`←`actionKey` 摘要（≤50）；受理号 `message_id` |
-| `action.value` | 至少含 `commandKey`、`instanceId`、`definitionId`、发信时 `revision`；snooze 不内嵌绝对时间，点击时算 `T+1h` |
-| revision 冲突 | 用卡片内 revision 作 `expectedRevision`；冲突则 toast 提示冲突，不静默覆盖 |
-| 跳过原因 | 飞书「跳过」使用固定原因文案「飞书卡片跳过」（须满足 1—500 码点）；若产品要用户填因，须另批 |
-| 缺 `recipient-map` | 仍创建飞书 Action，执行时 `PERMANENT_FAILURE` |
-| 回调方式 | 开发者服务器 HTTP webhook（非长连接）；验签实现位于 adapter；本地联调公网隧道仅运维说明，不进 CI |
-| 测试 | WireMock 模拟发信（可挂在 adapter 测试）；业务 IT POST 伪造 `card.action.trigger` |
-| 模块名 | 固定 `timeimprint-task-adapter`（若改名须先改本文再 T01） |
+| `action.value` | `commandKey`、`instanceId`、`definitionId`、发信时 `revision`；snooze 点击时算 `T+1h` |
+| revision 冲突 | 卡片 revision 作 `expectedRevision`；冲突 toast |
+| 跳过原因 | 「飞书卡片跳过」 |
+| 缺映射 | 创建 Action → `PERMANENT_FAILURE` |
+| 回调 | `POST /callbacks/v1/feishu/card-action`；HTTP webhook；验签在 adapter |
+| 测试 | WireMock + 伪造 `card.action.trigger`；[F01](../../07-ACCEPTANCE.md)—[F10](../../07-ACCEPTANCE.md) |
+| 模块名 | `timeimprint-task-adapter` |
 
-本文件在 DRAFT 期间可修订；READY 后禁止扩大范围；RELEASED 后冻结。
+本文件在 READY 期间仅允许修正笔误；扩大范围须用户重批。RELEASED 后冻结。

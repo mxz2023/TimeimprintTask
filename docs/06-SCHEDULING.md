@@ -161,7 +161,11 @@ LOCAL_TRANSACTIONAL结果事务按definition→instance→Action→Attempt加锁
 
 IN_APP没有外部网络副作用：结果事务原子插入tt_inbox、闭合Attempt并把Action置SUCCEEDED。唯一键冲突时只有内容和接收人一致才视为幂等成功，否则报告完整性错误。
 
-飞书等网络渠道Handler在事务外调用。每次必须携带平台actionKey或渠道支持的幂等键；记录受理号、错误分类和UNKNOWN。渠道SDK自身隐藏重试必须关闭或纳入一次调用的明确超时预算，防止平台与SDK叠加成不可控重试。P05只实现飞书；微信、钉钉、Telegram等预留channelKey，不得空实现。
+飞书等网络渠道Handler在事务外调用（经`timeimprint-task-adapter`）。每次必须携带平台actionKey导出的`uuid`（≤50）或渠道支持的幂等键；记录受理号`message_id`、错误分类和UNKNOWN。渠道SDK自身隐藏重试必须关闭或纳入一次调用的明确超时预算。P05只实现飞书交互卡片出站与`card.action.trigger`入站；微信、钉钉、Telegram等预留channelKey，不得空实现。
+
+### 8.2 飞书入站命令（P05）
+
+飞书卡片回调由 web 接收（路径见[03 §3.1](03-INTEGRATION-CONTRACTS.md)），adapter 验签后，application 命令桥映射为与 HTTP 相同的实例命令管道：S02 的`complete`/`skip`/`snooze`（`snoozeUntil=T+1h`）。须在 3 秒内返回 toast；`event_id`派生平台`requestId`保证幂等；卡片内`revision`作`expectedRevision`，冲突则提示不静默覆盖。不得在回调中绕过 Policy 或直接改公共表。
 
 ### 8.1 S02首版提醒与snooze
 

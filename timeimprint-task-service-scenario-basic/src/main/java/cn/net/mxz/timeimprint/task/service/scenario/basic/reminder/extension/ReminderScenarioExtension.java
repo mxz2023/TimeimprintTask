@@ -1,6 +1,5 @@
 package cn.net.mxz.timeimprint.task.service.scenario.basic.reminder.extension;
 
-import cn.net.mxz.timeimprint.task.service.capability.notification.inapp.handler.InAppNotificationHandler;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.InitialDefinitionContext;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.context.ScenarioExtensionDescriptor;
@@ -32,6 +31,12 @@ public class ReminderScenarioExtension implements ScenarioExtension {
     public static final String SCENARIO_KEY = "reminder";
     public static final int CONTRACT_VERSION = 1;
     private static final long EXPIRES_AFTER_HOURS = 24L;
+    /**
+     * 渠道中立的展开键：场景只声明「待展开的通知意图」，由 application 按已启用渠道展开为具体 Handler。
+     * 取值与站内信历史 handlerKey 一致，以保持既有 actionKey 不变；场景不依赖 notification/adapter 模块。
+     */
+    private static final String NEUTRAL_NOTIFICATION_HANDLER_KEY = "in_app_notification";
+    private static final int NEUTRAL_NOTIFICATION_SCHEMA_VERSION = 1;
 
     @Override
     public ScenarioExtensionKey registrationKey() {
@@ -108,8 +113,8 @@ public class ReminderScenarioExtension implements ScenarioExtension {
         notifPayload.put("tenantId", tenantId);
 
         ActionJobIntent actionIntent = new ActionJobIntent(
-                InAppNotificationHandler.HANDLER_KEY,
-                InAppNotificationHandler.SCHEMA_VERSION,
+                NEUTRAL_NOTIFICATION_HANDLER_KEY,
+                NEUTRAL_NOTIFICATION_SCHEMA_VERSION,
                 "INITIAL:PENDING_EXPAND",
                 "LOCAL_TRANSACTIONAL",
                 null,

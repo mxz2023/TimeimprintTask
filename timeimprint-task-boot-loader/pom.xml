@@ -23,6 +23,10 @@
         </dependency>
         <dependency>
             <groupId>cn.net.mxz</groupId>
+            <artifactId>timeimprint-task-adapter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.net.mxz</groupId>
             <artifactId>timeimprint-task-service-storage-mysql</artifactId>
         </dependency>
         <dependency>

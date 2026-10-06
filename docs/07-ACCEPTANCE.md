@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前无 CURRENT 阶段（见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前无 CURRENT 阶段（见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）。
 
 ## 1. 验收分层与环境
 
@@ -170,6 +170,23 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 
 如当前机器无法达到目标，结果必须为FAIL或BLOCKED并记录瓶颈；不得自行放宽门槛后标PASS。
 
+## 6.1 P05 飞书验收项（F01—F10）
+
+在默认仅`IN_APP`回归通过的前提下，[P05](phases/P05/README.md) 还必须用 Mock/伪造回调证明下列项（不得依赖外网真实飞书租户作为 CI 门禁）。证据已写入[P05 DELIVERY](phases/P05/DELIVERY.md)并随标签 `v20261007-P05` 冻结。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| F01 | 默认投递 | `delivery-channels`默认仅`IN_APP`；不产生飞书 Action |
+| F02 | 双渠展开 | 配置含`FEISHU`且映射齐全时，同槽位产生`in_app_notification`与`feishu_im_notification`各至少一条 |
+| F03 | 出站卡片 | 飞书 Action 为`EXTERNAL`；Mock 发信`msg_type=interactive`；S02 含三按钮，S01 无按钮 |
+| F04 | 出站幂等与受理 | 请求带`uuid`；成功记录`message_id`；失败分类可观察 |
+| F05 | 缺映射 | 无`recipient-map`时飞书 Action 结束为`PERMANENT_FAILURE`，站内信仍可成功 |
+| F06 | 入站完成 | 伪造`card.action.trigger`完成 → S02 实例 TERMINAL/COMPLETED，语义同 HTTP complete |
+| F07 | 入站跳过 | 伪造跳过 → 原因「飞书卡片跳过」；实例 SKIPPED |
+| F08 | 入站稍后+1h | 伪造稍后提醒 → `snoozeUntil=T+1h`且符合既有 snooze 约束 |
+| F09 | 入站幂等与冲突 | 同`event_id`重放不重复生效；卡片`revision`冲突 toast、不静默覆盖 |
+| F10 | 模块边界 | ArchUnit/Enforcer：飞书 SDK 仅在 adapter；kernel/scenario 无 adapter 依赖 |
+
 ## 7. 交付证据与总判定
 
 P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约/任务/用例编号、实现文件、实际命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际JDK/MySQL/驱动/操作系统/进程数与关键配置。重试保留所有尝试，不只显示最后一次成功；后续阶段写入各自目录的DELIVERY，不覆盖P01证据。
@@ -183,6 +200,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

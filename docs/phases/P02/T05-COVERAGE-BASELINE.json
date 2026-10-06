@@ -9,6 +9,7 @@
     "timeimprint-task-service-runtime": {"lineRatio": 0.011848, "branchRatio": 0.000000},
     "timeimprint-task-service-storage-mysql": {"lineRatio": 0.004271, "branchRatio": 0.007194},
     "timeimprint-task-service-capability-calendar": {"lineRatio": 0.708797, "branchRatio": 0.539130},
+    "timeimprint-task-adapter": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-service-capability-notification": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-service-scenario-basic": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-gateway": {"lineRatio": 0.028686, "branchRatio": 0.128000},

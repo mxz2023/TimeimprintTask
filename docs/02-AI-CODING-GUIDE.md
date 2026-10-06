@@ -20,13 +20,13 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 6. **INV-06 原子事实**：一次已应用迁移的资源状态、Transition、Action意图、Audit及场景/能力专有数据必须在同一事务全部提交或全部回滚。
 7. **INV-07 并发屏障**：同步命令依靠持久化requestId与revision，异步队列依靠稳定业务键、父资源版本/代次及executionToken阻止重复效果和旧执行者回写。
 8. **INV-08 接入不污染内核**：本地固定身份、HTTP、数据库和具体渠道都是外层适配；不得把环境身份、传输对象、Mapper或渠道SDK引入kernel。
-9. **INV-09 模块克制**：模块数量按稳定边界和独立变化原因控制。通知渠道、日历算法和相近小场景先在所属模块内按包隔离，不默认一个实现一个Maven模块。
+9. **INV-09 模块克制**：模块数量按稳定边界和独立变化原因控制。通知渠道业务 Handler、日历算法和相近小场景先在所属能力/场景模块内按包隔离，不默认一个实现一个Maven模块。**例外（P05）**：第三方官方 SDK 与底层 HTTP/验签统一落在通用模块`timeimprint-task-adapter`，由 notification/web 依赖使用，不得在各业务模块重复引入 SDK。
 
 “新增场景不改底层”特指不修改内核语义、公共表、既有扩展契约和INV-01—INV-09。根POM、`timeimprint-task-boot-loader`装配清单、新模块迁移目录以及新增兼容契约可以变化，但必须通过架构检查与文档审核。
 
-## 2. 当前一期模块
+## 2. 当前批准模块
 
-一期建立 13 个平级 Maven 模块：
+P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准增加第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）；实施前文档 READY，代码在授权后创建。
 
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
@@ -38,13 +38,14 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 | `timeimprint-task-service-runtime` | Signal、触发规划、Action Job 领取、租约、重试和恢复 | kernel、extension-api、application、common |
 | `timeimprint-task-service-storage-mysql` | Repository 实现、MyBatis Mapper/XML、查询、锁协议和平台迁移 | kernel、application、runtime、common |
 | `timeimprint-task-service-capability-calendar` | 一次性、日/周/月/N 日规则和时间计算能力 | extension-api、kernel、common |
-| `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道实现 | extension-api、kernel、common |
+| `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道 Handler | extension-api、kernel、common、**adapter（P05）** |
+| `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 仅 `feishu` 包；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application） |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
 | `timeimprint-task-gateway` | 接入编排：构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、common |
-| `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理 | domain、gateway、common |
+| `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理；P05 起可调用 adapter 做飞书回调验签 | domain、gateway、common、**adapter（P05，仅回调验签）** |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 
-一期不创建cache、独立AI能力、工作流、外部IM或未来场景模块。Spring AI只作为已批准的技术版本基线，不表示首期已实现AI业务能力。缓存能力及其工程形态暂不确定，后续根据真实性能需求单独设计和审批；不能用空接口、空Bean、空表或固定假数据声称完成了扩展能力。
+P01 不创建 cache、独立 AI 能力、工作流或未来场景模块。P05 仅新增 adapter 与飞书接入，不因此启用 cache/AI。缓存能力及其工程形态暂不确定，后续根据真实性能需求单独设计和审批；不能用空接口、空Bean、空表或固定假数据声称完成了扩展能力。
 
 ## 3. 未来目标模块
 
@@ -62,6 +63,7 @@ timeimprint-task
 ├── timeimprint-task-service-capability-calendar
 ├── timeimprint-task-service-capability-trigger
 ├── timeimprint-task-service-capability-notification
+├── timeimprint-task-adapter
 ├── timeimprint-task-service-capability-collaboration
 ├── timeimprint-task-service-capability-workflow
 ├── timeimprint-task-service-capability-aggregation
@@ -77,7 +79,7 @@ timeimprint-task
 └── timeimprint-task-boot-loader
 ```
 
-当前目标结构为23个模块，不包含cache模块。缓存仍是未来能力候选，但在实际需求和技术方案确定前不预设模块名称、依赖位置或产品实现。未来结构是边界规划，不是要求一期创建全部目录。
+当前目标结构含 adapter 与八个能力域规划，不包含cache模块。缓存仍是未来能力候选，但在实际需求和技术方案确定前不预设模块名称、依赖位置或产品实现。未来结构是边界规划，不是要求一期创建全部目录。
 
 ### 3.1 能力模块边界
 
@@ -94,7 +96,7 @@ timeimprint-task
 | `capability-integration` | [integration外部系统集成](capabilities/CAP07-integration.md) |
 | `capability-intelligence` | [intelligence智能理解与建议](capabilities/CAP08-intelligence.md) |
 
-站内信、飞书、京ME、邮件首先是 `capability-notification` 内部渠道包。只有出现独立发布、重大 SDK 冲突、单独安全隔离或独立团队所有权时，才把某个渠道提取为新的适配器模块；提取前后保持同一个 `NotificationChannel` 契约。
+站内信 Handler 仍在 `capability-notification`。飞书等**第三方官方 SDK**与底层 HTTP/验签属于 `timeimprint-task-adapter`；notification 依赖 adapter 实现渠道 Handler 与卡片业务载荷，不在 notification 内重复声明 SDK 坐标。后续微信/钉钉等同理先入 adapter 再被能力模块依赖。
 
 ### 3.2 场景模块边界
 
@@ -147,10 +149,11 @@ boot-loader ────────────→ 选择并装配全部运行�
 | `timeimprint-task-service-runtime` | `trigger`、`signal`、`action`、`shared` | `worker`、`recovery`、`configuration`、`lifecycle` |
 | `timeimprint-task-service-storage-mysql` | `definition`、`instance`、`participant`、`trigger`、`signal`、`transition`、`action`、`inbox`、`command`、`audit`、`shared` | `adapter`、`mapper`、`row`、`committer`、`configuration`、`mapping`、`time`、`transaction` |
 | `timeimprint-task-service-capability-calendar` | `schedule` | `configuration`、`calculation`、`provider` |
-| `timeimprint-task-service-capability-notification` | `notification`、`inapp` | `handler`、`adapter`、`mapper`、`row`、`port` |
+| `timeimprint-task-service-capability-notification` | `notification`、`inapp`、`feishu`（业务 Handler，P05） | `handler`、`adapter`、`mapper`、`row`、`port` |
+| `timeimprint-task-adapter` | `feishu`（P05）；预留 `wechat`/`dingtalk`/`telegram` | `client`、`auth`、`callback`、`configuration` |
 | `timeimprint-task-service-scenario-basic` | `reminder`、`recurringtodo` | `extension`、`command`、`projection` |
 | `timeimprint-task-gateway` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `gateway`、`mapper` |
-| `timeimprint-task-web` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `controller`、`filter`、`error`、`configuration` |
+| `timeimprint-task-web` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`callback`（P05 飞书）、`shared` | `controller`、`filter`、`error`、`configuration` |
 
 `common`和`boot-loader`是没有业务切片的例外：`common`按`time`、`hashing`等稳定技术能力分包，`boot-loader`只允许`bootstrap`、`configuration`、`health`、`lifecycle`。不得为追求形式一致而虚构业务分类。
 

@@ -65,6 +65,7 @@ public final class StructureQualityGate {
             "timeimprint-task-service-runtime",
             "timeimprint-task-service-storage-mysql",
             "timeimprint-task-service-capability-calendar",
+            "timeimprint-task-adapter",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
             "timeimprint-task-gateway",
@@ -502,8 +503,15 @@ public final class StructureQualityGate {
                 "timeimprint-task-service-capability-notification",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.service.capability.notification",
-                        Set.of("notification", "inapp"),
-                        Set.of("handler", "adapter", "mapper", "row", "port"),
+                        Set.of("notification", "inapp", "feishu"),
+                        Set.of("handler", "adapter", "mapper", "row", "port", "configuration"),
+                        false));
+        m.put(
+                "timeimprint-task-adapter",
+                new ModuleRule(
+                        "cn.net.mxz.timeimprint.task.adapter",
+                        Set.of("feishu"),
+                        Set.of("client", "auth", "callback", "configuration"),
                         false));
         m.put(
                 "timeimprint-task-service-scenario-basic",
@@ -516,14 +524,14 @@ public final class StructureQualityGate {
                 "timeimprint-task-gateway",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.gateway",
-                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "shared"),
+                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared"),
                         Set.of("gateway", "mapper"),
                         false));
         m.put(
                 "timeimprint-task-web",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.web",
-                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "shared"),
+                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared"),
                         Set.of("controller", "filter", "error", "configuration"),
                         false));
         return Map.copyOf(m);

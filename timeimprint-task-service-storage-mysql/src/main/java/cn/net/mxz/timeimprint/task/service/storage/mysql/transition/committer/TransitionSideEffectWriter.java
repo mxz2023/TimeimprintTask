@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.service.storage.mysql.transition.committer;
 
 import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionCommitRequest;
+import cn.net.mxz.timeimprint.task.service.capability.notification.feishu.handler.FeishuImNotificationHandler;
 import cn.net.mxz.timeimprint.task.service.capability.notification.inapp.handler.InAppNotificationHandler;
 import cn.net.mxz.timeimprint.task.service.capability.notification.notification.port.NotificationMaterializationPort;
 import cn.net.mxz.timeimprint.task.service.extension.materialization.context.ScenarioDataMaterializationContext;
@@ -108,11 +109,13 @@ public class TransitionSideEffectWriter {
         }
 
         // 7. Handle action job intents + notifications
+        // 同一接收人×槽位的多渠道 Action 共享一条 tt_notification 内容事实（CAP03 NOT-05）。
+        Map<String, Long> notificationBySlot = new java.util.HashMap<>();
         for (ActionJobIntent aj : plan.actionJobIntents()) {
             String payloadJsonStr = support.toJson(aj.payload());
             Long notificationId = null;
 
-            if (InAppNotificationHandler.HANDLER_KEY.equals(aj.handlerKey())
+            if (isNotificationHandler(aj.handlerKey())
                     && transitionId != null && request.instanceId() != null) {
                 // Extract notification content from payload
                 Map<String, Object> fields = aj.payload() instanceof JsonPayload jp ? jp.fields() : Map.of();
@@ -120,10 +123,17 @@ public class TransitionSideEffectWriter {
                 String body = support.toString(fields.get("body"), null);
                 String purpose = support.toString(fields.get("purpose"), "INITIAL");
 
-                notificationId = notificationPort.insertNotification(
-                        tenantId, request.definitionId(), request.instanceId(), transitionId,
-                        title, body, purpose, now);
-                affectedRows++;
+                String slotKey = purpose + "|" + support.toString(fields.get("slotIndex"), "0")
+                        + "|" + support.toString(fields.get("actionGeneration"), "1")
+                        + "|" + aj.targetType() + "|" + aj.targetId();
+                notificationId = notificationBySlot.get(slotKey);
+                if (notificationId == null) {
+                    notificationId = notificationPort.insertNotification(
+                            tenantId, request.definitionId(), request.instanceId(), transitionId,
+                            title, body, purpose, now);
+                    notificationBySlot.put(slotKey, notificationId);
+                    affectedRows++;
+                }
 
                 // Re-build payload with notificationId injected
                 Map<String, Object> enriched = new java.util.LinkedHashMap<>(fields);
@@ -203,5 +213,10 @@ public class TransitionSideEffectWriter {
 
 
         return affectedRows;
+    }
+
+    private static boolean isNotificationHandler(String handlerKey) {
+        return InAppNotificationHandler.HANDLER_KEY.equals(handlerKey)
+                || FeishuImNotificationHandler.HANDLER_KEY.equals(handlerKey);
     }
 }

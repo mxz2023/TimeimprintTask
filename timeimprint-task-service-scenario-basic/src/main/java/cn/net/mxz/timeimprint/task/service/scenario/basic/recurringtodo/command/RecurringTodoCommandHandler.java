@@ -21,9 +21,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioMutationPayload;
 
@@ -186,6 +188,9 @@ public class RecurringTodoCommandHandler {
             List<String> remainingTimes = new ArrayList<>();
             int newGeneration = actionGeneration + 1;
 
+            // 同一业务槽位（purpose/slotIndex/recipient）在多投递渠道下会有多条 Action；
+            // 通知意图是渠道中立的，平移时只生成一条，渠道由提交时按 delivery-channels 展开。
+            Set<String> seenSlots = new HashSet<>();
             for (ActionJobView old : movable) {
                 Instant newAvailable = old.availableAt().plus(delta);
                 if (!newAvailable.isBefore(expiresAt)) {
@@ -196,6 +201,9 @@ public class RecurringTodoCommandHandler {
                 String purpose = String.valueOf(payload.getOrDefault("purpose", "INITIAL"));
                 int slotIndex = asInt(payload.get("slotIndex"), 0);
                 String recipientId = String.valueOf(payload.getOrDefault("recipientId", "local-actor"));
+                if (!seenSlots.add(purpose + "|" + slotIndex + "|" + recipientId)) {
+                    continue;
+                }
                 // Copy the shifted notification text. Do not rebuild the chase prefix from the snapshot.
                 String title = payload.get("title") == null ? "" : String.valueOf(payload.get("title"));
                 String body = payload.get("body") == null ? "" : String.valueOf(payload.get("body"));

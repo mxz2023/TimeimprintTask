@@ -75,8 +75,9 @@ public final class TransitionPlanWriteValidator {
         rows += plan.plannedSignalIntents().size();
         for (ActionJobIntent aj : plan.actionJobIntents()) {
             rows += 1;
-            if ("in_app_notification".equals(aj.handlerKey())) {
-                rows += 1; // notification row
+            if ("in_app_notification".equals(aj.handlerKey())
+                    || "feishu_im_notification".equals(aj.handlerKey())) {
+                rows += 1; // notification row（多渠道共享时为保守上界）
             }
         }
         rows += plan.scenarioDataMutations().stream()

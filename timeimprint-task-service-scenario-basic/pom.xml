@@ -29,11 +29,6 @@
         </dependency>
         <dependency>
             <groupId>cn.net.mxz</groupId>
-            <artifactId>timeimprint-task-service-capability-notification</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.net.mxz</groupId>
             <artifactId>timeimprint-task-common</artifactId>
             <version>${revision}</version>
         </dependency>
@@ -53,4 +48,29 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-no-adapter</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <!-- P05 F10：本模块（含传递依赖）不得出现 timeimprint-task-adapter；仅 notification/gateway/web/boot-loader 可依赖。 -->
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>cn.net.mxz:timeimprint-task-adapter</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

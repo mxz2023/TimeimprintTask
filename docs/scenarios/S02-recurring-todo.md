@@ -64,7 +64,7 @@ S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 到期Signal处理时生成一个`INITIAL`业务槽位，并按`chaseOffsetsMinutes`生成0—3个`CHASE`槽位；CHASE时间是`dueAt + offset`。所有槽位共享`expiresAt = dueAt + notificationExpireAfterMinutes`。数据库时间`L >= expiresAt`时，尚未开始成功执行的Action转为EXPIRED且不再领取。
 
-业务槽位与技术Action Attempt分离：重试不得增加槽位。通知能力按最终接收人和渠道为每个槽位物化独立Action Job；P01只实现`IN_APP`。
+业务槽位与技术Action Attempt分离：重试不得增加槽位。通知能力按最终接收人和**启用投递渠道**为每个槽位物化独立Action Job；P01—P04只装配`IN_APP`。P05起默认仍仅`IN_APP`，配置可追加`FEISHU`（见[CAP03 NOT-05](../capabilities/CAP03-notification.md)、[P05](../phases/P05/README.md)）。
 
 每个槽位的站内信正文等于该实例的描述快照；描述为空时正文为空。`INITIAL`的标题等于实例标题快照。`CHASE`的标题等于全角前缀「催办：」紧接同一标题快照，中间不加空格；标题为「提交周报」时，催办标题为「催办：提交周报」。`purpose`仍分别为`INITIAL`与`CHASE`。已经生成的收件不回填。稍后提醒平移通知时保留原标题和正文。
 
@@ -73,6 +73,8 @@ S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 ## 5. 实例命令
 
 实例仅支持`complete`、`skip`和`snooze`，都必须经过requestId幂等、expectedRevision并发校验、Policy和统一TransitionPlan提交。
+
+启用飞书渠道时，出站交互卡片对 ACTIVE/PENDING 实例固定提供三按钮，分别映射上述三命令；「稍后提醒」点击时取业务时间`T + 1小时`作为`snoozeUntil`，不提供时间选择器。跳过原因固定为「飞书卡片跳过」。卡片回调须走与 HTTP 相同的命令管道，规则见[CAP03 NOT-05](../capabilities/CAP03-notification.md)与[P05](../phases/P05/README.md)。
 
 ### 5.1 complete与skip
 

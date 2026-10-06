@@ -1,7 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.scenario.basic.recurringtodo.extension;
 
 import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
-import cn.net.mxz.timeimprint.task.service.capability.notification.inapp.handler.InAppNotificationHandler;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.InitialDefinitionContext;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.context.ScenarioExtensionDescriptor;
@@ -45,6 +44,12 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
     // Default config values per S02 contract
     static final List<Integer> DEFAULT_CHASE_OFFSETS = List.of(60, 240, 720);
     static final int DEFAULT_NOTIFICATION_EXPIRE_MINUTES = 1440;
+    /**
+     * 渠道中立的展开键：场景只声明「待展开的通知意图」，由 application 按已启用渠道展开为具体 Handler。
+     * 取值与站内信历史 handlerKey 一致，以保持既有 actionKey 不变；场景不依赖 notification/adapter 模块。
+     */
+    private static final String NEUTRAL_NOTIFICATION_HANDLER_KEY = "in_app_notification";
+    private static final int NEUTRAL_NOTIFICATION_SCHEMA_VERSION = 1;
     public static final int DEFAULT_MAX_SNOOZE_COUNT = 3;
 
     private final JsonMapper objectMapper;
@@ -289,8 +294,8 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         payload.put("body", body);
 
         return new ActionJobIntent(
-                InAppNotificationHandler.HANDLER_KEY,
-                InAppNotificationHandler.SCHEMA_VERSION,
+                NEUTRAL_NOTIFICATION_HANDLER_KEY,
+                NEUTRAL_NOTIFICATION_SCHEMA_VERSION,
                 purpose + ":PENDING_EXPAND",
                 "LOCAL_TRANSACTIONAL",
                 null,
@@ -306,7 +311,7 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
             String title, String body) {
 
         String canon = instanceId + ":" + purpose + ":" + slotIndex + ":" + actionGeneration
-                + ":" + recipientId + ":in_app_notification";
+                + ":" + recipientId + ":" + NEUTRAL_NOTIFICATION_HANDLER_KEY;
         String actionKey = purpose + ":" + base64Url(Sha256.digestUtf8(canon));
 
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -321,8 +326,8 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         payload.put("body", body == null ? "" : body);
 
         return new ActionJobIntent(
-                InAppNotificationHandler.HANDLER_KEY,
-                InAppNotificationHandler.SCHEMA_VERSION,
+                NEUTRAL_NOTIFICATION_HANDLER_KEY,
+                NEUTRAL_NOTIFICATION_SCHEMA_VERSION,
                 actionKey,
                 "LOCAL_TRANSACTIONAL",
                 "USER",

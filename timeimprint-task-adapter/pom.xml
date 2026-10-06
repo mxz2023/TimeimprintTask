@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.net.mxz</groupId>
+        <artifactId>timeimprint-task-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>timeimprint-task-adapter</artifactId>
+    <name>timeimprint-task-adapter</name>
+    <description>Third-party SDK / HTTP / signature adapters (P05: feishu only)</description>
+    <dependencies>
+        <!-- 仅允许依赖 common；禁止依赖 kernel / scenario / application / extension-api。 -->
+        <dependency>
+            <groupId>cn.net.mxz</groupId>
+            <artifactId>timeimprint-task-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-adapter-leaf</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <!-- P05 F10：adapter 仅允许依赖 common；禁止依赖 kernel/extension-api/application/runtime/storage/scenario/notification/gateway/web 等任何其它项目模块。 -->
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>cn.net.mxz:*</exclude>
+                                    </excludes>
+                                    <includes>
+                                        <include>cn.net.mxz:timeimprint-task-common</include>
+                                    </includes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

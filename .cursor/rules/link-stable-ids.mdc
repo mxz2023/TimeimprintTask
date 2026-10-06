@@ -1,31 +1,73 @@
 ---
-description: 稳定编号（E/I/A/M/T/S/CAP）必须附文档链接，避免只写缩写
+description: 凡引用文档/阶段任务的缩写、文档序号或章节号，面向用户时必须附可点击链接
 alwaysApply: true
 ---
 
-# 稳定编号必须可点击
+# 文档引用必须可点击
 
-向用户提到下列缩写时，**不要只写字母编号**。首次出现或列表中的每一项都要附上仓库内文档链接（Markdown），方便用户点开看具体定义。
+向用户提到**代指仓库文档或其中条目**的缩写、文档序号、稳定编号、章节号时，**不要只写裸标识**。首次出现或列表中的每一项都要附上仓库内 Markdown 链接，并尽量用一句话注明含义，方便点开看定义。
+
+本规则覆盖（不以此表为限）：核心文档序号 `00`–`10`、阶段任务 `Txx`、阶段 `Pxx`、场景 `Sxx`、能力 `CAPxx` / `NOT-xx` / `CAL-xx`、验收 `Exx`/`Ixx`/`Axx`/`Mxx`/`Jxx`、路线图 `Cxx`/`Xxx`、不变量 `INV-*`、以及「§6」「第 N 节」这类章节指代。
 
 ## 链接约定
 
-| 编号族 | 含义 | 链接到 |
+### 核心文档序号（极易漏链）
+
+口语或正文里的 `01`、`02/03/07`、`01—08` 等**两位文档号**，一律按 [docs/00-READING-ORDER.md](docs/00-READING-ORDER.md) 映射，**禁止**只写数字不给链接、也不写中文/文件名含义。
+
+| 序号 | 文件 | 一句话含义 |
 | --- | --- | --- |
-| `E01`–`E13` | 公开 HTTP 端点 | [docs/04-API.md](docs/04-API.md) 第 4 节（可链到文件；正文写清方法与路径） |
+| `00` | [docs/00-READING-ORDER.md](docs/00-READING-ORDER.md) | 阅读导航与当前基线 |
+| `01` | [docs/01-MVP-SPEC.md](docs/01-MVP-SPEC.md) | 平台公共业务语义 |
+| `02` | [docs/02-AI-CODING-GUIDE.md](docs/02-AI-CODING-GUIDE.md) | 架构、模块边界与编码不变量 |
+| `03` | [docs/03-INTEGRATION-CONTRACTS.md](docs/03-INTEGRATION-CONTRACTS.md) | 技术版本、配置、装配与环境 |
+| `04` | [docs/04-API.md](docs/04-API.md) | HTTP API 协议 |
+| `05` | [docs/05-DATABASE.md](docs/05-DATABASE.md) | 数据库与跨表不变量 |
+| `06` | [docs/06-SCHEDULING.md](docs/06-SCHEDULING.md) | 调度、锁、队列与恢复 |
+| `07` | [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) | 验收与证据标准 |
+| `08` | [docs/08-AI-IMPLEMENTATION-TASKS.md](docs/08-AI-IMPLEMENTATION-TASKS.md) | 阶段治理与 AI 实施规则 |
+| `09` | [docs/09-SCENARIO-ROADMAP.md](docs/09-SCENARIO-ROADMAP.md) | 场景/能力演进路线 |
+| `10` | [docs/10-TECHNICAL-REVIEW.md](docs/10-TECHNICAL-REVIEW.md) | 技术评审与风险 |
+
+连写多个序号时，**每个**都要可点，例如：写入 [02](docs/02-AI-CODING-GUIDE.md)（架构与模块）、[03](docs/03-INTEGRATION-CONTRACTS.md)（配置契约）、[07](docs/07-ACCEPTANCE.md)（验收）。
+
+### 稳定编号与章节
+
+| 引用族 | 含义 | 链接到 |
+| --- | --- | --- |
+| `E01`–`E13` | 公开 HTTP 端点 | [docs/04-API.md](docs/04-API.md)（写清方法与路径） |
 | `I01`–`I07` | 内部 HTTP 端点 | [docs/04-API.md](docs/04-API.md) 第 5 节 |
 | `M01`–`M10` | 纵向场景矩阵 | [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) 第 3 节 |
 | `A01`–`A42` | 状态/故障/并发验收项 | [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) 第 4 节 |
-| `T00`–`T08` | P01 实施任务 | [docs/phases/P01/IMPLEMENTATION.md](docs/phases/P01/IMPLEMENTATION.md) |
+| `J01`–`J10` 等 | 阶段专项验收（如 Jackson） | 对应阶段 DELIVERY/07 中该编号所在节；不确定时链 [docs/07-ACCEPTANCE.md](docs/07-ACCEPTANCE.md) |
+| **`Txx`（当前阶段任务）** | 实施任务 | **当前 CURRENT 阶段**的 IMPLEMENTATION（例如 P05 为 [docs/phases/P05/IMPLEMENTATION.md](docs/phases/P05/IMPLEMENTATION.md)）；谈论历史阶段任务时链该阶段 IMPLEMENTATION，**禁止**一律链 P01 |
+| `Pxx` | 阶段包 | 具体如 [docs/phases/P05/README.md](docs/phases/P05/README.md)；索引见 [docs/phases/README.md](docs/phases/README.md) |
 | `S01` / `S02` 等 | 场景 | 对应 `docs/scenarios/Sxx-*.md` |
 | `CAP01` 等 | 能力域 | 对应 `docs/capabilities/CAPxx-*.md` |
+| `NOT-xx` / `CAL-xx` 等 | 能力项 | 所属能力域文件（如 NOT-05 → [docs/capabilities/CAP03-notification.md](docs/capabilities/CAP03-notification.md)） |
+| `C01`–`C19` | 路线图能力候选 | [docs/09-SCENARIO-ROADMAP.md](docs/09-SCENARIO-ROADMAP.md) |
+| `X01`–`X05` | 技术候选 | [docs/09-SCENARIO-ROADMAP.md](docs/09-SCENARIO-ROADMAP.md) |
 | `INV-*` | 编码不变量 | [docs/02-AI-CODING-GUIDE.md](docs/02-AI-CODING-GUIDE.md) |
+| **`§N` / 「第 N 节」** | 某文档内章节 | **必须**链到该文档路径，并在文案中写明文件（例如 [P05 README §6](docs/phases/P05/README.md)）；禁止只写「§6」而不说是哪份文件 |
+
+表中没有的稳定缩写：先查 [docs/HUMAN-GLOSSARY.md](docs/HUMAN-GLOSSARY.md) 与 [docs/00-READING-ORDER.md](docs/00-READING-ORDER.md)，链到拥有该定义的正式文档；找不到定义则不要假装有编号。
 
 ## 写法示例
 
-差：`先做 E01 → E05 → E08`
+差：`把契约写入 02/03/07 并转 READY`
 
-好：`先做 [E01](docs/04-API.md)（GET /api/v1/task-scenarios）→ [E05](docs/04-API.md)（GET /api/v1/task-definitions）→ [E08](docs/04-API.md)（GET /api/v1/task-instances）`
+好：`把契约写入 [02](docs/02-AI-CODING-GUIDE.md)（架构与模块）、[03](docs/03-INTEGRATION-CONTRACTS.md)（配置）、[07](docs/07-ACCEPTANCE.md)（验收）并转 READY`
+
+差：`先做 T01，再按 §6 转 READY`
+
+好：`先做 [T01](docs/phases/P05/IMPLEMENTATION.md)（收敛契约并转 READY），再按 [P05 README §6](docs/phases/P05/README.md) 的工程默认落正式契约`
+
+差：`E01 → NOT-05 → C12`
+
+好：`[E01](docs/04-API.md)（场景列表）→ [NOT-05](docs/capabilities/CAP03-notification.md)（飞书整体接入）→ [C12](docs/09-SCENARIO-ROADMAP.md)（多 IM 渠道）`
 
 同一条回复里若连续多次提到同一编号，第一次必须带链接与一句话含义；后续可只写编号，但列表/步骤标题中仍建议带链接。
 
-纯内部思考或工具调用参数不受此限；**面向用户的说明、步骤、计划必须遵守**。
+与 [explain-abbr-with-zh](explain-abbr-with-zh.mdc) 同时遵守：链接之外，首次出现仍须中文括注。
+
+纯内部思考或工具调用参数不受此限；**面向用户的说明、步骤、计划、后续推荐必须遵守**。

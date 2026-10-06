@@ -19,6 +19,8 @@ import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionHandler
 import cn.net.mxz.timeimprint.task.service.extension.action.context.ActionExecutionContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.SignalProcessContext;
 import cn.net.mxz.timeimprint.task.service.extension.action.registry.ActionHandlerKey;
+import cn.net.mxz.timeimprint.task.service.extension.action.registry.DeliveryChannel;
+import cn.net.mxz.timeimprint.task.service.extension.action.spi.DeliveryChannelProvider;
 import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
@@ -45,6 +47,9 @@ public class SignalProcessingService {
 
     private static final int LEASE_SECONDS = 30;
 
+    /** 场景发出的渠道中立通知意图沿用的 handlerKey；仅此类意图按投递渠道展开。 */
+    private static final String NEUTRAL_NOTIFICATION_HANDLER_KEY = "in_app_notification";
+
     private final TaskSignalRepository signalRepository;
     private final TaskDefinitionRepository definitionRepository;
     private final TaskInstanceRepository instanceRepository;
@@ -57,6 +62,7 @@ public class SignalProcessingService {
     private final BusinessClock clock;
     private final JsonMapper objectMapper;
     private final TriggerBindingQuery triggerBindingQuery;
+    private final DeliveryChannelProvider deliveryChannelProvider;
 
     public SignalProcessingService(
             TaskSignalRepository signalRepository,
@@ -70,7 +76,8 @@ public class SignalProcessingService {
             TransactionBoundary tx,
             BusinessClock clock,
             JsonMapper objectMapper,
-            TriggerBindingQuery triggerBindingQuery) {
+            TriggerBindingQuery triggerBindingQuery,
+            DeliveryChannelProvider deliveryChannelProvider) {
         this.signalRepository = signalRepository;
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
@@ -83,6 +90,7 @@ public class SignalProcessingService {
         this.clock = clock;
         this.objectMapper = objectMapper;
         this.triggerBindingQuery = triggerBindingQuery;
+        this.deliveryChannelProvider = deliveryChannelProvider;
     }
 
     public void processSignal(long signalId) {
@@ -250,7 +258,8 @@ public class SignalProcessingService {
             }
     }
 
-    private TransitionPlan expandRecipients(
+    /** 包级可见仅用于单元测试覆盖渠道展开。 */
+    TransitionPlan expandRecipients(
             TransitionPlan plan, String tenantId, String scenarioKey, List<ParticipantRecord> participants) {
         if (plan.actionJobIntents().isEmpty()) {
             return plan;
@@ -264,34 +273,32 @@ public class SignalProcessingService {
             }
             base.put("tenantId", tenantId);
             base.put("scenarioKey", scenarioKey);
+            // 渠道中立意图：接收人 × 启用渠道；其它 handlerKey 保持历史单渠道行为。
+            List<DeliveryChannel> channels = NEUTRAL_NOTIFICATION_HANDLER_KEY.equals(intent.handlerKey())
+                    ? deliveryChannelProvider.enabledChannels()
+                    : List.of();
             for (String recipientId : recipients) {
-                Map<String, Object> fields = new HashMap<>(base);
-                fields.put("recipientType", "USER");
-                fields.put("recipientId", recipientId);
-                String purpose = String.valueOf(fields.getOrDefault("purpose", "INITIAL"));
-                int slot = ((Number) fields.getOrDefault("slotIndex", 0)).intValue();
-                int gen = ((Number) fields.getOrDefault("actionGeneration", 1)).intValue();
-                String canon = fields.get("instanceId")
-                        + ":"
-                        + purpose
-                        + ":"
-                        + slot
-                        + ":"
-                        + gen
-                        + ":"
-                        + recipientId
-                        + ":in_app_notification";
-                String actionKey = purpose + ":" + base64Url(Sha256.digestUtf8(canon));
-                expanded.add(new ActionJobIntent(
-                        intent.handlerKey(),
-                        intent.actionSchemaVersion(),
-                        actionKey,
-                        intent.executionMode(),
-                        "USER",
-                        recipientId,
-                        intent.availableAt(),
-                        intent.expiresAt(),
-                        new JsonPayload(fields)));
+                if (channels.isEmpty()) {
+                    expanded.add(buildIntent(
+                            intent,
+                            base,
+                            recipientId,
+                            intent.handlerKey(),
+                            intent.executionMode(),
+                            NEUTRAL_NOTIFICATION_HANDLER_KEY,
+                            null));
+                    continue;
+                }
+                for (DeliveryChannel channel : channels) {
+                    expanded.add(buildIntent(
+                            intent,
+                            base,
+                            recipientId,
+                            channel.handlerKey(),
+                            channel.executionMode().name(),
+                            channel.actionKeySegment(),
+                            channel.channelKey()));
+                }
             }
         }
         return new TransitionPlan(
@@ -304,6 +311,54 @@ public class SignalProcessingService {
                 plan.plannedSignalIntents(),
                 plan.scenarioDataMutations(),
                 plan.auditSummary());
+    }
+
+    /**
+     * 构造单个「接收人 × 渠道」Action 意图。
+     *
+     * <p>actionKey 哈希正文末段使用 {@code canonSegment}：IN_APP 沿用历史 {@code in_app_notification}
+     * （既有 actionKey 不变），其它渠道使用其 channelKey，因此 channelKey 始终参与哈希；
+     * 渠道键同时写入 payload 的 {@code channelKey} 供下游 Handler 使用。
+     */
+    private static ActionJobIntent buildIntent(
+            ActionJobIntent intent,
+            Map<String, Object> base,
+            String recipientId,
+            String handlerKey,
+            String executionMode,
+            String canonSegment,
+            String channelKey) {
+        Map<String, Object> fields = new HashMap<>(base);
+        fields.put("recipientType", "USER");
+        fields.put("recipientId", recipientId);
+        if (channelKey != null) {
+            fields.put("channelKey", channelKey);
+        }
+        String purpose = String.valueOf(fields.getOrDefault("purpose", "INITIAL"));
+        int slot = ((Number) fields.getOrDefault("slotIndex", 0)).intValue();
+        int gen = ((Number) fields.getOrDefault("actionGeneration", 1)).intValue();
+        String canon = fields.get("instanceId")
+                + ":"
+                + purpose
+                + ":"
+                + slot
+                + ":"
+                + gen
+                + ":"
+                + recipientId
+                + ":"
+                + canonSegment;
+        String actionKey = purpose + ":" + base64Url(Sha256.digestUtf8(canon));
+        return new ActionJobIntent(
+                handlerKey,
+                intent.actionSchemaVersion(),
+                actionKey,
+                executionMode,
+                "USER",
+                recipientId,
+                intent.availableAt(),
+                intent.expiresAt(),
+                new JsonPayload(fields));
     }
 
     /**

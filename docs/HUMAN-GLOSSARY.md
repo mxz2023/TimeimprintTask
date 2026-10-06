@@ -132,6 +132,14 @@
 | timeoutSeconds | Action处理器声明的单次执行总超时预算，必须小于租约减安全余量 |
 | payloadHash / requestHash / configHash / snapshotHash | 用于识别相同键是否对应相同内容的摘要 |
 | INITIAL / CHASE / ESCALATION | 首次提醒 / 催办 / 升级提醒用途 |
+| channelKey / delivery-channels | 通知投递渠道稳定键（如 IN_APP、FEISHU）/ 运行配置中的启用渠道列表；默认仅 IN_APP |
+| FEISHU / feishu_im_notification | 飞书 IM 渠道键 / 飞书通知 ActionHandler 键（P05） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主模块（P05；本期 feishu） |
+| F01—F10 | P05 飞书验收项，见 [07 §6.1](07-ACCEPTANCE.md) |
+| /callbacks/v1/feishu/card-action | 飞书卡片回传 HTTP 路径（P05） |
+| interactive / card.action.trigger | 飞书交互卡片消息类型 / 卡片回传交互回调（入站命令主路径） |
+| im.message.receive_v1 | 飞书接收消息事件（文字回复辅路径） |
+| open_id | 飞书用户标识；由配置把平台 recipientId 映射到该值 |
 | ALL_MISSED | 非暂停停机恢复时按顺序补齐每个漏掉的发生事实；过期通知只记录EXPIRED，不补发收件 |
 | MAX_PARTICIPANTS_PER_SCOPE / MAX_RECIPIENTS_PER_INSTANCE | 单个定义或实例参与人上限50 / 单个实例最终接收人上限10 |
 | MAX_TRIGGER_BINDINGS_PER_DEFINITION / MAX_OCCURRENCES_PER_WRITE_TX | 单个定义触发绑定上限8 / 单笔写事务发生总数上限100；S01/S02另限一个calendar绑定 |
@@ -208,7 +216,8 @@
 | timeimprint-task-service-runtime | Planner、Signal和Action后台运行时 |
 | timeimprint-task-service-storage-mysql | MySQL存储适配器和平台公共迁移 |
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
-| timeimprint-task-service-capability-notification | 通知意图、站内信及未来渠道适配 |
+| timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主（P05 起；本期 feishu，后续其他三方同模块按包扩展） |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |

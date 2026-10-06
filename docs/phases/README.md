@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P05 飞书整体接入](P05/README.md) | CURRENT / READY | 契约已闭合（含 adapter、F01—F10）；下一动作：用户授权后 IMPLEMENTING，从 [T02](P05/IMPLEMENTATION.md) 编码 |
+| [P05 飞书整体接入](P05/README.md) | CURRENT / IMPLEMENTING | [T02](P05/IMPLEMENTATION.md) PASS；下一任务 [T03](P05/IMPLEMENTATION.md) |
 
 ## 已发布阶段
 

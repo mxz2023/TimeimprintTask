@@ -42,7 +42,7 @@ CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](..
 | C09 | 提醒节制 | [notification](CAP03-notification.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C10 | 发生例外 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C11 | 有效区间与结束条件 | [calendar](CAP01-calendar.md) | NEXT_REVIEW | OUTLINE | NOT_STARTED |
-| C12 | 多IM渠道 | [notification](CAP03-notification.md) | P05 | READY_FOR_IMPLEMENTATION | NOT_STARTED |
+| C12 | 多IM渠道 | [notification](CAP03-notification.md) | P05 | READY_FOR_IMPLEMENTATION | IN_PROGRESS |
 | C13 | 身份与权限 | [collaboration](CAP04-collaboration.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C14 | 缓存接入 | [09跨域平台候选](../09-SCENARIO-ROADMAP.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C15 | 前端与用户操作界面 | [09产品接入候选](../09-SCENARIO-ROADMAP.md) | BACKLOG | OUTLINE | NOT_STARTED |

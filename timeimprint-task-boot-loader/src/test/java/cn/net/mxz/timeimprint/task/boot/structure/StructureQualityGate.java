@@ -65,6 +65,7 @@ public final class StructureQualityGate {
             "timeimprint-task-service-runtime",
             "timeimprint-task-service-storage-mysql",
             "timeimprint-task-service-capability-calendar",
+            "timeimprint-task-adapter",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
             "timeimprint-task-gateway",
@@ -502,8 +503,15 @@ public final class StructureQualityGate {
                 "timeimprint-task-service-capability-notification",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.service.capability.notification",
-                        Set.of("notification", "inapp"),
-                        Set.of("handler", "adapter", "mapper", "row", "port"),
+                        Set.of("notification", "inapp", "feishu"),
+                        Set.of("handler", "adapter", "mapper", "row", "port", "configuration"),
+                        false));
+        m.put(
+                "timeimprint-task-adapter",
+                new ModuleRule(
+                        "cn.net.mxz.timeimprint.task.adapter",
+                        Set.of("feishu"),
+                        Set.of("client", "auth", "callback", "configuration"),
                         false));
         m.put(
                 "timeimprint-task-service-scenario-basic",

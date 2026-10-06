@@ -1,6 +1,6 @@
 # P05 · 实施任务
 
-> 阶段身份与范围见 [README](README.md)。总体状态 READY 时仍禁止编码，直至用户明确授权实施。
+> 阶段身份与范围见 [README](README.md)。总体状态 IMPLEMENTING；按 T02→T05 编码。
 
 ## 1. 任务状态
 
@@ -8,7 +8,7 @@
 | --- | --- | --- | --- | --- |
 | T00 | 建立阶段包；登记飞书整体接入（出站+入站） | PASS | 用户确认整体接入口径与按钮集合 | README/本文；09、CAP03、索引与 00 指向 P05；S02 三按钮、snooze=+1h、S01 无按钮、文字回复不实现 |
 | T01 | 收敛契约：adapter 写入 02；03/06/07/CAP03 等；阶段转 READY | PASS | 用户认可 README §6（含 adapter 模块名） | [02](../../02-AI-CODING-GUIDE.md) 模块表 14；[03 §3.1](../../03-INTEGRATION-CONTRACTS.md)；[07 F01—F10](../../07-ACCEPTANCE.md)；NOT-05 READY_FOR_IMPLEMENTATION；阶段 READY |
-| T02 | `baselineGitRef` + 创建 `timeimprint-task-adapter`（feishu 骨架）+ 渠道展开 | NOT_STARTED | READY 且用户授权实施 | 基线写入 README；adapter 可编译；notification 依赖 adapter；默认仅 IN_APP 回归 |
+| T02 | `baselineGitRef` + 创建 `timeimprint-task-adapter`（feishu 骨架）+ 渠道展开 | PASS | READY 且用户授权实施 | 基线写入 README；adapter 可编译；notification 依赖 adapter；默认仅 IN_APP 回归 |
 | T03 | adapter 飞书客户端 + notification 出站卡片 Handler | NOT_STARTED | T02 PASS | EXTERNAL 发 interactive；SDK 仅在 adapter；Mock 发信 IT |
 | T04 | web 回调 + adapter 验签 → complete/skip/snooze(+1h) | NOT_STARTED | T03 PASS | 验签入口；三命令映射；3 秒内 toast；幂等；伪造回调 IT |
 | T05 | 场景去渠道硬依赖、Enforcer/ArchUnit、全量回归 | NOT_STARTED | T04 PASS | 依赖门禁证明 kernel/scenario 无 adapter；mysql-it/dual-process-it；DELIVERY；F01—F10 |
@@ -31,6 +31,6 @@
 | 门槛 | 要求 |
 | --- | --- |
 | DRAFT → READY | T01 PASS（已完成） |
-| READY → IMPLEMENTING | 用户明确授权本阶段实施 |
+| READY → IMPLEMENTING | 用户明确授权本阶段实施（已完成 2026-10-06） |
 | IMPLEMENTING → VERIFYING | T02—T04 PASS；建 DELIVERY |
 | VERIFYING → RELEASED | T05 与人工验收；标签 `vyyyyMMdd-P05` |

@@ -12,11 +12,11 @@
 | 已发布P02 | 不新增场景 | 不新增能力 | 工程结构与测试镜像 RELEASED（标签 `v20260917-P02`）；人工验收 2026-09-17 |
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
 | 已发布P04 | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) RELEASED（标签 `v20261003-P04`）：S02 站内信标题，以及实例命令改为先锁定义再锁实例；人工验收 2026-10-03 |
-| CURRENT | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 | [P05](phases/P05/README.md) CURRENT / READY：出站卡片 + 入站命令；adapter 模块；默认 `IN_APP`；未授权编码 |
+| CURRENT | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 | [P05](phases/P05/README.md) CURRENT / IMPLEMENTING：出站卡片 + 入站命令；adapter 模块；按 T02 编码 |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力 | 不自动进入实施；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。当前 CURRENT 为 [P05](phases/P05/README.md)（READY）：飞书整体接入（出站卡片 + 入站命令）；微信/钉钉/Telegram 等仍属 C12 后续；未授权不得编码。NEXT_REVIEW 中的业务场景须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。当前 CURRENT 为 [P05](phases/P05/README.md)（IMPLEMENTING）：飞书整体接入（出站卡片 + 入站命令）；微信/钉钉/Telegram 等仍属 C12 后续。NEXT_REVIEW 中的业务场景须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -148,6 +148,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-06 | P05 | 用户确认：同期交付出站卡片+入站按钮；S02 三按钮；稍后=+1h；文字回复不实现 | S01 无按钮；§6 其余项采用已采纳默认，待 T01 写入正式契约 |
 | 2026-10-06 | P05 | 用户要求第三方 SDK 由通用 Maven 模块统一管理；notification 依赖该模块用飞书 | 模块名暂定 `timeimprint-task-adapter`；T01 修订 02 模块表 13→14 |
 | 2026-10-06 | P05、T01 | 用户同意 §6 默认并执行 T01；阶段 READY | 02/03/06/07/CAP03 已写入；NOT-05 READY_FOR_IMPLEMENTATION；未授权编码 |
+| 2026-10-06 | P05 | 用户审核全部 Tx 通过并授权实施；阶段 IMPLEMENTING | baselineGitRef=`9d9dc87…`；从 T02 起编码 |
 
 ## 8. 下一场景进入实施的检查
 

@@ -33,6 +33,10 @@ timeimprint:
   test:
     tenant-id: ${TEST_TENANT_ID:test-tenant}
     actor-id: ${TEST_ACTOR_ID:test-actor}
+  notification:
+    # 合法值：[IN_APP] 或 [IN_APP, FEISHU]；必须含 IN_APP。默认仅站内信（与 P01—P04 一致）。
+    delivery-channels:
+      - IN_APP
 
 management:
   endpoints:

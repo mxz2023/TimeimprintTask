@@ -17,7 +17,7 @@
 | 工程状态 | VERIFYING |
 | Git发布标签 | 未发布 |
 | 人工验收 | 未开始 |
-| 下一动作 | 补 [T04](IMPLEMENTATION.md) 的改密与忘记密码证据，并完成人工验收；完成前不转 RELEASED |
+| 下一动作 | 用户人工验收；完成前不转 RELEASED |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY](DELIVERY.md)；U01—U10 为 PASS |
 

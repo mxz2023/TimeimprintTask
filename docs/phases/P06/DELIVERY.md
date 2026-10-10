@@ -3,7 +3,7 @@
 > 本文只记录已经执行的命令和结果。
 > 阶段身份见 [README](README.md)，任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
-recordedAtUtc: 2026-10-10T10:54:12Z
+recordedAtUtc: 2026-10-10T13:37:14Z
 阶段状态: VERIFYING。[U01](../../07-ACCEPTANCE.md)—[U10](../../07-ACCEPTANCE.md) 已有对应用例。人工验收未开始，不转入 RELEASED。
 
 ---
@@ -27,10 +27,10 @@ recordedAtUtc: 2026-10-10T10:54:12Z
 
 | 命令 | 退出码 | 结果摘要 |
 | --- | --- | --- |
-| `bash Deploy/scripts/07-run-task-acceptance.sh mysql-it` | 0 | BUILD SUCCESS。总时间 55.445 秒。Failsafe **108** run / 0 fail / 0 error / 0 skipped（含 `AccountAcceptanceMysqlIT` 9 项）。`ArchitectureRulesTest` 11 项、`AccountSmsChannelTest` 1 项通过。结束于 2026-10-10T10:42:09Z |
-| `bash Deploy/scripts/07-run-task-acceptance.sh dual-process-it` | 0 | BUILD SUCCESS。总时间 11 分 19 秒。Failsafe **7** run / 0 fail / 0 error。`PerfGateDualProcessIT`（`timeimprint-task-boot-loader` 模块）625.6 秒，预热与三次正式均为 inbox=1000、backlog=0、passed=true。结束于 2026-10-10T10:54:12Z |
+| `bash Deploy/scripts/07-run-task-acceptance.sh mysql-it` | 0 | BUILD SUCCESS。总时间 1 分 0 秒。Failsafe **109** run / 0 fail / 0 error / 0 skipped（含 `AccountAcceptanceMysqlIT` 10 项）。结束于 2026-10-10T13:25:20Z |
+| `bash Deploy/scripts/07-run-task-acceptance.sh dual-process-it` | 0 | BUILD SUCCESS。总时间 11 分 27 秒。Failsafe **7** run / 0 fail / 0 error。`PerfGateDualProcessIT`（`timeimprint-task-boot-loader` 模块）633.2 秒，预热与三次正式均为 inbox=1000、backlog=0、passed=true。结束于 2026-10-10T13:37:14Z |
 | 单独的 `./mvnw -q test` | NOT_RUN | 单元测试只随上面两条 `verify` 一起执行，没有单独留下 Surefire 合计 |
-| `git diff --check` | NOT_RUN | 本次未执行 |
+| `git diff --check` | 0 | 工作区无空白错误 |
 
 两条命令都在 MyStudio 仓库执行，入口脚本会先重建 `tit-mysql-t01`。执行前从环境中去掉了 `FEISHU_` 与 `TIMEIMPRINT_NOTIFICATION_` 前缀的变量，避免本机凭据改变结果。两次顺序执行，没有并发。短信模式为 `capture`，没有调用腾讯云。
 
@@ -49,4 +49,15 @@ recordedAtUtc: 2026-10-10T10:54:12Z
 | [U09](../../07-ACCEPTANCE.md) | 参与人 | PASS | `AccountAcceptanceMysqlIT.u09ActiveOwnerOnlyAndAccountsCannotSeeEachOther`：当前活跃用户可作为 OWNER；不存在或已停用的 id 创建定义为 `INVALID_REQUEST`；另一账号读取与列表都看不到该定义。读取与列表按参与人过滤 |
 | [U10](../../07-ACCEPTANCE.md) | 模块边界 | PASS | `ArchitectureRulesTest.identityDoesNotDependOnKernel`、`smsAndWechatClientsStayInAdapter`、`noFeishuScanLoginSurface`，以及既有 `feishuSdkAndOutboundHttpStayInsideAdapter`（JDK HTTP 只在 adapter）。生产代码中无 `FeishuScan` / `FeishuOAuth` 类型 |
 
-[T02](IMPLEMENTATION.md) 与 [T03](IMPLEMENTATION.md) 据此标 PASS。[T04](IMPLEMENTATION.md) 仍须改密、忘记密码的专项证据和用户人工验收，阶段停在 VERIFYING。
+[T02](IMPLEMENTATION.md) 与 [T03](IMPLEMENTATION.md) 据此标 PASS。
+
+## 4. T04
+
+| 范围 | 结论 | 证据 |
+| --- | --- | --- |
+| 改密 [E21](../../04-API.md) | PASS | `AccountAcceptanceMysqlIT.t04ChangePasswordAndReset`：无令牌为 `UNAUTHENTICATED`；旧密码错误不改摘要；正确旧密码后旧密码登录失败、新密码登录得到令牌 |
+| 忘记密码 [E23](../../04-API.md) | PASS | 同一方法：不存在的手机号不新增用户；超过 10 分钟的验证码不改摘要；重置后旧密码登录失败、新密码登录得到令牌 |
+| 管理员列表与退出 | PASS | 第 3 节 [U08](../../07-ACCEPTANCE.md)、[U03](../../07-ACCEPTANCE.md) |
+| 旧测试改为登录、全量回归、无飞书扫码 | PASS | 本节两条命令；[U10](../../07-ACCEPTANCE.md) |
+
+[T04](IMPLEMENTATION.md) 据此标 PASS。人工验收未开始，阶段保持 VERIFYING，不转入 RELEASED。

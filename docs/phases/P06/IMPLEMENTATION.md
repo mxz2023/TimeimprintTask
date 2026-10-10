@@ -10,7 +10,7 @@
 | T01 | 用户接受 ADR-0001，并把账号契约写入 01—07、02 模块表与 CAP04 账号子集；阶段转 READY | PASS | 用户明确接受 ADR-0001 | 正式契约与 ADR 一致；COL-01 账号子集为 READY_FOR_IMPLEMENTATION；阶段 READY |
 | T02 | 记录 baselineGitRef；新建 identity 专有表、短信替身、手机号注册与密码登录 | PASS | 阶段 READY 且用户另行授权实施 | [DELIVERY](DELIVERY.md) U01—U03、U08。测试使用 capture，不调用腾讯云 |
 | T03 | 微信登录、绑定、解绑和绑定手机号合并；令牌构造 ActorContext | PASS | T02 PASS | [DELIVERY](DELIVERY.md) U04—U07、U09、U10 |
-| T04 | 管理员列表、改密、忘记密码、退出；旧测试改为登录；全量回归 | NOT_STARTED | T03 PASS | DELIVERY 记录真实命令与结果；飞书扫码无实现 |
+| T04 | 管理员列表、改密、忘记密码、退出；旧测试改为登录；全量回归 | PASS | T03 PASS | [DELIVERY](DELIVERY.md) 第 4 节。人工验收未开始 |
 
 任务按序推进。T00—T01 只改文档。T02 起才改生产代码，且必须另有实施授权。
 

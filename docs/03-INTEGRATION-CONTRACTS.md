@@ -212,3 +212,5 @@ boot-loader引入Spring Boot Actuator，仅在回环地址提供`/actuator/healt
 T01必须记录`java -version`、Wrapper版本、effective POM、依赖树、MySQL镜像标签与digest、`SELECT VERSION()`、`@@version_comment`、隔离级别和session时区，并验证13模块依赖图、Spring装配、回环监听、liveness/readiness和无库单元测试。mysql-it验证迁移、约束、MyBatis映射和锁语义；dual-process-it验证两个真实进程的领取、崩溃、优雅停机和租约恢复。
 
 缺少真实MySQL只阻塞真库部分，不能改用H2后宣称通过。未执行项记录NOT_RUN或BLOCKED；03文档通过只确认目标技术环境和验收方法，不代表环境已经验证，也不单独放行T01。生产网络、身份、容量、备份和部署仍不在首期本地验收范围。
+
+真库验收实例是一次性的。每次运行 mysql-it 或 dual-process-it 之前，在 MyStudio 仓库执行 `Deploy/scripts/06-recreate-task-acceptance-mysql.sh`，删除并重建容器 `tit-mysql-t01`（只监听 `127.0.0.1:13306`，镜像 `mysql:9.7.2`）。脚本给出空库 `timeimprint_task_local` 与 `timeimprint_task_perf`，关闭 binlog，容器停止后连同数据卷删除。测试数据不保留。测试进程内仍不得 CREATE DATABASE、DROP DATABASE、TRUNCATE 或 Flyway clean，见 [07](07-ACCEPTANCE.md)。使用该容器的全量验证由代理在修改代码后自动执行，命令是 `Deploy/scripts/07-run-task-acceptance.sh`，先 `mysql-it`，通过后再 `dual-process-it`。单次不得超过 20 分钟；超时终止本次 Maven 进程并删除容器，结果为失败。人工可以执行同一命令。单元测试不在这条限制内，也不通过 Surefire 或 Failsafe 的进程超时实现。

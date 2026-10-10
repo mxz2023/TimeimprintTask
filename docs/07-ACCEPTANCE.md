@@ -15,7 +15,7 @@
 | Dual-process IT | 两节点竞争、崩溃、旧token和公平性 | 同一制品、同一数据库、两个Java进程 |
 | Performance | 到期处理、收件可查、积压恢复 | 真时钟、真MySQL、两进程 |
 
-集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。
+集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。使用容器 `tit-mysql-t01` 的全量验证，在修改代码后由代理用 MyStudio 的 `Deploy/scripts/07-run-task-acceptance.sh` 自动执行，先 `mysql-it`，通过后再 `dual-process-it`。单次不得超过 20 分钟；超时终止本次验证并删除该容器。单元测试不受此限。
 
 真库测试允许的数据库只有：功能验收库`timeimprint_task_local`，以及性能门槛专用库`timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
 

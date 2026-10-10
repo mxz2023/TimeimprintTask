@@ -29,6 +29,8 @@ export JAVA_HOME=... # JDK 21
 ./mvnw -q package
 ```
 
+修改代码后，代理用 `bash Deploy/scripts/07-run-task-acceptance.sh` 对 `tit-mysql-t01` 跑全量真库验证，先 `mysql-it`，通过后再 `dual-process-it`。单次超过 20 分钟会终止本次验证并删除容器。单元测试不受此限。
+
 4. 启动（任选其一）：
 
 ```bash

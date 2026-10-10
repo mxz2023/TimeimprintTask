@@ -17,11 +17,39 @@ public class IdentityClientConfiguration {
     SmsSender smsSender(
             @Value("${timeimprint.identity.sms.mode:capture}") String mode,
             @Value("${timeimprint.identity.sms.secret-id:}") String secretId,
-            @Value("${timeimprint.identity.sms.secret-key:}") String secretKey) {
+            @Value("${timeimprint.identity.sms.secret-key:}") String secretKey,
+            @Value("${timeimprint.identity.sms.sdk-app-id:}") String sdkAppId,
+            @Value("${timeimprint.identity.sms.sign-name:}") String signName,
+            @Value("${timeimprint.identity.sms.template-id:}") String templateId,
+            @Value("${timeimprint.identity.sms.region:ap-guangzhou}") String region) {
         if ("tencent".equals(mode)) {
-            return new TencentSmsSender(secretId, secretKey);
+            requireSmsConfig(secretId, secretKey, sdkAppId, signName, templateId);
+            return new TencentSmsSender(secretId, secretKey, sdkAppId, signName, templateId, region);
         }
         return new CaptureSmsSender();
+    }
+
+    private static void requireSmsConfig(
+            String secretId, String secretKey, String sdkAppId, String signName, String templateId) {
+        StringBuilder missing = new StringBuilder();
+        appendMissing(missing, "secret-id", secretId);
+        appendMissing(missing, "secret-key", secretKey);
+        appendMissing(missing, "sdk-app-id", sdkAppId);
+        appendMissing(missing, "sign-name", signName);
+        appendMissing(missing, "template-id", templateId);
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException(
+                    "timeimprint.identity.sms mode tencent requires " + missing);
+        }
+    }
+
+    private static void appendMissing(StringBuilder missing, String name, String value) {
+        if (value == null || value.isBlank()) {
+            if (!missing.isEmpty()) {
+                missing.append(", ");
+            }
+            missing.append(name);
+        }
     }
 
     @Bean

@@ -33,6 +33,12 @@ timeimprint:
       enabled: true
     sms:
       mode: ${IDENTITY_SMS_MODE:capture}
+      secret-id: ${TENCENT_SECRET_ID:}
+      secret-key: ${TENCENT_SECRET_KEY:}
+      sdk-app-id: ${TENCENT_SMS_SDK_APP_ID:}
+      sign-name: ${TENCENT_SMS_SIGN_NAME:}
+      template-id: ${TENCENT_SMS_TEMPLATE_ID:}
+      region: ${IDENTITY_SMS_REGION:ap-guangzhou}
     wechat:
       mode: ${IDENTITY_WECHAT_MODE:capture}
   local:

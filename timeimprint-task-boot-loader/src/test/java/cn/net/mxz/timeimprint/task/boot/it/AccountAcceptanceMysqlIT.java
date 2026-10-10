@@ -325,6 +325,84 @@ class AccountAcceptanceMysqlIT {
         assertEquals("OK", own.path("code").asText(), own.toString());
     }
 
+    @Test
+    void t04ChangePasswordAndReset() throws Exception {
+        String phone = phone();
+        Issued issued = authorizeNew(phone, "改密");
+        String hashBefore = passwordHash(issued.userId());
+
+        JsonNode missingToken = post("/api/v1/users/change-password", Map.of(
+                "oldPassword", "pass-word-1",
+                "password", "pass-word-2"));
+        assertEquals("UNAUTHENTICATED", missingToken.path("code").asText(), missingToken.toString());
+
+        JsonNode wrongOld = post("/api/v1/users/change-password", Map.of(
+                "oldPassword", "wrong-old",
+                "password", "pass-word-2"), issued.token());
+        assertEquals("INVALID_REQUEST", wrongOld.path("code").asText(), wrongOld.toString());
+        assertEquals(hashBefore, passwordHash(issued.userId()));
+
+        JsonNode changed = post("/api/v1/users/change-password", Map.of(
+                "oldPassword", "pass-word-1",
+                "password", "pass-word-2"), issued.token());
+        assertEquals("OK", changed.path("code").asText(), changed.toString());
+        assertNotEquals(hashBefore, passwordHash(issued.userId()));
+        JsonNode oldLogin = post("/api/v1/users/login", Map.of(
+                "phoneNumber", phone,
+                "password", "pass-word-1"));
+        assertEquals("UNAUTHENTICATED", oldLogin.path("code").asText(), oldLogin.toString());
+        JsonNode newLogin = post("/api/v1/users/login", Map.of(
+                "phoneNumber", phone,
+                "password", "pass-word-2"));
+        assertEquals("OK", newLogin.path("code").asText(), newLogin.toString());
+        assertFalse(newLogin.path("data").path("token").asText().isBlank());
+
+        String unknown = phone();
+        sendSms(unknown);
+        int usersBefore = countAllUsers();
+        JsonNode noUser = post("/api/v1/users/password-reset", Map.of(
+                "phoneNumber", unknown,
+                "code", CaptureSmsSender.lastCode(unknown),
+                "password", "pass-word-3"));
+        assertEquals("INVALID_REQUEST", noUser.path("code").asText(), noUser.toString());
+        assertEquals(usersBefore, countAllUsers());
+        assertEquals(0, countUsers(unknown));
+
+        sendSms(phone);
+        jdbc.update(
+                """
+                UPDATE tt_identity_verification_code
+                SET created_at = ?
+                WHERE phone_number = ? AND code = ?
+                """,
+                Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(11)),
+                phone,
+                CaptureSmsSender.lastCode(phone));
+        String hashAfterChange = passwordHash(issued.userId());
+        JsonNode expired = post("/api/v1/users/password-reset", Map.of(
+                "phoneNumber", phone,
+                "code", CaptureSmsSender.lastCode(phone),
+                "password", "pass-word-3"));
+        assertEquals("INVALID_REQUEST", expired.path("code").asText(), expired.toString());
+        assertEquals(hashAfterChange, passwordHash(issued.userId()));
+
+        sendSms(phone);
+        JsonNode reset = post("/api/v1/users/password-reset", Map.of(
+                "phoneNumber", phone,
+                "code", CaptureSmsSender.lastCode(phone),
+                "password", "pass-word-3"));
+        assertEquals("OK", reset.path("code").asText(), reset.toString());
+        JsonNode stale = post("/api/v1/users/login", Map.of(
+                "phoneNumber", phone,
+                "password", "pass-word-2"));
+        assertEquals("UNAUTHENTICATED", stale.path("code").asText(), stale.toString());
+        JsonNode resetLogin = post("/api/v1/users/login", Map.of(
+                "phoneNumber", phone,
+                "password", "pass-word-3"));
+        assertEquals("OK", resetLogin.path("code").asText(), resetLogin.toString());
+        assertFalse(resetLogin.path("data").path("token").asText().isBlank());
+    }
+
     private JsonNode register(String phone, String nickname) throws Exception {
         sendSms(phone);
         return post("/api/v1/users/register", Map.of(
@@ -335,7 +413,10 @@ class AccountAcceptanceMysqlIT {
     }
 
     private Issued authorizeNew(String nickname) throws Exception {
-        String phone = phone();
+        return authorizeNew(phone(), nickname);
+    }
+
+    private Issued authorizeNew(String phone, String nickname) throws Exception {
         JsonNode registered = register(phone, nickname);
         assertEquals("OK", registered.path("code").asText(), registered.toString());
         return finishAuthorization(registered);
@@ -386,6 +467,18 @@ class AccountAcceptanceMysqlIT {
                                 "localDate", LocalDate.from(occurrence).toString(),
                                 "localTime", TIME_FMT.format(LocalTime.from(occurrence)),
                                 "zoneId", "Asia/Shanghai"))));
+    }
+
+    private String passwordHash(long userId) {
+        return jdbc.queryForObject(
+                "SELECT password_hash FROM tt_identity_user WHERE user_id = ?",
+                String.class,
+                userId);
+    }
+
+    private int countAllUsers() {
+        Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM tt_identity_user", Integer.class);
+        return n == null ? 0 : n;
     }
 
     private int countUsers(String phone) {

@@ -10,18 +10,18 @@
 | --- | --- |
 | 阶段 | P06 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P05；Git 标签 `v20261007-P05` |
 | baselineGitRef | `844d2ffeddfb3583230637fab57dd83f565c97ec`（授权实施前的 HEAD；账号契约当时尚未提交） |
-| 工程状态 | IMPLEMENTING |
+| 工程状态 | VERIFYING |
 | Git发布标签 | 未发布 |
 | 人工验收 | 未开始 |
-| 下一动作 | 为 U01—U10 补真实用例；通过前保持 IMPLEMENTING |
+| 下一动作 | 补 [T04](IMPLEMENTATION.md) 的改密与忘记密码证据，并完成人工验收；完成前不转 RELEASED |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | [DELIVERY](DELIVERY.md)；全量回归已通过，U01—U10 为 NOT_RUN |
+| 交付证据 | [DELIVERY](DELIVERY.md)；U01—U10 为 PASS |
 
-用户于 2026-10-10 接受 [ADR-0001](../../decisions/ADR-0001-multi-user-identity.md)，并授权实施。阶段为 IMPLEMENTING。
+用户于 2026-10-10 接受 [ADR-0001](../../decisions/ADR-0001-multi-user-identity.md)，并授权实施。阶段为 VERIFYING。
 
 ## 2. 已接受口径
 

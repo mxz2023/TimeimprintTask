@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P06 多用户账号](P06/README.md) | IMPLEMENTING | 全量回归已通过；[DELIVERY](P06/DELIVERY.md) 中 U01—U10 仍为 NOT_RUN |
+| [P06 多用户账号](P06/README.md) | VERIFYING | [DELIVERY](P06/DELIVERY.md) 中 U01—U10 为 PASS；人工验收未开始 |
 
 ## 已发布阶段
 

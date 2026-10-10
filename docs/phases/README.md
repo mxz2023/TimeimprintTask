@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 范围与下一动作 |
-| --- | --- | --- |
-| 无 | — | 从 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
+当前没有进行中的阶段。下一阶段须用户从 [09演进路线](../09-SCENARIO-ROADMAP.md) 另选范围、建立阶段包并授权。
 
 ## 已发布阶段
 
@@ -17,6 +15,7 @@
 | [P03 Jackson 3 原生迁移](P03/README.md) | RELEASED | [DELIVERY](P03/DELIVERY.md)；Git 标签 `v20260917-P03`；人工验收 2026-09-17 |
 | [P04 标题与锁序](P04/README.md) | RELEASED | [DELIVERY](P04/DELIVERY.md)；Git 标签 `v20261003-P04`；人工验收 2026-10-03 |
 | [P05 飞书整体接入](P05/README.md) | RELEASED | [DELIVERY](P05/DELIVERY.md)；Git 标签 `v20261007-P05`；人工验收 2026-10-07 |
+| [P06 多用户账号](P06/README.md) | RELEASED | [DELIVERY](P06/DELIVERY.md)；Git 标签 `v20261010-P06`；人工验收 2026-10-10 |
 
 ## 未来阶段
 

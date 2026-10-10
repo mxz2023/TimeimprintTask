@@ -27,6 +27,11 @@
             <artifactId>timeimprint-task-common</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.net.mxz</groupId>
+            <artifactId>timeimprint-task-identity</artifactId>
+            <version>${revision}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>

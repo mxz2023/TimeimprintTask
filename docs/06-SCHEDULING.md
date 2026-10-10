@@ -171,7 +171,7 @@ IN_APP没有外部网络副作用：结果事务原子插入tt_inbox、闭合Att
 
 S02每个occurrence的`occurrenceAt`等于定义中的`dueAt`。INITIAL在dueAt可用；CHASE按`chaseOffsetsMinutes`相对dueAt生成，默认分别为+60、+240、+720分钟。所有提醒共享`expiresAt = dueAt + notificationExpireAfterMinutes`，默认+1440分钟。实例创建时只把业务槽位计划写入场景快照，时间Signal迁移时据此一次性创建Action；技术重试不得增加槽位。
 
-S01与S02使用同一接收人规则：没有显式RECIPIENT时，最终接收人取OWNER；一旦声明RECIPIENT，则只向显式RECIPIENT发送。去重后的最终接收人最多10人。一期公共API只接受USER主体，本地配置中的OWNER和RECIPIENT必须等于固定Actor；多身份只允许测试配置模拟。Action key的规范输入至少包含instanceId、提醒用途、slotIndex、actionGeneration、recipient和channel，最终存储为用途短前缀加SHA-256 Base64URL摘要，不得直接拼接接收人、使用随机数或当前时间。
+S01与S02使用同一接收人规则：没有显式RECIPIENT时，最终接收人取OWNER；一旦声明RECIPIENT，则只向显式RECIPIENT发送。去重后的最终接收人最多10人。公共API只接受USER主体。OWNER和RECIPIENT的principalId必须是同一tenant内的活跃用户id。跨用户用例登录两个测试账号，不使用调试头。Action key的规范输入至少包含instanceId、提醒用途、slotIndex、actionGeneration、recipient和channel，最终存储为用途短前缀加SHA-256 Base64URL摘要，不得直接拼接接收人、使用随机数或当前时间。
 
 complete或skip原子终结实例，并取消尚未开始的READY/RETRY_WAIT提醒；RUNNING调用和已经产生的收件事实按正常结果闭合且保留。skip必须保存1—500个Unicode码点的原因；complete原因可选。
 

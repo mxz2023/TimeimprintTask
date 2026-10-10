@@ -66,6 +66,7 @@ public final class StructureQualityGate {
             "timeimprint-task-service-storage-mysql",
             "timeimprint-task-service-capability-calendar",
             "timeimprint-task-adapter",
+            "timeimprint-task-identity",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
             "timeimprint-task-gateway",
@@ -510,8 +511,15 @@ public final class StructureQualityGate {
                 "timeimprint-task-adapter",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.adapter",
-                        Set.of("feishu"),
+                        Set.of("feishu", "sms", "wechat"),
                         Set.of("client", "auth", "callback", "configuration"),
+                        false));
+        m.put(
+                "timeimprint-task-identity",
+                new ModuleRule(
+                        "cn.net.mxz.timeimprint.task.identity",
+                        Set.of("account"),
+                        Set.of("service"),
                         false));
         m.put(
                 "timeimprint-task-service-scenario-basic",
@@ -531,7 +539,7 @@ public final class StructureQualityGate {
                 "timeimprint-task-web",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.web",
-                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared"),
+                        Set.of("definition", "instance", "signal", "inbox", "diagnostic", "callback", "shared", "identity"),
                         Set.of("controller", "filter", "error", "configuration"),
                         false));
         return Map.copyOf(m);

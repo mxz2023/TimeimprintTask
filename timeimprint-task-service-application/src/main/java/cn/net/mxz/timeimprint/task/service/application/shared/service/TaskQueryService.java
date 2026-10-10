@@ -66,9 +66,13 @@ public class TaskQueryService {
         if (!actor.tenantKey().equals(def.tenantId())) {
             throw new ApplicationException("RESOURCE_NOT_FOUND", "definition");
         }
+        var participants = participantQuery.listDefinitionLevel(definitionId);
+        if (participants.stream().noneMatch(p -> actor.principalId().equals(p.principalId()))) {
+            throw new ApplicationException("RESOURCE_NOT_FOUND", "definition");
+        }
         return new DefinitionDetail(
                 def,
-                participantQuery.listDefinitionLevel(definitionId),
+                participants,
                 triggerBindingQuery.listByDefinition(definitionId),
                 List.of("update", "pause", "resume", "retire"));
     }
@@ -82,6 +86,10 @@ public class TaskQueryService {
                 .findById(inst.definitionId())
                 .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "definition"));
         if (!actor.tenantKey().equals(def.tenantId())) {
+            throw new ApplicationException("RESOURCE_NOT_FOUND", "instance");
+        }
+        if (participantQuery.listDefinitionLevel(inst.definitionId()).stream()
+                .noneMatch(p -> actor.principalId().equals(p.principalId()))) {
             throw new ApplicationException("RESOURCE_NOT_FOUND", "instance");
         }
         var actions = actionJobExecutionPort.listByInstance(instanceId);

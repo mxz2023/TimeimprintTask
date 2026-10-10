@@ -96,7 +96,7 @@ class ArchitectureRulesTest {
 
     @Test
     void onlyNotificationGatewayWebAndBootMayDependOnAdapter() {
-        // 允许的消费者见 02 模块表：notification、gateway、web（回调验签）、boot-loader（装配）。
+        // 允许的消费者见 02 模块表：notification、gateway、web、identity、boot-loader。identity 不在下方禁止名单中。
         noClasses()
                 .that()
                 .resideInAnyPackage(
@@ -155,6 +155,36 @@ class ArchitectureRulesTest {
                         "org.springframework.web.client..",
                         "org.springframework.web.reactive.function.client..")
                 .check(productionClasses("cn.net.mxz.timeimprint.task"));
+    }
+
+    @Test
+    void identityDoesNotDependOnKernel() {
+        noClasses()
+                .that()
+                .resideInAPackage("cn.net.mxz.timeimprint.task.identity..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("cn.net.mxz.timeimprint.task.service.kernel..")
+                .check(productionClasses("cn.net.mxz.timeimprint.task.identity"));
+    }
+
+    @Test
+    void smsAndWechatClientsStayInAdapter() {
+        assertTrue(cn.net.mxz.timeimprint.task.adapter.sms.client.TencentSmsSender.class
+                .getPackageName()
+                .startsWith("cn.net.mxz.timeimprint.task.adapter.sms.client"));
+        assertTrue(cn.net.mxz.timeimprint.task.adapter.wechat.client.WeChatOAuthClient.class
+                .getPackageName()
+                .startsWith("cn.net.mxz.timeimprint.task.adapter.wechat.client"));
+    }
+
+    @Test
+    void noFeishuScanLoginSurface() {
+        JavaClasses classes = productionClasses("cn.net.mxz.timeimprint.task");
+        assertTrue(classes.stream().noneMatch(type -> {
+            String name = type.getSimpleName();
+            return name.contains("FeishuScan") || name.contains("FeishuOAuth");
+        }));
     }
 
     private static JavaClasses productionClasses(String pkg) {

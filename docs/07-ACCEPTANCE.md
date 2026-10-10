@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前无 CURRENT 阶段（见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前没有 CURRENT 阶段。[P06](phases/P06/README.md) 已 RELEASED（标签 `v20261010-P06`，见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）。
 
 ## 1. 验收分层与环境
 
@@ -15,7 +15,7 @@
 | Dual-process IT | 两节点竞争、崩溃、旧token和公平性 | 同一制品、同一数据库、两个Java进程 |
 | Performance | 到期处理、收件可查、积压恢复 | 真时钟、真MySQL、两进程 |
 
-集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。
+集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。使用容器 `tit-mysql-t01` 的全量验证，在修改代码后由代理用 MyStudio 的 `Deploy/scripts/07-run-task-acceptance.sh` 自动执行，先 `mysql-it`，通过后再 `dual-process-it`。单次不得超过 20 分钟；超时终止本次验证并删除该容器。单元测试不受此限。
 
 真库测试允许的数据库只有：功能验收库`timeimprint_task_local`，以及性能门槛专用库`timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
 
@@ -117,7 +117,7 @@ S01在通知Action意图提交后显示“提醒已触发”，不将收件生�
 | A11 | 修改时间规则与旧批次Worker同时提交 | 历史快照不变；旧未来事实取消；旧generation/revision不能越过屏障 |
 | A12 | 暂停跨周期再恢复 | 暂停区间不补发；恢复后从下一合法发生继续；预生成与未生成的业务结果一致 |
 | A13 | 同requestId不同内容、同revision不同requestId | 前者IDEMPOTENCY_CONFLICT；后者只一个迁移成功 |
-| A14 | test profile尝试跨tenant/跨参与人读写，并在local profile尝试通过请求覆盖固定身份 | 查询不串数，命令被Policy拒绝，不泄露资源是否存在；local固定tenant/actor不被请求改变 |
+| A14 | 两个测试账号跨用户读写，并尝试用请求体或调试头切换身份 | 查询不串数，命令被Policy拒绝，不泄露资源是否存在；无令牌或坏令牌返回401；请求不能改写tenant或actor |
 | A15 | 死锁、锁等待超时、结果提交失败 | 副作用前只完整事务重试最多3次；无部分状态；外部副作用开始后不重放调用 |
 | A16 | 连续可重试失败、Policy阻断、expiresAt恰到界 | 5/30/120/600秒退避，最多5次；只有副作用前Policy阻断退还计数；到界EXPIRED |
 | A17 | 收件重复执行、标记已读重放、同时分页 | 收件唯一；readAt保留首次；同秒以ID稳定排序且不重不漏 |
@@ -133,7 +133,7 @@ S01在通知Action意图提交后显示“提醒已触发”，不将收件生�
 | A27 | Planner、Signal、pause/update按受控交错并发 | Planner使用definition→trigger，Signal使用definition→trigger→instance→Signal；同类多行按主键升序，不形成已知反向锁，死锁重试仍只产生一套事实 |
 | A28 | pause后清理未完成即resume并与旧Worker并发 | pause/resume各增加controlGeneration；新代次可立即重建，旧Signal/Action被忽略或取消，旧清理不影响新代次 |
 | A29 | JSON、TransitionPlan、总变更行数和事务超时边界 | 等于65536字节/1048576字节/2000行可提交，任一超过均整笔拒绝；业务事务超过配置超时整笔回滚 |
-| A30 | S01/S02主体与接收人边界 | 两场景都要求OWNER并应用RECIPIENT回退；公共API拒绝非USER；local拒绝非固定Actor，多身份仅test可模拟 |
+| A30 | S01/S02主体与接收人边界 | 两场景都要求OWNER并应用RECIPIENT回退；公共API拒绝非USER；principalId必须是活跃用户；停用账号不能新加入 |
 | A31 | 非暂停状态下停机跨过多个发生与通知有效期后恢复 | Planner从原cursor有界追赶不跳过；S01保留历史已触发事实，S02保留PENDING实例；过期Action直接EXPIRED且不产生陈旧收件 |
 | A32 | DEAD Signal与Action人工重驱、并发重放和越权类型 | I06/I07的新行始终指向正常根行，全部历史行不变，requestId可重放、每根最多3次；仅当前controlGeneration且仍有业务资格的DEAD Signal和DEAD LOCAL_TRANSACTIONAL Action允许，跨代次、EXTERNAL/UNKNOWN拒绝 |
 | A33 | Handler超时预算与超长/敏感业务身份 | handler timeout不超过租约减安全余量，客户端各层超时受预算约束；actionKey为用途前缀+SHA-256 Base64URL且稳定、定长、不泄露接收人 |
@@ -153,7 +153,7 @@ S01在通知Action意图提交后显示“提醒已触发”，不将收件生�
 
 E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：成功、必填/类型/范围/未知字段、身份和资源归属、状态与revision、幂等重放/冲突、时间格式和返回字段。不适用的维度必须在交付报告写明原因。
 
-公共HTTP边界覆盖未知路径、错误方法、媒体类型、空体、畸形JSON、64KiB边界和未捕获异常。所有响应统一信封并产生traceId。公开响应不得泄露executionToken、leaseOwner、leaseUntil、SQL、堆栈、密码、连接串或敏感payload；受信内部诊断仅可按04返回leaseOwner/leaseUntil，仍不得返回executionToken、payload/hash或通知正文。local profile始终使用配置中的固定tenant/actor且拒绝请求覆盖；`X-Debug-Actor-Id`只在test profile有效；其他profile缺少正式ActorContextProvider时公开API不就绪；内部端点不向公网安全配置暴露。E01—E13逐字段断言04固定读模型，尤其验证deliveryState推导、未读与执行成功分离、诊断视图不含payload/token。Actuator只开放回环liveness/readiness，其他管理端点不可达。
+公共HTTP边界覆盖未知路径、错误方法、媒体类型、空体、畸形JSON、64KiB边界和未捕获异常。所有响应统一信封并产生traceId。公开响应不得泄露executionToken、leaseOwner、leaseUntil、SQL、堆栈、密码、连接串或敏感payload；受信内部诊断仅可按04返回leaseOwner/leaseUntil，仍不得返回executionToken、payload/hash或通知正文。公开任务接口必须先以测试账号登录；`X-Debug-Actor-Id`无效，不能退回固定身份。内部端点不向公网暴露。E01—E13逐字段断言04固定读模型，尤其验证deliveryState推导、未读与执行成功分离、诊断视图不含payload/token。Actuator只开放回环liveness/readiness，其他管理端点不可达。
 
 通过information_schema比对05的12张表、字段、可空性、默认值、注释、索引、外键及动作、CHECK、唯一键、字符集和排序规则，包括controlGeneration、leaseOwner、redrive父链、tenant安全索引和live-schema索引。数据库会话使用UTC，业务时间为DATETIME(0)且无小数秒。代表性数据量下保留分页、Planner、Signal/Action领取、租约回收的EXPLAIN证据。参与人50、接收人10、绑定8、每笔occurrence 100、单Transition Action 100、每笔Action 500、单Transition mutation 32及64KiB、单JSON 65536字节、TransitionPlan 1048576字节和总变更2000行的边界必须分别覆盖；S01/S02额外验证只能有一个calendar绑定。
 
@@ -187,6 +187,23 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | F09 | 入站幂等与冲突 | 同`event_id`重放不重复生效；卡片`revision`冲突 toast、不静默覆盖 |
 | F10 | 模块边界 | ArchUnit/Enforcer：飞书 SDK 仅在 adapter；kernel/scenario 无 adapter 依赖 |
 
+## 6.2 P06 账号验收项（U01—U10）
+
+[P06](phases/P06/README.md) 在获得实施授权并完成后，必须用测试账号和短信 `capture` 模式证明下列项。不得调用腾讯云，不得依赖真实微信租户作为 CI 门禁。证据写入 P06 DELIVERY 之前不得预填 PASS。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| U01 | 短信与注册 | 通道未成功不入库；验证码错误或超过 10 分钟拒绝注册；已注册手机号拒绝重复注册 |
+| U02 | 密码登录与授权 | 未授权只返回 challenge；授权字符串错误不发令牌；通过后令牌可调用 E01 |
+| U03 | 令牌 | 库中无明文令牌；退出后原令牌失效；无令牌、坏令牌、停用账号均为 401 |
+| U04 | 调试头失效 | `X-Debug-Actor-Id` 和请求体 userId 不能改变 ActorContext |
+| U05 | 微信登录 | code 与 state 校验后按 openid 查找或创建；同一微信不能绑到两个用户 |
+| U06 | 绑定手机号合并 | 命中另一活跃账号时，同一事务迁入微信身份并停用临时账号；失败不留下半套绑定 |
+| U07 | 解绑 | 没有手机号且没有可用密码时拒绝解绑 |
+| U08 | 管理员 | 空库第一个完成授权的账号为管理员；非管理员不能列用户；列表不含密码和令牌 |
+| U09 | 参与人 | 活跃用户 id 可成为 OWNER；停用或不存在的 id 拒绝；两个测试账号互不可见对方资源 |
+| U10 | 模块边界 | 短信与微信 HTTP 客户端只在 adapter；identity 不依赖 kernel；飞书扫码无端点、无客户端 |
+
 ## 7. 交付证据与总判定
 
 P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约/任务/用例编号、实现文件、实际命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际JDK/MySQL/驱动/操作系统/进程数与关键配置。重试保留所有尝试，不只显示最后一次成功；后续阶段写入各自目录的DELIVERY，不覆盖P01证据。
@@ -200,6 +217,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

@@ -121,7 +121,7 @@ public class ListQueryService {
         // Over-fetch when filtering by role in memory.
         int fetch = participantRole == null || participantRole.isBlank() ? safeLimit + 1 : Math.min(100, safeLimit * 5 + 1);
         List<TaskDefinitionSnapshot> rows = definitionRepository.list(
-                actor.tenantKey(), sk, cs, cursorUpdatedAt, cursorDefinitionId, fetch);
+                actor.tenantKey(), actor.principalId(), sk, cs, cursorUpdatedAt, cursorDefinitionId, fetch);
         if (participantRole != null && !participantRole.isBlank()) {
             rows = rows.stream()
                     .filter(d -> participantQuery.listDefinitionLevel(d.definitionId()).stream()

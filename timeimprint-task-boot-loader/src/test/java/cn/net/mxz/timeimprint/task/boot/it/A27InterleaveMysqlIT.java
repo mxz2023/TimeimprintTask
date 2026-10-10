@@ -66,7 +66,7 @@ class A27InterleaveMysqlIT {
     @Autowired
     SignalProcessingService signalProcessing;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {

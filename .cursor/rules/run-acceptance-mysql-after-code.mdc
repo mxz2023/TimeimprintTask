@@ -1,0 +1,21 @@
+---
+description: 改完代码后自动用 tit-mysql-t01 跑全量真库验证
+alwaysApply: true
+---
+
+# 改完代码后跑真库全量验证
+
+修改 Java、SQL、构建或运行配置后，在告诉用户改动完成之前，由代理自己跑全量真库验证。不要把这件事交给用户手动执行。只改文档或规则时不跑。
+
+使用 MyStudio 的 `Deploy/scripts/07-run-task-acceptance.sh`。它会重建容器 `tit-mysql-t01`，单次超过 20 分钟会终止验证并删除容器。不要改用裸的 `./mvnw -Pmysql-it` 或 `-Pdual-process-it`，也不要放宽这 20 分钟。
+
+顺序固定：
+
+```bash
+bash Deploy/scripts/07-run-task-acceptance.sh mysql-it
+bash Deploy/scripts/07-run-task-acceptance.sh dual-process-it
+```
+
+`mysql-it` 失败或超时就停，不要接着跑 `dual-process-it`。命令环境里去掉 `FEISHU_` 与 `TIMEIMPRINT_NOTIFICATION_` 前缀的变量，避免本机凭据改变结果。不要把这些变量的值写进仓库、规则或回复。
+
+结果写入当轮总结：命令、退出码、失败或超时的测试名。退出码 124 表示超过 20 分钟。

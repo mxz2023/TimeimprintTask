@@ -60,7 +60,7 @@ class A05A36StateConcurrencyMysqlIT {
     @Autowired
     TaskGateway gateway;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {

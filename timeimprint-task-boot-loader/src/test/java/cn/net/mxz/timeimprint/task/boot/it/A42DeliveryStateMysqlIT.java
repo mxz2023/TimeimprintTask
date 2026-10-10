@@ -54,7 +54,7 @@ class A42DeliveryStateMysqlIT {
     @Autowired
     ActionWorker actionWorker;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {

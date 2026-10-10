@@ -192,7 +192,7 @@ class A32RedriveMysqlIT {
                         "providerKey", "calendar",
                         "schemaVersion", 1,
                         "config", daily)));
-        var http = java.net.http.HttpClient.newHttpClient();
+        var http = new ItHttpFixture();
         String json = objectMapper.writeValueAsString(body);
         var req = java.net.http.HttpRequest.newBuilder(
                         java.net.URI.create("http://127.0.0.1:" + port + "/api/v1/task-definitions"))

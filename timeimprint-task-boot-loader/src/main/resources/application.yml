@@ -12,7 +12,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: true
-    locations: classpath:db/migration/platform,classpath:db/migration/capability/notification
+    locations: classpath:db/migration/platform,classpath:db/migration/capability/notification,classpath:db/migration/identity
 mybatis:
   mapper-locations: classpath*:mapper/*.xml,classpath*:cn/net/mxz/timeimprint/task/**/*Mapper.xml
   configuration:
@@ -27,6 +27,20 @@ server:
     max-swallow-size: 65536
 
 timeimprint:
+  identity:
+    authorization-string: ${IDENTITY_AUTHORIZATION_STRING:local-dev-authorization}
+    bootstrap:
+      enabled: true
+    sms:
+      mode: ${IDENTITY_SMS_MODE:capture}
+      secret-id: ${TENCENT_SECRET_ID:}
+      secret-key: ${TENCENT_SECRET_KEY:}
+      sdk-app-id: ${TENCENT_SMS_SDK_APP_ID:}
+      sign-name: ${TENCENT_SMS_SIGN_NAME:}
+      template-id: ${TENCENT_SMS_TEMPLATE_ID:}
+      region: ${IDENTITY_SMS_REGION:ap-guangzhou}
+    wechat:
+      mode: ${IDENTITY_WECHAT_MODE:capture}
   local:
     tenant-id: ${LOCAL_TENANT_ID:local-tenant}
     actor-id: ${LOCAL_ACTOR_ID:local-actor}

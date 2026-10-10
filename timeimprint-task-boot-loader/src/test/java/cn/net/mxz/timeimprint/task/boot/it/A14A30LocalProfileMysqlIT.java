@@ -40,7 +40,7 @@ class A14A30LocalProfileMysqlIT {
     @Autowired
     JsonMapper objectMapper;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {

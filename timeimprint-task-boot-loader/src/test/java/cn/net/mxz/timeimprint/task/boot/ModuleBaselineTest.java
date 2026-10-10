@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * T01/P05 T02：确认批准的14个平级模块目录存在（含 P05 新增的 adapter）。
+ * 确认批准的 15 个平级模块目录存在（含 P06 新增的 identity）。
  */
 class ModuleBaselineTest {
 
@@ -22,6 +22,7 @@ class ModuleBaselineTest {
             "timeimprint-task-service-storage-mysql",
             "timeimprint-task-service-capability-calendar",
             "timeimprint-task-adapter",
+            "timeimprint-task-identity",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
             "timeimprint-task-gateway",

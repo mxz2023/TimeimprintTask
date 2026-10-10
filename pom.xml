@@ -28,6 +28,7 @@
         <module>timeimprint-task-service-storage-mysql</module>
         <module>timeimprint-task-service-capability-calendar</module>
         <module>timeimprint-task-adapter</module>
+        <module>timeimprint-task-identity</module>
         <module>timeimprint-task-service-capability-notification</module>
         <module>timeimprint-task-service-scenario-basic</module>
         <module>timeimprint-task-gateway</module>
@@ -111,6 +112,11 @@
             <dependency>
                 <groupId>cn.net.mxz</groupId>
                 <artifactId>timeimprint-task-adapter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.net.mxz</groupId>
+                <artifactId>timeimprint-task-identity</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

@@ -17,6 +17,7 @@ public interface TaskDefinitionRepository {
      */
     List<TaskDefinitionSnapshot> list(
             String tenantId,
+            String participantPrincipalId,
             String scenarioKey,
             String controlState,
             Instant cursorUpdatedAt,

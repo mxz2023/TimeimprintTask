@@ -9,19 +9,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P06 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P05；Git 标签 `v20261007-P05` |
 | baselineGitRef | `844d2ffeddfb3583230637fab57dd83f565c97ec`（授权实施前的 HEAD；账号契约当时尚未提交） |
-| 工程状态 | VERIFYING |
-| Git发布标签 | 未发布 |
-| 人工验收 | 未开始 |
-| 下一动作 | 用户人工验收；完成前不转 RELEASED |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261010-P06`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-10 用户确认通过 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY](DELIVERY.md)；U01—U10 为 PASS |
 
-用户于 2026-10-10 接受 [ADR-0001](../../decisions/ADR-0001-multi-user-identity.md)，并授权实施。阶段为 VERIFYING。
+用户于 2026-10-10 接受 [ADR-0001](../../decisions/ADR-0001-multi-user-identity.md)，并授权实施。同日用户确认人工验收通过。阶段已 RELEASED（标签 `v20261010-P06`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 2. 已接受口径
 

@@ -3,8 +3,8 @@
 > 本文只记录已经执行的命令和结果。
 > 阶段身份见 [README](README.md)，任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
-recordedAtUtc: 2026-10-10T13:37:14Z
-阶段状态: VERIFYING。[U01](../../07-ACCEPTANCE.md)—[U10](../../07-ACCEPTANCE.md) 已有对应用例。人工验收未开始，不转入 RELEASED。
+recordedAtUtc: 2026-10-10T15:27:51Z
+阶段状态: RELEASED（2026-10-10 用户确认人工验收通过；Git 标签 `v20261010-P06`；本文此后不再改写）。[U01](../../07-ACCEPTANCE.md)—[U10](../../07-ACCEPTANCE.md) 为 PASS。
 
 ---
 
@@ -27,8 +27,8 @@ recordedAtUtc: 2026-10-10T13:37:14Z
 
 | 命令 | 退出码 | 结果摘要 |
 | --- | --- | --- |
-| `bash Deploy/scripts/07-run-task-acceptance.sh mysql-it` | 0 | BUILD SUCCESS。总时间 1 分 0 秒。Failsafe **109** run / 0 fail / 0 error / 0 skipped（含 `AccountAcceptanceMysqlIT` 10 项）。结束于 2026-10-10T13:25:20Z |
-| `bash Deploy/scripts/07-run-task-acceptance.sh dual-process-it` | 0 | BUILD SUCCESS。总时间 11 分 27 秒。Failsafe **7** run / 0 fail / 0 error。`PerfGateDualProcessIT`（`timeimprint-task-boot-loader` 模块）633.2 秒，预热与三次正式均为 inbox=1000、backlog=0、passed=true。结束于 2026-10-10T13:37:14Z |
+| `bash Deploy/scripts/07-run-task-acceptance.sh mysql-it` | 0 | BUILD SUCCESS。总时间 59.6 秒。Failsafe **109** run / 0 fail / 0 error / 0 skipped（含 `AccountAcceptanceMysqlIT` 10 项）。结束于 2026-10-10T15:16:00Z。覆盖含腾讯云短信客户端的当前工作区；测试短信模式为 `capture` |
+| `bash Deploy/scripts/07-run-task-acceptance.sh dual-process-it` | 0 | BUILD SUCCESS。总时间 11 分 23 秒。Failsafe **7** run / 0 fail / 0 error。`PerfGateDualProcessIT`（`timeimprint-task-boot-loader` 模块）630.2 秒，预热与三次正式均为 inbox=1000、backlog=0、passed=true。结束于 2026-10-10T15:27:51Z。Failsafe 另有一条 native stream 警告，未改变退出码 |
 | 单独的 `./mvnw -q test` | NOT_RUN | 单元测试只随上面两条 `verify` 一起执行，没有单独留下 Surefire 合计 |
 | `git diff --check` | 0 | 工作区无空白错误 |
 
@@ -60,4 +60,10 @@ recordedAtUtc: 2026-10-10T13:37:14Z
 | 管理员列表与退出 | PASS | 第 3 节 [U08](../../07-ACCEPTANCE.md)、[U03](../../07-ACCEPTANCE.md) |
 | 旧测试改为登录、全量回归、无飞书扫码 | PASS | 本节两条命令；[U10](../../07-ACCEPTANCE.md) |
 
-[T04](IMPLEMENTATION.md) 据此标 PASS。人工验收未开始，阶段保持 VERIFYING，不转入 RELEASED。
+[T04](IMPLEMENTATION.md) 据此标 PASS。
+
+## 5. 人工验收
+
+2026-10-10 用户确认人工验收通过。本机以 `IDENTITY_SMS_MODE=tencent` 调用 [E14](../../04-API.md)（发送短信验证码），返回 `OK` 与「验证码已发送」；手机收到的六位数字与 `tt_identity_verification_code` 中该次记录一致；随后 [E15](../../04-API.md)（校验短信验证码）返回「验证码有效」。自动化套件仍使用 `capture`，不访问腾讯云。
+
+一并接受的范围：微信登录为捕获模式（code 当作 openid，不访问微信开放平台）；空库第一个管理员是预置账号 `local-actor`；参与人里的 OWNER 必须是当前调用账号；绑定手机号失败的证据是目标账号已停用时社交身份仍留在临时账号；飞书扫码没有端点。短信模板的第二个变量固定为 `1`。

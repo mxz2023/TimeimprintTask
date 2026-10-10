@@ -13,11 +13,11 @@
 | 已发布P03 | 不新增场景 | 不新增能力 | Jackson 3 原生迁移 RELEASED（标签 `v20260917-P03`）；人工验收 2026-09-17；X05 VERIFIED |
 | 已发布P04 | 不新增场景 | 不新增能力 | [P04](phases/P04/README.md) RELEASED（标签 `v20261003-P04`）：S02 站内信标题，以及实例命令改为先锁定义再锁实例；人工验收 2026-10-03 |
 | 已发布P05 | 不新增场景 | notification 的 NOT-05（飞书整体接入）/ C12 飞书子集 | [P05](phases/P05/README.md) RELEASED（标签 `v20261007-P05`）：出站卡片 + 入站命令；adapter 模块；人工验收 2026-10-07 |
-| CURRENT | 不新增场景 | [C13](capabilities/README.md) 账号子集（[P06](phases/P06/README.md)，READY） | 只保留账号登录；契约已回写，实施授权前禁止编码 |
+| 已发布P06 | 不新增场景 | [C13](capabilities/README.md) 账号子集（[COL-01](capabilities/CAP04-collaboration.md)） | [P06](phases/P06/README.md) RELEASED（标签 `v20261010-P06`）：账号登录、短信验证与微信捕获登录；人工验收 2026-10-10 |
 | NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力；C12 其余 IM | 不自动进入实施；由用户另行决定是否进入下一阶段 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。当前 CURRENT 为 [P06](phases/P06/README.md)（READY，多用户账号）。NEXT_REVIEW 中的业务场景仍须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。当前没有 CURRENT 阶段。NEXT_REVIEW 中的业务场景仍须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -61,7 +61,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 | C10 | 发生例外 | calendar | BACKLOG | NOT_STARTED |
 | C11 | 有效区间与结束条件 | calendar | NEXT_REVIEW | NOT_STARTED |
 | C12 | 多IM渠道 | notification | P05（飞书子集）/ BACKLOG（其余） | 飞书子集 VERIFIED（`v20261007-P05`）；其余 IM NOT_STARTED |
-| C13 | 身份与权限 | collaboration | P06（账号子集，READY）/ BACKLOG（团队权限） | NOT_STARTED |
+| C13 | 身份与权限 | collaboration | P06（账号子集）/ BACKLOG（团队权限） | 账号子集 VERIFIED（`v20261010-P06`）；团队权限 NOT_STARTED |
 | C14 | 缓存接入 | 跨域平台候选 | BACKLOG | NOT_STARTED |
 | C15 | 前端与用户操作界面 | 产品接入候选 | BACKLOG | NOT_STARTED |
 | C16 | 通知委托与多接收人 | collaboration | BACKLOG | NOT_STARTED |
@@ -155,6 +155,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-10 | P06、C13 | 用户指定 P06 为多用户 | 阶段包 DRAFT / CURRENT；[ADR-0001](decisions/ADR-0001-multi-user-identity.md) PROPOSED；未授权编码 |
 | 2026-10-10 | P06、ADR-0001 | 用户要求只保留账号登录 | 去掉固定身份和调试头；注册须短信；登录含微信；飞书扫码留扩展 |
 | 2026-10-10 | P06、ADR-0001、C13 | 用户接受 ADR-0001 | 阶段 READY；01—07 与账号子集已回写；未授权编码 |
+| 2026-10-10 | P06、C13、COL-01 | 用户确认人工验收通过；阶段 RELEASED | Git 标签 `v20261010-P06`；账号子集 VERIFIED；DELIVERY/IMPLEMENTATION/README 冻结 |
 
 ## 8. 下一场景进入实施的检查
 

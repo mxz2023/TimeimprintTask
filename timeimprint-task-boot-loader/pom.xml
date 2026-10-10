@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>cn.net.mxz</groupId>
+            <artifactId>timeimprint-task-identity</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.net.mxz</groupId>
             <artifactId>timeimprint-task-gateway</artifactId>
         </dependency>
         <dependency>

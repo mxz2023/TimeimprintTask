@@ -2,7 +2,6 @@ package cn.net.mxz.timeimprint.task.service.application.access.port;
 
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import cn.net.mxz.timeimprint.task.service.application.access.model.ActorContext;
@@ -13,17 +12,11 @@ import cn.net.mxz.timeimprint.task.service.application.shared.port.ActorContextP
 @Profile("test")
 public class TestActorContextProvider implements ActorContextProvider {
 
-    private final ActorContext defaults;
-
-    public TestActorContextProvider(
-            @Value("${timeimprint.test.tenant-id:test-tenant}") String tenantId,
-            @Value("${timeimprint.test.actor-id:test-actor}") String actorId) {
-        this.defaults = new ActorContext("USER", actorId, tenantId);
-    }
+    public TestActorContextProvider() {}
 
     @Override
     public Optional<ActorContext> currentActor() {
-        return TestActorContextHolder.get().or(() -> Optional.of(defaults));
+        return TestActorContextHolder.get();
     }
 
     @Override

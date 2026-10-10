@@ -96,7 +96,7 @@ class ArchitectureRulesTest {
 
     @Test
     void onlyNotificationGatewayWebAndBootMayDependOnAdapter() {
-        // 允许的消费者见 02 模块表：notification、gateway、web（回调验签）、boot-loader（装配）。
+        // 允许的消费者见 02 模块表：notification、gateway、web、identity、boot-loader。identity 不在下方禁止名单中。
         noClasses()
                 .that()
                 .resideInAnyPackage(

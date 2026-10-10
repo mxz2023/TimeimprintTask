@@ -55,7 +55,7 @@ S01使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 所有S01通知固定`expiresAt = occurrenceAt + 24小时`。数据库时间`L >= expiresAt`且Action尚未开始成功执行时，Action转为`EXPIRED`且不得生成陈旧收件；实例仍保留TRIGGERED事实，渠道失败或过期不得反向改写场景终态。
 
-定义至少包含一个`OWNER`。没有显式`RECIPIENT`时，最终接收人是OWNER；存在显式RECIPIENT时只向这些接收人发送，不自动追加OWNER。最终接收人按主体去重，最多10人；超限时创建或更新整体失败。P01公共业务接口只接受`USER`主体，local profile下OWNER和RECIPIENT必须是固定Actor，多身份和多接收人仅由test profile验证。
+定义至少包含一个`OWNER`。没有显式`RECIPIENT`时，最终接收人是OWNER；存在显式RECIPIENT时只向这些接收人发送，不自动追加OWNER。最终接收人按主体去重，最多10人；超限时创建或更新整体失败。公共业务接口只接受`USER`主体。OWNER和RECIPIENT的principalId必须是同一tenant内的活跃用户id。多接收人由不同测试账号验证。
 
 ## 4. 命令与定义控制
 

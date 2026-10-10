@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.boot.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
+import cn.net.mxz.timeimprint.task.identity.account.service.IdentityBootstrap;
 import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.runtime.action.worker.ActionWorker;
 import tools.jackson.databind.JsonNode;
@@ -53,7 +54,7 @@ class A14A30SecurityMysqlIT {
     @Autowired
     SignalProcessingService signalProcessing;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {
@@ -207,11 +208,19 @@ class A14A30SecurityMysqlIT {
         return id == null ? 0L : id;
     }
 
+    private static String tokenFor(String actor) {
+        return switch (actor) {
+            case "actor-a" -> IdentityBootstrap.ACTOR_A_TOKEN;
+            case "actor-b" -> IdentityBootstrap.ACTOR_B_TOKEN;
+            case "test-actor" -> IdentityBootstrap.TEST_TOKEN;
+            default -> IdentityBootstrap.LOCAL_TOKEN;
+        };
+    }
+
     private JsonNode get(String path, String tenant, String actor) throws Exception {
         HttpRequest req = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
                 .header("Accept", "application/json")
-                .header("X-Debug-Tenant-Id", tenant)
-                .header("X-Debug-Actor-Id", actor)
+                .header("Authorization", "Bearer " + tokenFor(actor))
                 .GET()
                 .build();
         return objectMapper.readTree(http.send(req, HttpResponse.BodyHandlers.ofString()).body());
@@ -221,8 +230,7 @@ class A14A30SecurityMysqlIT {
         byte[] bytes = objectMapper.writeValueAsBytes(body);
         HttpRequest req = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
                 .header("Content-Type", "application/json")
-                .header("X-Debug-Tenant-Id", tenant)
-                .header("X-Debug-Actor-Id", actor)
+                .header("Authorization", "Bearer " + tokenFor(actor))
                 .POST(HttpRequest.BodyPublishers.ofByteArray(bytes))
                 .build();
         return objectMapper.readTree(http.send(req, HttpResponse.BodyHandlers.ofString()).body());

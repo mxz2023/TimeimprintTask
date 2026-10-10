@@ -58,7 +58,7 @@
 | Action Attempt / attempt | 一次Action技术执行尝试，不等于一次业务催办 |
 | Policy | 权限、频控、静默、合规和执行资格策略 |
 | ActorContext | 可信接入层构造的租户、调用主体和来源上下文 |
-| ActorContextProvider | 根据当前运行环境提供ActorContext的接入接口；首期local实现返回配置中的固定身份 |
+| ActorContextProvider | 根据当前会话提供ActorContext的接入接口；actorId等于已登录用户id |
 | ScenarioExtension | 场景配置、初始状态、迁移和投影的扩展契约 |
 | ScenarioDataMutation | TransitionPlan中声明的强类型场景专有数据变更，不包含任意SQL或脚本 |
 | ScenarioDataMaterializer | 在平台事务内把ScenarioDataMutation写入所属场景专有表的注册物化器 |
@@ -158,16 +158,18 @@
 | PreviewResult / ScenarioMetadataView | 时间规则规范化与发生预览结果 / 已装配场景的公开能力说明 |
 | TaskDefinitionView / TaskInstanceView / InboxView | 定义公开视图 / 实例公开视图 / 站内收件视图 |
 | SignalDiagnosticView / ActionJobDiagnosticView | 内部Signal安全诊断视图 / 内部Action安全诊断视图 |
-| E01—E13 / I01—I07 | 04中的公开端点编号 / 内部端点编号 |
+| E01—E13 / E14—E29 / I01—I07 | 04中的任务公开端点 / 账号公开端点 / 内部端点编号 |
 | keyset pagination / asOf | 以稳定排序键继续翻页的弱一致分页 / 响应生成时间，不代表数据库快照时间 |
 | DeliverySummary / deliveryState | 实例全部Action、入箱和未读数量汇总 / 按固定优先级得出的执行状态，不等同用户已读 |
 | NOT_SCHEDULED / IN_PROGRESS / PARTIALLY_DELIVERED / DELIVERED / FAILED | 尚无Action / 仍有待处理动作 / 部分成功 / Handler全部成功 / 无成功且存在失败 |
 | application/json | HTTP请求采用的JSON媒体类型 |
 | traceId / trace_id | 一次请求或审计链路的追踪标识 |
-| X-Debug-Actor-Id | 仅test profile允许的调试身份头；local profile使用配置中的固定身份，不允许请求覆盖 |
+| X-Debug-Actor-Id | 已废弃的调试身份头；P06 起无效，不能代替登录 |
 | SERVER_ADDRESS / SHUTDOWN_GRACE_SECONDS | HTTP监听地址 / 正常停机等待已开始工作的总宽限秒数 |
 | liveness / readiness / graceful shutdown | 进程存活状态 / 是否可接收流量 / 先拒绝新工作再等待已开始工作闭合的优雅停机 |
 | UNAUTHENTICATED / FORBIDDEN | 未认证 / 已认证但无权限 |
+| Authorization: Bearer | 公开任务接口携带会话令牌的请求头；库中只存令牌摘要 |
+| challenge / authorization-string | 未完成一次性授权时返回的短时挑战 / 只放在服务端环境中的授权字符串 |
 | RESOURCE_NOT_FOUND / EXTENSION_NOT_FOUND | 资源不可见或不存在 / 扩展未装配 |
 | IDEMPOTENCY_CONFLICT / REVISION_CONFLICT / STATE_CONFLICT | 幂等内容冲突 / 版本冲突 / 当前状态不允许操作 |
 | COMMAND_NOT_SUPPORTED / UNSUPPORTED_SCHEMA_VERSION | 场景不支持命令 / 结构版本不支持 |
@@ -217,7 +219,8 @@
 | timeimprint-task-service-storage-mysql | MySQL存储适配器和平台公共迁移 |
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
 | timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
-| timeimprint-task-adapter | 第三方 SDK 通用宿主（P05 起；本期 feishu，后续其他三方同模块按包扩展） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；飞书扫码登录本期不实现） |
+| timeimprint-task-identity | 账号、验证码、会话和社交绑定；不解释任务状态 |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |

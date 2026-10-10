@@ -46,7 +46,7 @@ class T07FixtureMysqlIT {
     @Autowired JdbcTemplate jdbc;
     @Autowired TaskGateway gateway;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
@@ -58,7 +58,7 @@ class T07FixtureMysqlIT {
         registry.add("timeimprint.local.actor-id", () -> "local-actor");
         // Include test-fixture Flyway location so tt_test_approval_data is created
         registry.add("spring.flyway.locations",
-                () -> "classpath:db/migration/platform,classpath:db/migration/capability/notification,classpath:db/migration/test-fixture");
+                () -> "classpath:db/migration/platform,classpath:db/migration/capability/notification,classpath:db/migration/identity,classpath:db/migration/test-fixture");
     }
 
     @Test

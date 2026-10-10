@@ -89,7 +89,7 @@ class TakeoverSlaDualProcessIT {
     @Autowired
     RuntimeAdmission admission;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {

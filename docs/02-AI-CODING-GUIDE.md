@@ -26,7 +26,7 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 
 ## 2. 当前批准模块
 
-P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准增加第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）；实施前文档 READY，代码在授权后创建。
+P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）。[P06](phases/P06/README.md) 起批准第 15 个模块`timeimprint-task-identity`（账号、验证码、会话和社交绑定）；实施前文档 READY，代码在授权后创建。
 
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
@@ -39,9 +39,10 @@ P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md
 | `timeimprint-task-service-storage-mysql` | Repository 实现、MyBatis Mapper/XML、查询、锁协议和平台迁移 | kernel、application、runtime、common |
 | `timeimprint-task-service-capability-calendar` | 一次性、日/周/月/N 日规则和时间计算能力 | extension-api、kernel、common |
 | `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道 Handler | extension-api、kernel、common、**adapter（P05）** |
-| `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 仅 `feishu` 包；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application） |
+| `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 为 `feishu` 包；P06 增加短信与微信 OAuth 客户端；飞书扫码登录只留扩展、本期不实现；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application/identity） |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
-| `timeimprint-task-gateway` | 接入编排：构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、common |
+| `timeimprint-task-identity` | 账号、短信验证码记录、会话、社交绑定和注册登录事务；专有表；不解释任务状态 | adapter、common（禁止依赖 kernel/scenario/application） |
+| `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、identity、common |
 | `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理；P05 起可调用 adapter 做飞书回调验签 | domain、gateway、common、**adapter（P05，仅回调验签）** |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 
@@ -280,7 +281,7 @@ tt_audit_log
 
 通用 API 以任务定义、任务实例、命令、Signal 和 Action Job 为资源；提醒、待办等易用接口可作为通用命令的友好包装，但不得形成第二套状态模型。
 
-网关通过 ActorContextProvider 从可信接入信息构造 `ActorContext`，包含调用主体、租户、来源、授权范围和 traceId。首期 local profile 使用配置提供的固定 tenantId 和 actorId；请求不得覆盖它们。test profile 可以提供受控测试身份切换；非 local/test 环境没有正式 ActorContextProvider 时，公开API不得进入就绪状态。请求体中的 userId 不能作为长期可信身份依据。资源归属、办理权限和管理权限由 Policy 决定；“收到通知”不自动等于“有权完成任务”。
+网关通过 ActorContextProvider 从可信接入信息构造 `ActorContext`，包含调用主体、租户、来源、授权范围和 traceId。P06 起公开任务接口只接受会话令牌：`actorId` 等于用户 id，tenant 来自配置且请求不得覆盖。本地开发账号与测试账号使用同一登录实现，差别只在账号和数据库。不再使用固定 actor 或 `X-Debug-Actor-Id`。请求体中的 userId 不能作为可信身份依据。资源归属、办理权限和管理权限由 Policy 决定；“收到通知”不自动等于“有权完成任务”。
 
 所有写操作包含 requestId；修改已有资源时包含 expectedRevision。幂等记录绑定调用方、操作、请求摘要和首次确定结果；相同 requestId 不同内容必须冲突。
 

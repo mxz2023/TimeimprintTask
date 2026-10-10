@@ -41,6 +41,17 @@
 
 外部飞书、京ME、邮件投递仍由`tt_action_job/tt_action_attempt`记录技术执行，不为每个渠道创建平台公共表。渠道确有专有回执数据时，只能在notification能力自己的迁移中增加专有表。
 
+### 2.3 身份表：timeimprint-task-identity所有
+
+这些表不是平台公共表。kernel 与任务仓储不得读写它们。
+
+| 表 | 稳定职责 |
+| --- | --- |
+| `tt_identity_user` | 账号、密码摘要、昵称、停用状态、管理员标记和授权时间 |
+| `tt_identity_verification_code` | 短信验证码及创建时间；不进入 HTTP 响应 |
+| `tt_identity_session` | 会话令牌摘要；不保存明文令牌 |
+| `tt_identity_social_account` | 第三方身份；本期仅微信写入，飞书等 provider 预留 |
+
 ## 3. 权威字段定义
 
 所有VARCHAR长度同时接受API码点校验；数据库长度只作为物理上限。所有JSON列NOT NULL时使用显式JSON对象，不使用字符串`"{}"`冒充对象。
@@ -292,6 +303,63 @@ target_type与target_id必须同时为空或同时非空；一期IN_APP通知Act
 
 IN_APP处理器在一个短事务中核对tenant/definition/instance链路，插入inbox、闭合attempt并把action状态改为SUCCEEDED；任一步失败全部回滚。查询收件不自动标记已读；mark-read仅在read_at为空时写入首次时间。
 
+### 3.13 `tt_identity_user`
+
+| 字段 | 类型与约束 | 说明 |
+| --- | --- | --- |
+| `user_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 内部主键 |
+| `actor_key` | VARCHAR(128) NOT NULL | 公开用户标识；ActorContext 与参与人 principalId 使用它，不用手机号 |
+| `tenant_id` | VARCHAR(64) NOT NULL | 单一租户 |
+| `phone_number` | VARCHAR(15) NULL | 大陆 11 位；未绑定微信临时账号可空 |
+| `username` | VARCHAR(150) NOT NULL | 登录名；手机号注册时等于手机号 |
+| `password_hash` | VARCHAR(128) NULL | 密码摘要；不可用密码为空。禁止明文 |
+| `nickname` | VARCHAR(30) NOT NULL | 昵称 |
+| `account_status` | VARCHAR(16) NOT NULL | ACTIVE / DISABLED |
+| `is_admin` | TINYINT(1) NOT NULL | 管理员 |
+| `authorization_verified_at` | DATETIME(0) NULL | 一次性授权通过时间 |
+| `created_at` / `last_login_at` | DATETIME(0) NOT NULL / DATETIME(0) NULL | UTC |
+
+唯一键`uk_identity_user_phone(tenant_id,phone_number)`与`uk_identity_user_username(tenant_id,username)`。手机号为空的多行不受手机号唯一约束互相冲突。
+
+### 3.14 `tt_identity_verification_code`
+
+| 字段 | 类型与约束 | 说明 |
+| --- | --- | --- |
+| `verification_code_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 记录标识 |
+| `phone_number` | VARCHAR(15) NOT NULL | 接收手机号 |
+| `code` | VARCHAR(6) NOT NULL | 六位验证码；只用于校验，不得写入日志或 HTTP 响应 |
+| `created_at` | DATETIME(0) NOT NULL | UTC；超过 10 分钟失效 |
+
+索引`ix_identity_code_phone(phone_number,created_at,verification_code_id)`。只有短信通道确认成功后才插入。
+
+### 3.15 `tt_identity_session`
+
+| 字段 | 类型与约束 | 说明 |
+| --- | --- | --- |
+| `session_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 会话标识 |
+| `user_id` | BIGINT UNSIGNED NOT NULL FK | 所属用户 |
+| `token_hash` | BINARY(32) NOT NULL | 令牌的 SHA-256 |
+| `created_at` | DATETIME(0) NOT NULL | UTC |
+
+唯一键`uk_identity_session_token(token_hash)`。退出登录或进入新的授权挑战时删除该用户会话。同一用户可复用尚未删除的令牌。
+
+### 3.16 `tt_identity_social_account`
+
+| 字段 | 类型与约束 | 说明 |
+| --- | --- | --- |
+| `social_account_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 绑定标识 |
+| `user_id` | BIGINT UNSIGNED NOT NULL FK | 所属用户 |
+| `provider` | VARCHAR(32) NOT NULL | 本期写入 `wechat`；`feishu` 仅预留 |
+| `app_type` | VARCHAR(32) NOT NULL | web / ios / android |
+| `openid` | VARCHAR(128) NOT NULL | 应用内身份 |
+| `unionid` | VARCHAR(128) NULL | 跨应用兜底 |
+| `nickname` | VARCHAR(64) NOT NULL | 第三方昵称 |
+| `avatar_url` | VARCHAR(500) NOT NULL | 头像地址，可空字符串 |
+| `raw_json` | JSON NOT NULL | 不含访问令牌的原始资料 |
+| `created_at` / `updated_at` | DATETIME(0) NOT NULL | UTC |
+
+唯一键`uk_identity_social(provider,app_type,openid)`。索引`ix_identity_social_union(provider,unionid)`。绑定冲突和手机号合并必须在同一事务内完成。
+
 ## 4. 状态与字段组合约束
 
 Flyway必须使用CHECK约束验证可枚举的公共技术状态。场景状态不建立全局CHECK；由scenarioKey + schemaVersion的处理器验证。
@@ -344,7 +412,7 @@ T03在代表性数据规模下保存EXPLAIN证据，至少覆盖：
 
 一期平台迁移位于storage-mysql，notification和scenario-basic仅在确有专有表时提供迁移。首期scenario-basic没有必要专有表，S01/S02的`chaseOffsetsMinutes`、`notificationExpireAfterMinutes`、`maxSnoozeCount`、`snoozeCount`和`actionGeneration`可由版本化场景配置/快照、通用实例、Transition、Action及notification表表达，因此不得创建空场景表。
 
-Flyway首次迁移必须创建上述12张表、外键、CHECK、唯一键和索引。除明确声明可空的业务关联外，所有FK使用`ON DELETE RESTRICT ON UPDATE RESTRICT`；不得依赖数据库级联清理历史。真库测试使用information_schema逐项核对表名、字段类型、可空性、默认值、生成列、注释、字符集、排序规则、索引顺序、外键动作和CHECK，并实际插入非法组合证明约束生效。
+平台与通知的 Flyway 迁移必须创建上述 12 张表、外键、CHECK、唯一键和索引。身份四表由 identity 模块的后续迁移创建，不并入这 12 张表。除明确声明可空的业务关联外，所有FK使用`ON DELETE RESTRICT ON UPDATE RESTRICT`；不得依赖数据库级联清理历史。真库测试使用information_schema逐项核对表名、字段类型、可空性、默认值、生成列、注释、字符集、排序规则、索引顺序、外键动作和CHECK，并实际插入非法组合证明约束生效。
 
 必须验证：空库迁移、重复启动、两个进程并发启动、坏迁移不就绪、已执行迁移不被覆盖、JSON合法性与字节上限、UTC整秒、revision/control_generation上限、幂等冲突、重复Signal、重复发生、重复Action、旧代次拒绝执行、人工重驱次数和父链、旧token回写失败、事务总变更行数、IN_APP原子提交及审计16KiB边界。
 

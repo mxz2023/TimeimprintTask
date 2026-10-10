@@ -104,8 +104,7 @@ Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁�
 | `BUSINESS_TX_TIMEOUT_SECONDS` | 默认5，范围1—30；包括锁等待和数据库写入，不包括事务外EXTERNAL调用 |
 | `ACTION_LEASE_SAFETY_SECONDS` | 默认5，范围1—30，且必须小于LEASE_SECONDS |
 | `SHUTDOWN_GRACE_SECONDS` | 默认40，范围10—300；停止领取、拒绝新写请求并等待短事务/Handler闭合的总宽限 |
-| `LOCAL_TENANT_ID` | local profile必填的固定租户标识；HTTP请求不得覆盖 |
-| `LOCAL_ACTOR_ID` | local profile必填的固定调用主体；HTTP请求不得覆盖 |
+| `LOCAL_TENANT_ID` | 必填的单一租户标识；HTTP 请求不得覆盖。P06 起不再有固定调用主体配置 |
 
 ### 3.1 通知投递与飞书（P05）
 
@@ -149,9 +148,22 @@ Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁�
 
 生产业务Clock使用`Clock.systemUTC()`并截断到整秒，业务显示按ZoneId转换；租约有效性以数据库`UTC_TIMESTAMP(0)`为准。HTTP请求不得传入或覆盖系统“当前时间”。
 
-P01 基线没有京ME、邮件、外部日历、用户目录、模型服务、AI业务能力或cache配置。[P05](phases/P05/README.md) 起可按 §3.1 **显式启用**飞书；默认仍不启用。引入Spring AI版本基线不等于启用AI功能；未来某个实现只有在boot-loader明确启用时才校验其专属配置，已启用实现缺少凭据或端点必须启动失败，未启用实现不得要求无关凭据。
+P01 基线没有京ME、邮件、外部日历、模型服务、AI业务能力或cache配置。[P05](phases/P05/README.md) 起可按 §3.1 **显式启用**飞书消息；默认仍不启用。[P06](phases/P06/README.md) 起账号登录为公开身份的唯一方式。引入Spring AI版本基线不等于启用AI功能；未来某个实现只有在boot-loader明确启用时才校验其专属配置，已启用实现缺少凭据或端点必须启动失败，未启用实现不得要求无关凭据。
 
-local profile通过本地ActorContextProvider始终生成上述固定tenant和actor，任何请求头或请求体都不能切换身份。test profile可启用受控测试身份提供器以覆盖跨身份、跨租户用例。其他profile必须装配正式可信身份提供器；缺失时公开API不就绪，不能回退到本地固定身份。
+### 3.2 账号、短信与微信（P06）
+
+身份不再按 profile 切换。local 与 test 只区分数据库、端口、监听地址和预置账号。公开任务接口从 `Authorization: Bearer` 解析用户。缺少令牌、令牌摘要不匹配或账号停用时返回 401，不能退回固定身份。
+
+| 配置键 | 默认 / 约束 |
+| --- | --- |
+| `timeimprint.identity.authorization-string` | 必填；一次性登录授权字符串。只从环境读取，不得写入仓库或日志 |
+| `timeimprint.identity.sms.secret-id` / `secret-key` | 正式发短信时必填；不得写入仓库或日志 |
+| `timeimprint.identity.sms.sdk-app-id` / `sign-name` / `template-id` | 正式发短信时必填；不得写入仓库 |
+| `timeimprint.identity.sms.mode` | `tencent` 或 `capture`。自动化测试只用 `capture`，验证码留在测试可读记录，不访问腾讯云 |
+| `timeimprint.identity.wechat.<appType>.app-id` / `app-secret` / `redirect-uri` | `appType` 为 `web`、`ios`、`android`。启用对应微信登录时必填 |
+| 飞书扫码登录 | 本期不配置、不装配 |
+
+测试库由测试夹具创建测试账号，口令只出现在测试代码。本地库不在仓库中写死口令；开发者用短信注册本地开发账号。短信正式模式缺少凭据，或已启用的微信应用缺少凭据时，对应登录方式启动失败。`capture` 模式不得出现在面向真实用户的部署。
 
 local与test profile的HTTP监听地址必须是回环地址，内部端点和健康检查也不得暴露到局域网。若部署者把`SERVER_ADDRESS`改为非回环地址，应用必须启动失败；这一限制只能在增加正式身份、网络入口和安全审核后的新profile中解除。
 
@@ -165,11 +177,12 @@ local与test profile的HTTP监听地址必须是回环地址，内部端点和�
 timeimprint-task-service-storage-mysql/src/main/resources/db/migration/platform/
 timeimprint-task-service-capability-*/src/main/resources/db/migration/capability/<capabilityKey>/
 timeimprint-task-service-scenario-*/src/main/resources/db/migration/scenario/<scenarioKey>/
+timeimprint-task-identity/src/main/resources/db/migration/identity/
 ```
 
-平台公共表迁移只属于storage-mysql。通知收件、投递等专有表属于capability-notification；审批、缴费等专有表属于对应scenario模块。模块没有专有数据时不创建空迁移目录或空表。
+平台公共表迁移只属于storage-mysql。通知收件、投递等专有表属于capability-notification；账号、验证码、会话和社交绑定属于 identity；审批、缴费等专有表属于对应scenario模块。模块没有专有数据时不创建空迁移目录或空表。
 
-所有已启用模块的迁移版本在整个应用内唯一，文件名固定为`VyyyyMMddHHmmss__<owner>_<description>.sql`，时间部分使用UTC且同一秒只能分配一个版本；owner使用platform、capability key或scenario key。boot-loader显式汇总locations。已执行迁移不得原地修改，升级只能新增版本。Flyway失败时应用不就绪；禁止clean；多进程并发启动必须验证Flyway协调，不能重复初始化或重置业务数据。
+所有已启用模块的迁移版本在整个应用内唯一，文件名固定为`VyyyyMMddHHmmss__<owner>_<description>.sql`，时间部分使用UTC且同一秒只能分配一个版本；owner使用platform、capability key、scenario key或identity。boot-loader显式汇总locations。已执行迁移不得原地修改，升级只能新增版本。Flyway失败时应用不就绪；禁止clean；多进程并发启动必须验证Flyway协调，不能重复初始化或重置业务数据。
 
 启动顺序固定为：
 

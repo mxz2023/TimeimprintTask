@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| 无 | — | 从 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW 选择范围后创建下一阶段 |
+| [P06 多用户账号](P06/README.md) | IMPLEMENTING | 用户已授权实施；baselineGitRef=`844d2ffeddfb3583230637fab57dd83f565c97ec` |
 
 ## 已发布阶段
 

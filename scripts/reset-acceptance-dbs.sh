@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 清空本地验收 MySQL 上的功能库与性能库业务数据，保留 Flyway 历史与表结构。
-# 仅用于本地容器 tit-mysql-t01（或同构联调实例），不要对共享/生产库执行。
+# 仅用于同一次手工联调。整轮自动化前改用 MyStudio 的
+# Deploy/scripts/06-recreate-task-acceptance-mysql.sh 重建空实例，不保留数据。
+# 不要对共享/生产库执行。
 set -euo pipefail
 
 CONTAINER="${TIT_MYSQL_CONTAINER:-tit-mysql-t01}"

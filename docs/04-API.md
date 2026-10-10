@@ -8,9 +8,11 @@
 
 公开路径前缀为`/api/v1`，内部可信路径前缀为`/internal/v1`。公开HTTP只通过`timeimprint-task-web → timeimprint-task-gateway → timeimprint-task-service-application`进入平台，不直接暴露Mapper、Action领取、租约、执行令牌或场景内部表。
 
-网关必须通过ActorContextProvider生成ActorContext。首期local profile只使用配置中的固定tenantId和actorId，请求头及请求体都不得覆盖；test profile可以启用`X-Debug-Actor-Id`及受控测试租户切换以验证权限隔离。其他profile必须接入正式可信身份提供器，缺失时公开API不得就绪；任何生产请求体都不接受userId、ownerId或tenantId来声明当前身份。资源查询和命令授权始终使用ActorContext独立判断。
+网关必须通过ActorContextProvider生成ActorContext。公开任务接口（E01—E13）必须携带`Authorization: Bearer`会话令牌。令牌只证明账号已登录，`actorId`等于用户 id，tenant 取配置中的`LOCAL_TENANT_ID`，请求头和请求体都不得改写。`X-Debug-Actor-Id`无效。请求体中的 userId、ownerId 或 tenantId 不能声明当前身份。资源查询和命令授权始终使用ActorContext独立判断。无令牌、坏令牌或停用账号返回401 UNAUTHENTICATED。
 
-`/internal/v1`在local profile只允许本机受信入口，在未来生产环境只允许受信服务或运维身份访问，并与公开API使用不同鉴权策略和网络入口。未完成真实身份集成前，生产安全不能标为通过。
+注册、登录、发短信、校验验证码、忘记密码和微信配置/回调可以不带令牌。其余用户端点必须带令牌；用户列表还要求管理员。
+
+`/internal/v1`在 local 与 test 只允许本机受信入口，不把终端用户令牌当作内网入口的替代。生产安全不能仅因存在账号登录而标为通过。
 
 ## 2. 通用协议
 
@@ -96,7 +98,7 @@ E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenario
 
 CreateTaskDefinitionRequest恰好包含上述字段；除`description`可为null、S02的scenarioConfig三个字段可省略并展开默认值外，其余字段必填。ParticipantInput精确包含`principalType, principalId, roleCode`，sourceCode由平台固定写为DIRECT，调用方不能提交metadata或来源。S01 schemaVersion 1的scenarioConfig必须是空对象。scenarioConfig、trigger config和command payload在HTTP边界是JSON对象，但进入场景或能力前必须按key + schemaVersion转换为已注册的强类型对象；找不到类型、版本不兼容或校验失败时不得持久化定义。
 
-S02 schemaVersion 1只接受上述三个场景配置字段：`chaseOffsetsMinutes`为0—3个严格递增且不重复的整数，每项范围1至`notificationExpireAfterMinutes - 1`；`notificationExpireAfterMinutes`范围60—10080，默认1440；`maxSnoozeCount`范围0—3，默认3。默认催办偏移为`[60,240,720]`。S01/S02都至少有一个OWNER；RECIPIENT去重后最多10个。缺省RECIPIENT时由场景把OWNER投影为接收人，显式提供RECIPIENT时不自动追加OWNER。首期公开接口的主体类型只接受USER；local profile中OWNER和RECIPIENT的principalId必须等于固定actor，test profile才允许构造多身份用例。
+S02 schemaVersion 1只接受上述三个场景配置字段：`chaseOffsetsMinutes`为0—3个严格递增且不重复的整数，每项范围1至`notificationExpireAfterMinutes - 1`；`notificationExpireAfterMinutes`范围60—10080，默认1440；`maxSnoozeCount`范围0—3，默认3。默认催办偏移为`[60,240,720]`。S01/S02都至少有一个OWNER；RECIPIENT去重后最多10个。缺省RECIPIENT时由场景把OWNER投影为接收人，显式提供RECIPIENT时不自动追加OWNER。公开接口的主体类型只接受USER；OWNER和RECIPIENT的principalId必须是同一tenant内的活跃用户id。停用账号不能新加入参与人。
 
 ### 3.3 定义update的完整替换语义
 
@@ -181,7 +183,32 @@ E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 
-当前没有已发布客户端或历史实现，因此首期只实现本章E01—E13，不提供额外兼容路径。未来若增加提醒友好入口，只能在gateway转换成上述通用命令，不能建立第二套状态和事务。
+E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。
+
+### 4.1 账号端点（P06）
+
+账号端点使用同一响应信封。成功 `code` 为 `OK`。密码、验证码、授权字符串、令牌摘要和微信原始报文不得出现在错误响应中。登录令牌只在签发成功的 `data.token` 返回一次；库中保存其 SHA-256。
+
+| 编号 | 方法与路径 | 请求重点 | 返回 |
+| --- | --- | --- | --- |
+| E14 | POST `/api/v1/users/sms` | phoneNumber | 只确认已受理；不返回验证码 |
+| E15 | POST `/api/v1/users/sms/verify` | phoneNumber、verificationCode | 验证码是否仍在 10 分钟内有效 |
+| E16 | POST `/api/v1/users/register` | phoneNumber、code、password、可选 nickname | 注册成功后的登录结果；验证码未通过则不创建用户 |
+| E17 | POST `/api/v1/users/login` | phoneNumber、password | 已授权则含 token；未授权则含 authorizationRequired 与 challenge，且不签发 token |
+| E18 | POST `/api/v1/users/login-authorization` | challenge、verificationString | 校验通过后的 token；失败不签发 token |
+| E19 | POST `/api/v1/users/logout` | 令牌 | 作废当前用户令牌 |
+| E20 | GET `/api/v1/users/me` | 令牌 | 当前用户安全字段 |
+| E21 | POST `/api/v1/users/change-password` | oldPassword、password | 修改结果 |
+| E22 | POST `/api/v1/users/change-nickname` | nickname | 修改结果 |
+| E23 | POST `/api/v1/users/password-reset` | phoneNumber、code、password | 重置结果；不存在的手机号不创建用户 |
+| E24 | GET `/api/v1/users` | keyword、page、pageSize；须管理员 | 用户页；不含密码、令牌和社交原始数据 |
+| E25 | GET `/api/v1/users/wechat/config` | appType、可选 next | state 与授权地址；不含 appSecret |
+| E26 | POST `/api/v1/users/wechat/callback` | code、state、appType | 查找或创建用户后的登录结果 |
+| E27 | POST `/api/v1/users/wechat/bind` | code、state、appType；须登录 | 绑定结果 |
+| E28 | POST `/api/v1/users/wechat/unbind` | 令牌 | 解绑结果；解绑后必须仍有手机号或可用密码 |
+| E29 | POST `/api/v1/users/wechat/bind-phone` | phoneNumber、code、password；须登录 | 绑定或合并后的登录数据 |
+
+手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。
 
 ## 5. 内部端点
 

@@ -97,7 +97,7 @@ class PerfGateDualProcessIT {
     @Autowired
     JdbcTemplate jdbc;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = new ItHttpFixture();
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {

@@ -36,6 +36,7 @@ public interface TaskDefinitionMapper {
                       @Param("updatedAt") java.time.LocalDateTime updatedAt);
 
     List<TaskDefinitionRow> selectList(@Param("tenantId") String tenantId,
+                                       @Param("participantPrincipalId") String participantPrincipalId,
                                        @Param("scenarioKey") String scenarioKey,
                                        @Param("controlState") String controlState,
                                        @Param("cursorUpdatedAt") java.time.LocalDateTime cursorUpdatedAt,

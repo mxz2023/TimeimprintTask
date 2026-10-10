@@ -68,6 +68,13 @@
     <select id="selectList" resultMap="RM">
         SELECT * FROM tt_task_definition
         WHERE tenant_id = #{tenantId}
+        AND EXISTS (
+            SELECT 1 FROM tt_task_participant p
+            WHERE p.definition_id = tt_task_definition.definition_id
+              AND p.instance_id IS NULL
+              AND p.principal_type = 'USER'
+              AND p.principal_id = #{participantPrincipalId}
+        )
         <if test="scenarioKey != null">AND scenario_key = #{scenarioKey}</if>
         <if test="controlState != null">AND control_state = #{controlState}</if>
         <if test="cursorUpdatedAt != null and cursorDefinitionId != null">

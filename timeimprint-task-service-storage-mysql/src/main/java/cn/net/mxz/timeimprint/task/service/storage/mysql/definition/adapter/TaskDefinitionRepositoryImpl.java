@@ -32,6 +32,7 @@ public class TaskDefinitionRepositoryImpl implements TaskDefinitionRepository {
     @Override
     public List<TaskDefinitionSnapshot> list(
             String tenantId,
+            String participantPrincipalId,
             String scenarioKey,
             String controlState,
             Instant cursorUpdatedAt,
@@ -39,6 +40,7 @@ public class TaskDefinitionRepositoryImpl implements TaskDefinitionRepository {
             int limit) {
         return mapper.selectList(
                         tenantId,
+                        participantPrincipalId,
                         scenarioKey,
                         controlState,
                         cursorUpdatedAt == null ? null : StorageTime.toUtcLdt(cursorUpdatedAt),

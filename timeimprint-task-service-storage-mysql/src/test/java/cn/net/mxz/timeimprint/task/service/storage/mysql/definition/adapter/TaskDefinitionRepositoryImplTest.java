@@ -23,7 +23,7 @@ class TaskDefinitionRepositoryImplTest {
                 .collect(Collectors.toList());
         assertEquals(List.of("findById/1",
                 "findByIdForUpdate/1",
-                "list/6"), actual);
+                "list/7"), actual);
         assertFalse(actual.isEmpty());
     }
 }

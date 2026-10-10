@@ -157,6 +157,36 @@ class ArchitectureRulesTest {
                 .check(productionClasses("cn.net.mxz.timeimprint.task"));
     }
 
+    @Test
+    void identityDoesNotDependOnKernel() {
+        noClasses()
+                .that()
+                .resideInAPackage("cn.net.mxz.timeimprint.task.identity..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("cn.net.mxz.timeimprint.task.service.kernel..")
+                .check(productionClasses("cn.net.mxz.timeimprint.task.identity"));
+    }
+
+    @Test
+    void smsAndWechatClientsStayInAdapter() {
+        assertTrue(cn.net.mxz.timeimprint.task.adapter.sms.client.TencentSmsSender.class
+                .getPackageName()
+                .startsWith("cn.net.mxz.timeimprint.task.adapter.sms.client"));
+        assertTrue(cn.net.mxz.timeimprint.task.adapter.wechat.client.WeChatOAuthClient.class
+                .getPackageName()
+                .startsWith("cn.net.mxz.timeimprint.task.adapter.wechat.client"));
+    }
+
+    @Test
+    void noFeishuScanLoginSurface() {
+        JavaClasses classes = productionClasses("cn.net.mxz.timeimprint.task");
+        assertTrue(classes.stream().noneMatch(type -> {
+            String name = type.getSimpleName();
+            return name.contains("FeishuScan") || name.contains("FeishuOAuth");
+        }));
+    }
+
     private static JavaClasses productionClasses(String pkg) {
         return new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)

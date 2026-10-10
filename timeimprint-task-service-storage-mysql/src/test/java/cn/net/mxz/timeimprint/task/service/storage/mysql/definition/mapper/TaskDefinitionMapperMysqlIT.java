@@ -28,11 +28,11 @@ class TaskDefinitionMapperMysqlIT {
         assertEquals(List.of("insert/1",
                 "selectById/1",
                 "selectByIdForUpdate/1",
-                "selectList/6",
+                "selectList/7",
                 "updateContent/10",
                 "updateRevision/9"), actual);
 
-        String resource = "/mapper/TaskDefinitionMapper.xml";
+        String resource = "TaskDefinitionMapper.xml";
         try (InputStream in = TaskDefinitionMapper.class.getResourceAsStream(resource)) {
             assertNotNull(in, "missing classpath resource " + resource);
             String xml = new String(in.readAllBytes(), StandardCharsets.UTF_8);

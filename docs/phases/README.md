@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 范围与下一动作 |
 | --- | --- | --- |
-| [P06 多用户账号](P06/README.md) | IMPLEMENTING | 用户已授权实施；baselineGitRef=`844d2ffeddfb3583230637fab57dd83f565c97ec` |
+| [P06 多用户账号](P06/README.md) | IMPLEMENTING | 全量回归已通过；[DELIVERY](P06/DELIVERY.md) 中 U01—U10 仍为 NOT_RUN |
 
 ## 已发布阶段
 

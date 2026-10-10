@@ -25,7 +25,7 @@
 | 已发布 | [P03 Jackson 3 原生迁移](phases/P03/README.md) | Jackson 3 RELEASED；交付见[DELIVERY](phases/P03/DELIVERY.md)，标签 `v20260917-P03` |
 | 已发布 | [P04 标题与锁序](phases/P04/README.md) | S02 站内信标题与实例命令锁序 RELEASED；交付见[DELIVERY](phases/P04/DELIVERY.md)，标签 `v20261003-P04` |
 | 已发布 | [P05 飞书整体接入](phases/P05/README.md) | 出站卡片 + 入站命令 RELEASED；交付见[DELIVERY](phases/P05/DELIVERY.md)，标签 `v20261007-P05` |
-| 当前 | [P06多用户账号](phases/P06/README.md) | READY；[ADR-0001](decisions/ADR-0001-multi-user-identity.md) 已接受，实施授权前禁止编码 |
+| 当前 | [P06多用户账号](phases/P06/README.md) | IMPLEMENTING；证据见[DELIVERY](phases/P06/DELIVERY.md)，U01—U10 仍为 NOT_RUN |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
@@ -77,7 +77,7 @@
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
 | 2.3文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | [P06](phases/P06/README.md) READY | 多用户账号；ADR-0001 已接受，等待实施授权 |
+| 当前阶段 | [P06](phases/P06/README.md) IMPLEMENTING | 多用户账号；全量回归已通过，U01—U10 见[DELIVERY](phases/P06/DELIVERY.md) |
 | P05 发布 | RELEASED（`v20261007-P05`） | 人工验收 2026-10-07；证据[DELIVERY](phases/P05/DELIVERY.md) |
 | P04 发布 | RELEASED（`v20261003-P04`） | 人工验收 2026-10-03；证据[DELIVERY](phases/P04/DELIVERY.md) |
 | P03 发布 | RELEASED（`v20260917-P03`） | 人工验收 2026-09-17；证据[DELIVERY](phases/P03/DELIVERY.md) |
@@ -86,7 +86,7 @@
 | 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
-P05已于2026-10-07人工验收通过并RELEASED（标签`v20261007-P05`）；证据见[P05 DELIVERY](phases/P05/DELIVERY.md)。P01—P04亦已RELEASED。当前 CURRENT 为 [P06](phases/P06/README.md)，总体状态 READY。
+P05已于2026-10-07人工验收通过并RELEASED（标签`v20261007-P05`）；证据见[P05 DELIVERY](phases/P05/DELIVERY.md)。P01—P04亦已RELEASED。当前 CURRENT 为 [P06](phases/P06/README.md)，总体状态 IMPLEMENTING。证据见[P06 DELIVERY](phases/P06/DELIVERY.md)。
 
 ## 5. 实施期仍须验证
 
@@ -118,4 +118,4 @@ P05已于2026-10-07人工验收通过并RELEASED（标签`v20261007-P05`）；�
 2. 目标场景及所需能力项必须为READY_FOR_IMPLEMENTATION，并已写入该阶段范围。
 3. 任一关键任务存在FAIL、BLOCKED或NOT_RUN时，不得进入依赖它的后续任务或宣称阶段完成。
 4. 实施中发现需改变业务行为、能力、公开API、公共表或稳定扩展契约时，先修改对应文档并重新确认影响。
-5. P01 已 RELEASED（标签 `v20260915-P01`）。P02 已 RELEASED（标签 `v20260917-P02`）。P03 已 RELEASED（标签 `v20260917-P03`）。P04 已 RELEASED（标签 `v20261003-P04`）。P05 已 RELEASED（标签 `v20261007-P05`）。当前 CURRENT 为 [P06](phases/P06/README.md)（READY）。不得改写已冻结阶段。实施仍须用户授权。
+5. P01 已 RELEASED（标签 `v20260915-P01`）。P02 已 RELEASED（标签 `v20260917-P02`）。P03 已 RELEASED（标签 `v20260917-P03`）。P04 已 RELEASED（标签 `v20261003-P04`）。P05 已 RELEASED（标签 `v20261007-P05`）。当前 CURRENT 为 [P06](phases/P06/README.md)（IMPLEMENTING）。不得改写已冻结阶段。实施仍须用户授权。

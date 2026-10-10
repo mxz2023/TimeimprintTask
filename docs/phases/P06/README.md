@@ -17,9 +17,9 @@
 | 工程状态 | IMPLEMENTING |
 | Git发布标签 | 未发布 |
 | 人工验收 | 未开始 |
-| 下一动作 | 按 T02—T04 实现账号登录 |
+| 下一动作 | 为 U01—U10 补真实用例；通过前保持 IMPLEMENTING |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 未创建；实施完成前不得预填 DELIVERY |
+| 交付证据 | [DELIVERY](DELIVERY.md)；全量回归已通过，U01—U10 为 NOT_RUN |
 
 用户于 2026-10-10 接受 [ADR-0001](../../decisions/ADR-0001-multi-user-identity.md)，并授权实施。阶段为 IMPLEMENTING。
 

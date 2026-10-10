@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前 CURRENT 阶段为 [P06](phases/P06/README.md)（多用户账号，READY）。[ADR-0001](decisions/ADR-0001-multi-user-identity.md) 已接受并回写正式契约。获得实施授权前禁止编码。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)、[P04](phases/P04/README.md)与[P05](phases/P05/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`、`v20261007-P05`）；P05证据见[DELIVERY](phases/P05/DELIVERY.md)。不得改写已冻结阶段。
+当前 CURRENT 阶段为 [P06](phases/P06/README.md)（多用户账号，IMPLEMENTING）。[ADR-0001](decisions/ADR-0001-multi-user-identity.md) 已接受。证据见[DELIVERY](phases/P06/DELIVERY.md)，U01—U10 仍为 NOT_RUN。[P01](phases/P01/README.md)、[P02](phases/P02/README.md)、[P03](phases/P03/README.md)、[P04](phases/P04/README.md)与[P05](phases/P05/README.md)均已RELEASED并冻结（标签分别为`v20260915-P01`、`v20260917-P02`、`v20260917-P03`、`v20261003-P04`、`v20261007-P05`）；P05证据见[DELIVERY](phases/P05/DELIVERY.md)。不得改写已冻结阶段。

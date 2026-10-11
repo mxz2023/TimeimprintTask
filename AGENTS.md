@@ -42,4 +42,4 @@
 
 ## 完成纪律
 
-执行与受影响契约相匹配的检查。文档修改至少验证Markdown链接、稳定编号、命名、CURRENT阶段唯一性和`git diff --check`。实现任务必须执行当前阶段规定的真实测试和证据命令；跳过或无法执行的验证保持NOT_RUN或BLOCKED。
+执行与受影响契约相匹配的检查。文档修改至少验证Markdown链接、稳定编号、命名、CURRENT阶段唯一性和`git diff --check`。实现任务必须执行当前阶段规定的真实测试和证据命令；跳过或无法执行的验证保持NOT_RUN或BLOCKED。新阶段 README 必须写明必要人工步骤；用户未实际做完并说明结果前，不得把该阶段标为 RELEASED。该要求见`docs/08-AI-IMPLEMENTATION-TASKS.md`第 4 节，创建阶段时不得省略。

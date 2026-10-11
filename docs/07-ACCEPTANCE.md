@@ -232,6 +232,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

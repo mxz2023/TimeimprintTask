@@ -25,6 +25,6 @@ S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEX
 ## 更新规则
 
 - 阶段变为RELEASED时，把它移入“已发布阶段”，补充DELIVERY和Git标签链接。
-- 创建下一阶段时，只增加一行CURRENT记录，不复制上一阶段任务或状态。
+- 创建下一阶段时，只增加一行CURRENT记录，不复制上一阶段任务或状态。新阶段 README 必须按 [08](../08-AI-IMPLEMENTATION-TASKS.md) 第 4 节写明本期必要人工步骤；未写不得转为 READY，用户未实际做完不得转为 RELEASED。
 - 阶段详细状态以其README为准，任务状态以其IMPLEMENTATION为准，交付事实以其DELIVERY为准。
 - 若本索引与阶段README不一致，立即停止实施并修正，不允许智能体自行选择。

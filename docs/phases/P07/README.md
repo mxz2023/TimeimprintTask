@@ -9,19 +9,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P07 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P06；Git 标签 `v20261010-P06` |
 | baselineGitRef | `95e40961b7123bcc1193807022a2db3ee4fe6d04`（授权实施前的 HEAD） |
-| 工程状态 | VERIFYING |
-| Git发布标签 | 未发布 |
-| 人工验收 | 未进行 |
-| 下一动作 | 等待用户人工验收。通过前不得标 RELEASED |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261011-P07`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-11 用户确认通过 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY](DELIVERY.md)；W01—W04、H01—H04 为 PASS |
 
-用户于 2026-10-11 指定本阶段范围并要求实现。P01—P06 已冻结，不得改写。
+用户于 2026-10-11 指定本阶段范围并要求实现，同日确认人工验收通过。阶段已 RELEASED（标签 `v20261011-P07`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。P01—P06 已冻结，不得改写。
 
 ## 2. 已接受口径
 
@@ -51,4 +51,4 @@
 - 修改 kernel 业务语义或平台公共表。
 - 实现飞书扫码，或把微信密钥写入仓库。
 - 为小时和分钟间隔提供稍后，或改变原五种日历规则的发生结果。
-- 在用户确认人工验收前把阶段标为 RELEASED，或改写 [DELIVERY](DELIVERY.md) 里已经记下的失败尝试。
+- 改写本阶段 README、IMPLEMENTATION 或 DELIVERY。失败尝试已留在 DELIVERY，不得删除。

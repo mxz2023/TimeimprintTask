@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 说明 |
-| --- | --- | --- |
-| [P07 微信扫码与小时分钟间隔](P07/README.md) | VERIFYING | 网页微信扫码；按小时或分钟重复，且这两种间隔不支持稍后。证据见 [DELIVERY](P07/DELIVERY.md)，等待人工验收 |
+当前没有进行中的阶段。下一阶段须用户从 [09演进路线](../09-SCENARIO-ROADMAP.md) 另选范围、建立阶段包并授权。
 
 ## 已发布阶段
 
@@ -18,6 +16,7 @@
 | [P04 标题与锁序](P04/README.md) | RELEASED | [DELIVERY](P04/DELIVERY.md)；Git 标签 `v20261003-P04`；人工验收 2026-10-03 |
 | [P05 飞书整体接入](P05/README.md) | RELEASED | [DELIVERY](P05/DELIVERY.md)；Git 标签 `v20261007-P05`；人工验收 2026-10-07 |
 | [P06 多用户账号](P06/README.md) | RELEASED | [DELIVERY](P06/DELIVERY.md)；Git 标签 `v20261010-P06`；人工验收 2026-10-10 |
+| [P07 微信扫码与小时分钟间隔](P07/README.md) | RELEASED | [DELIVERY](P07/DELIVERY.md)；Git 标签 `v20261011-P07`；人工验收 2026-10-11 |
 
 ## 未来阶段
 

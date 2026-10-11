@@ -4,7 +4,7 @@
 > 阶段身份见 [README](README.md)，任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-10-11T11:36:16Z
-阶段状态: VERIFYING。人工验收尚未进行，不得据此标 RELEASED。[W01](../../07-ACCEPTANCE.md)—[W04](../../07-ACCEPTANCE.md) 与 [H01](../../07-ACCEPTANCE.md)—[H04](../../07-ACCEPTANCE.md) 为 PASS。
+阶段状态: RELEASED（2026-10-11 用户确认人工验收通过；Git 标签 `v20261011-P07`；本文此后不再改写）。[W01](../../07-ACCEPTANCE.md)—[W04](../../07-ACCEPTANCE.md) 与 [H01](../../07-ACCEPTANCE.md)—[H04](../../07-ACCEPTANCE.md) 为 PASS。
 
 ---
 
@@ -48,4 +48,4 @@ recordedAtUtc: 2026-10-11T11:36:16Z
 
 ## 4. 人工验收
 
-尚未进行。自动化没有调用真实微信开放平台。`live` 模式面向真实用户时，仍须配置网页应用的 app id、app secret 与 redirect uri，这些值不得写入仓库。
+2026-10-11 用户确认人工验收通过。一并接受的范围：自动化没有调用真实微信开放平台，`live` 换票由测试夹具完成；小时与分钟的发生算法、稍后拒绝和飞书卡片缺按钮记录在同一次 `mysql-it` 的 Surefire 中，没有单独的真库建定义用例，也没有单独的飞书伪造回调去点小时规则的稍后。`live` 面向真实用户时仍须配置网页应用的 app id、app secret 与 redirect uri，这些值不得写入仓库。

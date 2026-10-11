@@ -23,8 +23,8 @@
 | CAL-03 | WEEKLY每周 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-04 | MONTHLY每月，缺失日期取月末 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | RELEASED | VERIFIED | S01、S02 |
-| CAL-15 | EVERY_N_HOURS固定锚点每N小时 | P07 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | S01、S02 |
-| CAL-16 | EVERY_N_MINUTES固定锚点每N分钟 | P07 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | S01、S02 |
+| CAL-15 | EVERY_N_HOURS固定锚点每N小时 | P07 | RELEASED | VERIFIED | S01、S02 |
+| CAL-16 | EVERY_N_MINUTES固定锚点每N分钟 | P07 | RELEASED | VERIFIED | S01、S02 |
 | CAL-06 | 扩展周期：每年、季度、每N时间单位的其余部分、月末 | BACKLOG | OUTLINE | NOT_STARTED | C01、S03 |
 | CAL-07 | 工作日与节假日日历 | BACKLOG | OUTLINE | NOT_STARTED | C02 |
 | CAL-08 | 业务时间计时 | BACKLOG | OUTLINE | NOT_STARTED | C03、S09 |
@@ -39,7 +39,7 @@
 
 CAL-01—CAL-05使用一个`bindingKey=primary`、`providerKey=calendar`、`schemaVersion=1`的触发绑定。时区固定`Asia/Shanghai`，精确到秒；预览、创建和Planner复用同一规范化及计算实现，使用严格afterExclusive边界。ONCE必须在判定时间之后；DAILY、WEEKLY、MONTHLY和EVERY_N_DAYS保留原始startDate锚点，不随实际执行或重启漂移。
 
-[CAL-15](CAP01-calendar.md) 与 [CAL-16](CAP01-calendar.md) 使用同一绑定和 schemaVersion 1。锚点是 startDate 加 localTime，再按 `intervalHours`（1—168）或 `intervalMinutes`（1—1440）前进。7 天视野内同步最多物化 100 次，其余由 Planner 补齐。由这两种规则物化的 S02 实例 `snoozeAllowed=false`。原五种规则的发生结果不变。证据待 [P07](../phases/P07/README.md) DELIVERY，在此之前实现状态为 IN_PROGRESS。
+[CAL-15](CAP01-calendar.md) 与 [CAL-16](CAP01-calendar.md) 使用同一绑定和 schemaVersion 1。锚点是 startDate 加 localTime，再按 `intervalHours`（1—168）或 `intervalMinutes`（1—1440）前进。7 天视野内同步最多物化 100 次，其余由 Planner 补齐。由这两种规则物化的 S02 实例 `snoozeAllowed=false`。原五种规则的发生结果不变。证据见 [P07 DELIVERY](../phases/P07/DELIVERY.md)，标签 `v20261011-P07`。
 
 创建ACTIVE定义时原子物化未来7天内的WAITING实例和时间Signal，不预建Action。Planner按有界批次滚动补窗；相同definition、binding、scheduleGeneration、controlGeneration和occurrenceKey只能产生一组事实。停机采用ALL_MISSED追赶，暂停恢复不补暂停区间。完整字段和边界不在本文复制，以01、04和06为准。
 

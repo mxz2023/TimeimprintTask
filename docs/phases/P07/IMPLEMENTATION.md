@@ -1,6 +1,6 @@
 # P07 · 实施任务
 
-> 阶段身份与范围见 [README](README.md)。决策见已接受的 [ADR-0002](../../decisions/ADR-0002-wechat-qr-and-subday-interval.md)。
+> 阶段身份与范围见 [README](README.md)。阶段已 RELEASED（2026-10-11；标签 `v20261011-P07`）；本文冻结，不再改写。决策见已接受的 [ADR-0002](../../decisions/ADR-0002-wechat-qr-and-subday-interval.md)。
 
 ## 1. 任务状态
 
@@ -21,4 +21,4 @@ T02 与 T03 都依赖 T01，彼此不阻塞。T04 必须等二者的验收项都
 | DRAFT → READY | T01 PASS |
 | READY → IMPLEMENTING | 用户于 2026-10-11 要求实现本阶段 |
 | IMPLEMENTING → VERIFYING | T02、T03 PASS，且 DELIVERY 中 W01—W04、H01—H04 不再是 NOT_RUN |
-| VERIFYING → RELEASED | T04 与用户人工验收 |
+| VERIFYING → RELEASED | T04 与用户人工验收；标签 `v20261011-P07`（已完成） |

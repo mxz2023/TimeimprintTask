@@ -2,7 +2,7 @@
 
 本文是TimeImprintTask文档集的阅读入口和阶段状态入口，不重复定义业务、API、数据或运行规则。平台公共主题由01—08分别负责，场景由`scenarios/`、通用能力域由`capabilities/`长期维护；09只记录演进路线与跨项关系，10记录评审理由与尚待实施验证的风险。
 
-当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。P03已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P03`）。P04已于2026-10-03人工验收通过并 RELEASED（Git 标签 `v20261003-P04`）。P05已于2026-10-07人工验收通过并 RELEASED（Git 标签 `v20261007-P05`）。P06已于2026-10-10人工验收通过并 RELEASED（Git 标签 `v20261010-P06`）。当前 CURRENT 阶段是 [P07](phases/P07/README.md)（微信扫码与小时分钟间隔），状态 VERIFYING。证据见 [DELIVERY](phases/P07/DELIVERY.md)。
+当前文档基线版本为2.3，最后收敛日期为2026-09-16。项目目标是建设“稳定内核 + 可插拔能力”的通用任务平台；首期以本地固定身份运行，并完成后续同类场景可复用的核心、公共存储、Signal/Action运行时、场景专有数据原子物化和多进程恢复机制。2.3在不改变P01业务、API、数据和稳定SPI的前提下，增加业务优先包结构、测试镜像与Jackson 3迁移契约。P01已于2026-09-15人工验收通过并 RELEASED（Git 标签 `v20260915-P01`）。P02已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P02`）。P03已于2026-09-17人工验收通过并 RELEASED（Git 标签 `v20260917-P03`）。P04已于2026-10-03人工验收通过并 RELEASED（Git 标签 `v20261003-P04`）。P05已于2026-10-07人工验收通过并 RELEASED（Git 标签 `v20261007-P05`）。P06已于2026-10-10人工验收通过并 RELEASED（Git 标签 `v20261010-P06`）。P07已于2026-10-11人工验收通过并 RELEASED（Git 标签 `v20261011-P07`）。当前没有 CURRENT 阶段。
 
 ## 1. 阅读顺序
 
@@ -26,7 +26,7 @@
 | 已发布 | [P04 标题与锁序](phases/P04/README.md) | S02 站内信标题与实例命令锁序 RELEASED；交付见[DELIVERY](phases/P04/DELIVERY.md)，标签 `v20261003-P04` |
 | 已发布 | [P05 飞书整体接入](phases/P05/README.md) | 出站卡片 + 入站命令 RELEASED；交付见[DELIVERY](phases/P05/DELIVERY.md)，标签 `v20261007-P05` |
 | 已发布 | [P06多用户账号](phases/P06/README.md) | 多用户账号 RELEASED；交付见[DELIVERY](phases/P06/DELIVERY.md)，标签 `v20261010-P06` |
-| 当前 | [P07微信扫码与小时分钟间隔](phases/P07/README.md) | VERIFYING；证据见 [DELIVERY](phases/P07/DELIVERY.md)，等待人工验收 |
+| 已发布 | [P07微信扫码与小时分钟间隔](phases/P07/README.md) | RELEASED；交付见 [DELIVERY](phases/P07/DELIVERY.md)，标签 `v20261011-P07` |
 | 场景 | [场景索引](scenarios/README.md) | S01—S17规划、契约和实现状态及永久入口 |
 | 能力 | [能力索引](capabilities/README.md) | 八个能力域、C01—C19归属、范围和实现状态 |
 | 决策 | [核心决策索引](decisions/README.md) | 未来核心模型变化的理由、影响和替代关系 |
@@ -65,7 +65,7 @@
 | 当前身份 | 公开接口只认账号登录；P01 的固定身份不再作为运行规则。仍无 GUI，也不把生产网络安全算作已验收 | 01、04、[P06](phases/P06/README.md) |
 | 核心模型 | TaskDefinition → TaskInstance → Signal → TransitionPlan → Action Job | 01、02 |
 | 首期场景 | S01 reminder、S02 recurring_todo及五种calendar规则 | [场景契约](scenarios/README.md)、01、04 |
-| 首期能力状态 | calendar CAL-01—CAL-05、notification NOT-01—NOT-03 与 NOT-05（飞书子集）已 VERIFIED；其他能力域/能力项仍为 OUTLINE | [能力索引](capabilities/README.md)、[P05](phases/P05/README.md) |
+| 首期能力状态 | calendar CAL-01—CAL-05 与 CAL-15、CAL-16，notification NOT-01—NOT-03 与 NOT-05（飞书子集）已 VERIFIED；网页微信扫码已随 P07 VERIFIED；其他能力域/能力项仍为 OUTLINE | [能力索引](capabilities/README.md)、[P07](phases/P07/README.md) |
 | 后续规划 | S03/S04/S05/S14为NEXT_REVIEW；其他后续场景与能力为BACKLOG，全部NOT_STARTED；C12 其余 IM 在 P05 飞书之后 | [场景索引](scenarios/README.md)、[能力索引](capabilities/README.md)、09 |
 | 扩展目标 | 增加现有类型场景时不修改kernel业务语义和公共表；允许增加场景/能力模块、专有表和装配声明 | 02、07 |
 | 公共存储 | 10张平台公共表；通知能力另有2张专有表 | 05 |
@@ -78,7 +78,8 @@
 | 范围 | 状态 | 含义 |
 | --- | --- | --- |
 | 2.3文档基线 | REVIEWED | 当前未保留已知的阻塞性文档分歧；不表示设计绝对无误或已经被代码验证 |
-| 当前阶段 | VERIFYING | [P07](phases/P07/README.md) 微信扫码与小时分钟间隔；证据见 [DELIVERY](phases/P07/DELIVERY.md) |
+| 当前阶段 | 无 | [P07](phases/P07/README.md) 已 RELEASED；下一阶段须用户另选范围 |
+| P07 发布 | RELEASED（`v20261011-P07`） | 人工验收 2026-10-11；证据[DELIVERY](phases/P07/DELIVERY.md) |
 | P06 发布 | RELEASED（`v20261010-P06`） | 人工验收 2026-10-10；证据[DELIVERY](phases/P06/DELIVERY.md) |
 | P05 发布 | RELEASED（`v20261007-P05`） | 人工验收 2026-10-07；证据[DELIVERY](phases/P05/DELIVERY.md) |
 | P04 发布 | RELEASED（`v20261003-P04`） | 人工验收 2026-10-03；证据[DELIVERY](phases/P04/DELIVERY.md) |
@@ -88,7 +89,7 @@
 | 实际环境 | ENV_VERIFIED | T01 实测见[T01-ENV-EVIDENCE](phases/P01/T01-ENV-EVIDENCE.txt)与 DELIVERY §1 |
 | 生产能力 | OUT_OF_SCOPE | 生产部署、容量结论、可信身份实现和真实外部渠道不属于本地首期验收 |
 
-P06已于2026-10-10人工验收通过并RELEASED（标签`v20261010-P06`）；证据见[P06 DELIVERY](phases/P06/DELIVERY.md)。P01—P05亦已RELEASED。当前 CURRENT 阶段是 [P07](phases/P07/README.md)，状态 VERIFYING。证据见 [DELIVERY](phases/P07/DELIVERY.md)。人工验收尚未进行。
+P07已于2026-10-11人工验收通过并RELEASED（标签`v20261011-P07`）；证据见[P07 DELIVERY](phases/P07/DELIVERY.md)。P01—P06亦已RELEASED。当前没有 CURRENT 阶段。
 
 ## 5. 实施期仍须验证
 

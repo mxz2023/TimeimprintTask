@@ -110,4 +110,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前 CURRENT 阶段是 [P07](phases/P07/README.md)（微信扫码与小时分钟间隔），总体状态 VERIFYING。证据见 [DELIVERY](phases/P07/DELIVERY.md)。人工验收尚未进行。用户于 2026-10-11 指定范围并要求实现。[P06](phases/P06/README.md)（多用户账号）已于 2026-10-10 人工验收通过并 RELEASED（标签 `v20261010-P06`）。证据见[DELIVERY](phases/P06/DELIVERY.md)，U01—U10 为 PASS。[P01](phases/P01/README.md)—[P06](phases/P06/README.md) 均已冻结。不得改写已冻结阶段。
+当前没有 CURRENT 阶段。[P07](phases/P07/README.md)（微信扫码与小时分钟间隔）已于 2026-10-11 人工验收通过并 RELEASED（标签 `v20261011-P07`）。证据见[DELIVERY](phases/P07/DELIVERY.md)，W01—W04 与 H01—H04 为 PASS。[P01](phases/P01/README.md)—[P07](phases/P07/README.md) 均已冻结。不得改写已冻结阶段。下一阶段须用户另选范围。

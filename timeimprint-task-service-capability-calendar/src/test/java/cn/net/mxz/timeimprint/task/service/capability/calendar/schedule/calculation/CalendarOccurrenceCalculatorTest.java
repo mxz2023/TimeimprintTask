@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Daily;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNHours;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNMinutes;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNDays;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Monthly;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Once;
@@ -95,6 +97,38 @@ class CalendarOccurrenceCalculatorTest {
         } finally {
             TimeZone.setDefault(original);
         }
+    }
+
+    @Test
+    void everyNHoursAndMinutesPreviewFromFixedAnchor() {
+        EveryNHours every2h = new EveryNHours(
+                LocalDate.of(2026, 9, 1),
+                2,
+                LocalTime.of(9, 0, 0),
+                CalendarOccurrenceCalculator.BUSINESS_ZONE);
+        Instant afterWeek = Instant.parse("2026-09-07T00:00:00Z");
+        List<Occurrence> hours = CalendarOccurrenceCalculator.preview(every2h, afterWeek, 2);
+        assertEquals(2, hours.size());
+        assertEquals("20260907T010000Z", hours.get(0).occurrenceKey());
+        assertEquals("20260907T030000Z", hours.get(1).occurrenceKey());
+
+        EveryNMinutes every15m = new EveryNMinutes(
+                LocalDate.of(2026, 9, 1),
+                15,
+                LocalTime.of(9, 0, 0),
+                CalendarOccurrenceCalculator.BUSINESS_ZONE);
+        List<Occurrence> minutes =
+                CalendarOccurrenceCalculator.preview(every15m, Instant.parse("2026-09-01T02:00:00Z"), 2);
+        assertEquals(2, minutes.size());
+        assertEquals("20260901T021500Z", minutes.get(0).occurrenceKey());
+        assertEquals("20260901T023000Z", minutes.get(1).occurrenceKey());
+    }
+
+    @Test
+    void everyNHoursRejectsOutOfRangeInterval() {
+        EveryNHours bad = new EveryNHours(
+                LocalDate.of(2026, 9, 1), 169, LocalTime.of(9, 0, 0), CalendarOccurrenceCalculator.BUSINESS_ZONE);
+        assertThrows(IllegalArgumentException.class, () -> CalendarOccurrenceCalculator.preview(bad, Instant.EPOCH, 1));
     }
 
     @Test

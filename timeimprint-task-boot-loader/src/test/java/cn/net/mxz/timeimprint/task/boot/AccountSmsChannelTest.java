@@ -23,7 +23,7 @@ class AccountSmsChannelTest {
         SmsSender sms = (phone, code) -> false;
         WeChatOAuthClient wechat = (appType, code, state) -> null;
         IdentityService service = new IdentityService(
-                store, sms, wechat, "local-tenant", "local-dev-authorization");
+                store, sms, wechat, "local-tenant", "local-dev-authorization", "capture", "", "");
 
         IdentityException ex = assertThrows(IdentityException.class, () -> service.sendSms("13800138000"));
 

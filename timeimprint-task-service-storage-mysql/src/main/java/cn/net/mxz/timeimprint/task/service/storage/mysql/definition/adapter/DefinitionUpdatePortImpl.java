@@ -6,6 +6,7 @@ import cn.net.mxz.timeimprint.task.service.application.definition.port.Definitio
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionUpdatePort;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.audit.mapper.AuditLogMapper;
@@ -186,6 +187,7 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
                         binding.getTriggerBindingId(),
                         scheduleGeneration,
                         window,
+                        newConfigMap,
                         now);
             }
         } else if (contentChanged || participantsChanged) {
@@ -286,10 +288,11 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
             long bindingId,
             long scheduleGeneration,
             List<CalendarOccurrenceCalculator.Occurrence> window,
+            Map<String, Object> calendarConfig,
             Instant now) {
         var tb = cmd.triggerBindings().get(0);
         for (var occ : window) {
-            String snapshotJson = "{\"occurrenceKey\":\"" + occ.occurrenceKey() + "\"}";
+            String snapshotJson = CalendarPlannedInstanceSnapshot.json(occ.occurrenceKey(), calendarConfig);
             TaskInstanceRow inst = new TaskInstanceRow();
             inst.setDefinitionId(cmd.definitionId());
             inst.setTriggerBindingId(bindingId);

@@ -5,4 +5,10 @@ class IdentityStoreTest {
     @Test void exposesActiveLookup() {
         assertTrue(java.util.Arrays.stream(IdentityStore.class.getMethods()).anyMatch(m -> m.getName().equals("isActive")));
     }
+
+    @Test
+    void exposesOauthStatePersistence() {
+        assertTrue(java.util.Arrays.stream(IdentityStore.class.getMethods()).anyMatch(m -> m.getName().equals("insertOauthState")));
+        assertTrue(java.util.Arrays.stream(IdentityStore.class.getMethods()).anyMatch(m -> m.getName().equals("consumeOauthState")));
+    }
 }

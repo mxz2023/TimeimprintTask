@@ -13,6 +13,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import cn.net.mxz.timeimprint.task.adapter.wechat.client.LiveWeChatOAuthClient;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ public class IdentityService {
     private static final Pattern PHONE = Pattern.compile("^1\\d{10}$");
     private static final Duration CODE_TTL = Duration.ofMinutes(10);
     private static final Duration CHALLENGE_TTL = Duration.ofMinutes(10);
+    private static final Duration OAUTH_STATE_TTL = Duration.ofMinutes(10);
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final IdentityStore store;
@@ -34,18 +36,27 @@ public class IdentityService {
     private final BCryptPasswordEncoder passwords = new BCryptPasswordEncoder();
     private final String tenantId;
     private final String authorizationString;
+    private final String wechatMode;
+    private final String wechatWebAppId;
+    private final String wechatWebRedirectUri;
 
     public IdentityService(
             IdentityStore store,
             SmsSender smsSender,
             WeChatOAuthClient weChat,
             @Value("${timeimprint.local.tenant-id:local-tenant}") String tenantId,
-            @Value("${timeimprint.identity.authorization-string:local-dev-authorization}") String authorizationString) {
+            @Value("${timeimprint.identity.authorization-string:local-dev-authorization}") String authorizationString,
+            @Value("${timeimprint.identity.wechat.mode:capture}") String wechatMode,
+            @Value("${timeimprint.identity.wechat.web.app-id:}") String wechatWebAppId,
+            @Value("${timeimprint.identity.wechat.web.redirect-uri:}") String wechatWebRedirectUri) {
         this.store = store;
         this.smsSender = smsSender;
         this.weChat = weChat;
         this.tenantId = tenantId;
         this.authorizationString = authorizationString;
+        this.wechatMode = wechatMode == null ? "capture" : wechatMode.trim();
+        this.wechatWebAppId = wechatWebAppId == null ? "" : wechatWebAppId.trim();
+        this.wechatWebRedirectUri = wechatWebRedirectUri == null ? "" : wechatWebRedirectUri.trim();
     }
 
     public String tenantId() {
@@ -188,6 +199,21 @@ public class IdentityService {
             throw new IdentityException("FORBIDDEN", "只有管理员可以查看用户列表");
         }
         return store.countSearch(keyword == null ? "" : keyword.trim());
+    }
+
+    public WeChatLoginConfig wechatConfig(String appType) {
+        String type = normalizeAppType(appType);
+        if ("live".equals(wechatMode)) {
+            if (!"web".equals(type)) {
+                throw new IdentityException("INVALID_REQUEST", "当前仅支持网页微信扫码登录");
+            }
+            LocalDateTime now = IdentityStore.utcNow();
+            String state = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes(32));
+            store.insertOauthState(sha256(state), type, now.plus(OAUTH_STATE_TTL), now);
+            String authUrl = LiveWeChatOAuthClient.buildQrConnectAuthUrl(wechatWebAppId, wechatWebRedirectUri, state);
+            return new WeChatLoginConfig(type, state, authUrl);
+        }
+        return new WeChatLoginConfig(type, "capture-state", "");
     }
 
     @Transactional
@@ -366,12 +392,31 @@ public class IdentityService {
     }
 
     private WeChatProfile exchange(String appType, String code, String state) {
+        String type = normalizeAppType(appType);
+        if ("live".equals(wechatMode)) {
+            if (!"web".equals(type)) {
+                throw new IdentityException("INVALID_REQUEST", "当前仅支持网页微信扫码登录");
+            }
+            requireLiveState(type, state);
+        }
         try {
-            String type = appType == null || appType.isBlank() ? "web" : appType;
             return weChat.exchange(type, code, state);
         } catch (IllegalStateException ex) {
             throw new IdentityException("INVALID_REQUEST", ex.getMessage());
         }
+    }
+
+    private void requireLiveState(String appType, String state) {
+        if (state == null || state.isBlank()) {
+            throw new IdentityException("INVALID_REQUEST", "微信授权无效");
+        }
+        if (!store.consumeOauthState(sha256(state.trim()), appType, IdentityStore.utcNow())) {
+            throw new IdentityException("INVALID_REQUEST", "微信授权无效");
+        }
+    }
+
+    private static String normalizeAppType(String appType) {
+        return appType == null || appType.isBlank() ? "web" : appType.trim();
     }
 
     private String hmac(String payload) {

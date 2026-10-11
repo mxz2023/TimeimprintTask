@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult.Rejected;
+
 import cn.net.mxz.timeimprint.task.service.extension.action.context.ActionJobView;
 import cn.net.mxz.timeimprint.task.service.extension.command.context.CommandExecutionContext;
 import cn.net.mxz.timeimprint.task.service.extension.command.spi.CommandScope;
@@ -46,6 +48,29 @@ class RecurringTodoCommandHandlerTest {
                 assertTrue(TaskCommandHandler.class.isAssignableFrom(type), type.getName());
             }
         }
+    }
+
+    @Test
+    void snoozeRejectedWhenSnoozeNotAllowed() {
+        Instant now = Instant.parse("2026-10-02T01:00:00Z");
+        var definition = new TaskDefinitionSnapshot(
+                3L, "local", "recurring_todo", 1, "t", "d", "{}",
+                ControlState.ACTIVE, 1L, 1L, now, now);
+        var instance = new TaskInstanceSnapshot(
+                7L, 3L, 1L, 1L, 1L, "occ", now, now,
+                LifecycleCategory.ACTIVE, "PENDING", 1,
+                "{\"occurrenceKey\":\"k\",\"snoozeAllowed\":false,\"snoozeCount\":0,\"maxSnoozeCount\":0,"
+                        + "\"actionGeneration\":1,\"expiresAt\":\"2026-10-03T01:00:00Z\"}",
+                "t", "d", 2L, null);
+        var ctx = new CommandExecutionContext(
+                CommandScope.INSTANCE, "snooze", 1, "req", definition, instance,
+                new JsonPayload(Map.of("snoozeUntil", now.plusSeconds(180).toString())),
+                now, List.of());
+        var rejected = assertInstanceOf(
+                Rejected.class,
+                new RecurringTodoCommandHandler.RecurringTodoSnoozeHandler(JsonMapper.builder().build()).handle(ctx));
+        assertEquals("STATE_CONFLICT", rejected.reasonCode());
+        assertTrue(rejected.safeMessage().contains("不支持稍后"));
     }
 
     @Test

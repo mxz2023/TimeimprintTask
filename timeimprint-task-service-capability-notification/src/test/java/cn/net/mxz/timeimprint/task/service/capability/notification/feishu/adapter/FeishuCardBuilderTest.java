@@ -37,6 +37,16 @@ class FeishuCardBuilderTest {
     }
 
     @Test
+    void actionCardOmitsSnoozeWhenDisallowed() {
+        JsonNode card = mapper.readTree(builder.build("T", "B", true, 3, 11, 7, false));
+        JsonNode columns = card.path("body").path("elements").get(1).path("columns");
+        assertEquals(2, columns.size());
+        assertEquals("完成", columns.get(0).path("elements").get(0).path("text").path("content").asString());
+        assertEquals("跳过", columns.get(1).path("elements").get(0).path("text").path("content").asString());
+        assertFalse(card.toString().contains("稍后提醒"));
+    }
+
+    @Test
     void actionCardHasThreeCallbackButtonsInOrder() {
         JsonNode card = mapper.readTree(builder.build("T", "B", true, 3, 11, 7));
         JsonNode actionRow = card.path("body").path("elements").get(1);

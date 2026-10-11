@@ -8,9 +8,9 @@
 | --- | --- | --- | --- | --- |
 | T00 | 建立阶段包，登记微信扫码与小时/分钟间隔 | PASS | 用户指定 P07 | 本文件与 README 存在；00 与阶段索引指向 P07 |
 | T01 | 把契约写入 01—07、CAP01、S01、S02 与 ADR-0002 | PASS | T00 | 正式契约与 ADR-0002 一致；阶段为 IMPLEMENTING |
-| T02 | 网页扫码配置、一次性 state、live 换票；capture 保持不访问微信 | IN_PROGRESS | T01 PASS | [W01](../../07-ACCEPTANCE.md)—[W04](../../07-ACCEPTANCE.md) |
-| T03 | `EVERY_N_HOURS` / `EVERY_N_MINUTES`；这两种 S02 实例拒绝稍后且飞书卡片无稍后按钮 | IN_PROGRESS | T01 PASS | [H01](../../07-ACCEPTANCE.md)—[H04](../../07-ACCEPTANCE.md) |
-| T04 | 全量真库回归并记录 DELIVERY | NOT_STARTED | T02 与 T03 PASS | DELIVERY 中的命令、退出码和失败测试名 |
+| T02 | 网页扫码配置、一次性 state、live 换票；capture 保持不访问微信 | PASS | T01 PASS | [DELIVERY](DELIVERY.md) [W01](../../07-ACCEPTANCE.md)—[W04](../../07-ACCEPTANCE.md) |
+| T03 | `EVERY_N_HOURS` / `EVERY_N_MINUTES`；这两种 S02 实例拒绝稍后且飞书卡片无稍后按钮 | PASS | T01 PASS | [DELIVERY](DELIVERY.md) [H01](../../07-ACCEPTANCE.md)—[H04](../../07-ACCEPTANCE.md) |
+| T04 | 全量真库回归并记录 DELIVERY | PASS | T02 与 T03 PASS | [DELIVERY](DELIVERY.md) 第 2 节。第 1 次 mysql-it 失败已保留；第 2 次与 dual-process-it 退出码为 0 |
 
 T02 与 T03 都依赖 T01，彼此不阻塞。T04 必须等二者的验收项都有真实测试。
 

@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 说明 |
 | --- | --- | --- |
-| [P07 微信扫码与小时分钟间隔](P07/README.md) | IMPLEMENTING | 网页微信扫码；按小时或分钟重复，且这两种间隔不支持稍后。任务见 [IMPLEMENTATION](P07/IMPLEMENTATION.md) |
+| [P07 微信扫码与小时分钟间隔](P07/README.md) | VERIFYING | 网页微信扫码；按小时或分钟重复，且这两种间隔不支持稍后。证据见 [DELIVERY](P07/DELIVERY.md)，等待人工验收 |
 
 ## 已发布阶段
 

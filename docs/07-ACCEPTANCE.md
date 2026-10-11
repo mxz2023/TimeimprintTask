@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前没有 CURRENT 阶段。[P06](phases/P06/README.md) 已 RELEASED（标签 `v20261010-P06`，见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前没有 CURRENT 阶段。[P06](phases/P06/README.md) 已 RELEASED（标签 `v20261010-P06`，见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）。当前阶段是 [P07](phases/P07/README.md)（微信扫码与小时分钟间隔，IMPLEMENTING）。
 
 ## 1. 验收分层与环境
 
@@ -203,6 +203,21 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | U08 | 管理员 | 空库第一个完成授权的账号为管理员；非管理员不能列用户；列表不含密码和令牌 |
 | U09 | 参与人 | 活跃用户 id 可成为 OWNER；停用或不存在的 id 拒绝；两个测试账号互不可见对方资源 |
 | U10 | 模块边界 | 短信与微信 HTTP 客户端只在 adapter；identity 不依赖 kernel；飞书扫码无端点、无客户端 |
+
+## 6.3 P07 验收项（W01—W04、H01—H04）
+
+[P07](phases/P07/README.md) 必须用真实 MySQL 证明下列项。微信 `live` 用测试夹具拦截 HTTP，不得把 CI 门禁绑到真实微信开放平台。`capture` 仍不得访问外网。证据写入 P07 DELIVERY 之前不得预填 PASS。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| W01 | 扫码配置 | `live` 且 `appType=web` 时，响应含扫码地址和一次性 state，不含 appSecret；`ios` 与 `android` 拒绝 |
+| W02 | state | 错误、过期或第二次使用的 state 拒绝，且不换取身份；成功路径消费 state |
+| W03 | 换票 | 夹具返回的 openid 能登录或绑定；响应与库中不出现访问令牌 |
+| W04 | 捕获模式 | `capture` 仍把 code 当作 openid，不访问微信；飞书扫码仍无端点 |
+| H01 | 小时间隔 | `EVERY_N_HOURS` 按锚点每 N 小时发生，`intervalHours` 越界拒绝；原五种规则的下一次发生不变 |
+| H02 | 分钟间隔 | `EVERY_N_MINUTES` 按锚点每 N 分钟发生，`intervalMinutes` 越界拒绝 |
+| H03 | 不支持稍后 | 这两种规则物化的 S02 实例，HTTP 稍后与飞书稍后都拒绝；卡片没有「稍后提醒」；完成和跳过仍可用 |
+| H04 | 日规则稍后 | DAILY 等原规则的稍后仍成功；7 天整窗写入行为不变 |
 
 ## 7. 交付证据与总判定
 

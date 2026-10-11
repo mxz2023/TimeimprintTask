@@ -51,7 +51,7 @@ JSON库、Mapper类型和HTTP消息转换器属于实现细节，从Jackson 2迁
 
 ### 3.1 Calendar schemaVersion 1
 
-S01/S02首期必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`、`schemaVersion=1`的trigger binding。config是以下五种互斥对象之一，表中字段全部必填且不允许额外字段：
+S01/S02必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`、`schemaVersion=1`的trigger binding。config是以下七种互斥对象之一，表中字段全部必填且不允许额外字段。后两种由 [P07](phases/P07/README.md) 增加，不改变前五种的发生结果：
 
 | 类型 | 配置精确字段 | 语义 |
 | --- | --- | --- |
@@ -60,8 +60,10 @@ S01/S02首期必须且只能传一个`bindingKey="primary"`、`providerKey="cale
 | WEEKLY | `type, startDate, weekday, localTime, zoneId` | 从startDate起每周在weekday发生 |
 | MONTHLY | `type, startDate, dayOfMonth, localTime, zoneId` | 从startDate起每月发生；无该日取月末 |
 | EVERY_N_DAYS | `type, startDate, intervalDays, localTime, zoneId` | 以startDate为固定锚点每N个自然日发生 |
+| EVERY_N_HOURS | `type, startDate, intervalHours, localTime, zoneId` | 以startDate与localTime为固定锚点每N小时发生 |
+| EVERY_N_MINUTES | `type, startDate, intervalMinutes, localTime, zoneId` | 以startDate与localTime为固定锚点每N分钟发生 |
 
-`localDate/startDate`格式固定`yyyy-MM-dd`；`localTime`固定`HH:mm:ss`且必须有秒；`zoneId`一期只能是`Asia/Shanghai`；`weekday`为ISO 1—7（周一至周日）；`dayOfMonth`为1—31；`intervalDays`为1—3650。startDate是包含边界，算法只返回同时满足规则且严格晚于`after`的发生；它可以早于当前日期，不能因重启改写。ONCE在E03/E06提交判定时必须严格晚于事务时间T，E02预览若已不晚于after则返回空列表。
+`localDate/startDate`格式固定`yyyy-MM-dd`；`localTime`固定`HH:mm:ss`且必须有秒；`zoneId`一期只能是`Asia/Shanghai`；`weekday`为ISO 1—7（周一至周日）；`dayOfMonth`为1—31；`intervalDays`为1—3650；`intervalHours`为1—168；`intervalMinutes`为1—1440。startDate是包含边界，算法只返回同时满足规则且严格晚于`after`的发生；它可以早于当前日期，不能因重启改写。ONCE在E03/E06提交判定时必须严格晚于事务时间T，E02预览若已不晚于after则返回空列表。
 
 occurrenceAt由本地日期时间按zoneId转换为UTC整秒，occurrenceKey固定为其UTC格式`yyyyMMdd'T'HHmmss'Z'`；唯一性范围还包含definition、binding、scheduleGeneration和controlGeneration。预览、创建和Planner必须调用同一规范化与计算实现。规范化只展开S02默认值、统一日期/时间格式和对象键顺序，不trim文本、不改变数组顺序，也不替调用方猜测缺失的日历字段。
 
@@ -202,13 +204,13 @@ E01—E13 是任务公开接口，不另建第二套任务状态。未来若增�
 | E22 | POST `/api/v1/users/change-nickname` | nickname | 修改结果 |
 | E23 | POST `/api/v1/users/password-reset` | phoneNumber、code、password | 重置结果；不存在的手机号不创建用户 |
 | E24 | GET `/api/v1/users` | keyword、page、pageSize；须管理员 | 用户页；不含密码、令牌和社交原始数据 |
-| E25 | GET `/api/v1/users/wechat/config` | appType、可选 next | state 与授权地址；不含 appSecret |
+| E25 | GET `/api/v1/users/wechat/config` | appType、可选 next | state 与授权地址；不含 appSecret。`live` 且 appType 为 web 时，state 为一次性随机值，授权地址为微信网站应用扫码地址 |
 | E26 | POST `/api/v1/users/wechat/callback` | code、state、appType | 查找或创建用户后的登录结果 |
 | E27 | POST `/api/v1/users/wechat/bind` | code、state、appType；须登录 | 绑定结果 |
 | E28 | POST `/api/v1/users/wechat/unbind` | 令牌 | 解绑结果；解绑后必须仍有手机号或可用密码 |
 | E29 | POST `/api/v1/users/wechat/bind-phone` | phoneNumber、code、password；须登录 | 绑定或合并后的登录数据 |
 
-手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。
+手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。`live` 模式下只有 `appType=web` 返回扫码地址；`ios` 与 `android` 请求配置时拒绝。state 保存摘要，10 分钟内且未消费才能用于回调或绑定，成功校验后立即消费。`capture` 不访问微信，测试使用固定 state。由 `EVERY_N_HOURS` 或 `EVERY_N_MINUTES` 物化的 S02 实例，稍后命令返回冲突；实例投影含 `snoozeAllowed=false`。日及以上规则的稍后命令不变。
 
 ## 5. 内部端点
 

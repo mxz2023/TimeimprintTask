@@ -219,7 +219,7 @@
 | timeimprint-task-service-storage-mysql | MySQL存储适配器和平台公共迁移 |
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
 | timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
-| timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；飞书扫码登录本期不实现） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；网页扫码在 live 模式访问微信，飞书扫码登录不实现） |
 | timeimprint-task-identity | 账号、验证码、会话和社交绑定；不解释任务状态 |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |

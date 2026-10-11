@@ -160,8 +160,10 @@ P01 基线没有京ME、邮件、外部日历、模型服务、AI业务能力或
 | `timeimprint.identity.sms.secret-id` / `secret-key` | 正式发短信时必填。环境变量 `TENCENT_SECRET_ID`、`TENCENT_SECRET_KEY`；不得写入仓库或日志 |
 | `timeimprint.identity.sms.sdk-app-id` / `sign-name` / `template-id` | 正式发短信时必填。环境变量 `TENCENT_SMS_SDK_APP_ID`、`TENCENT_SMS_SIGN_NAME`、`TENCENT_SMS_TEMPLATE_ID`；不得写入仓库。模板必须有两个变量，依次填六位验证码和固定值 `1` |
 | `timeimprint.identity.sms.mode` | `tencent` 或 `capture`。自动化测试只用 `capture`，验证码留在测试可读记录，不访问腾讯云 |
-| `timeimprint.identity.wechat.<appType>.app-id` / `app-secret` / `redirect-uri` | `appType` 为 `web`、`ios`、`android`。启用对应微信登录时必填 |
-| 飞书扫码登录 | 本期不配置、不装配 |
+| `timeimprint.identity.wechat.mode` | `capture`、`disabled` 或 `live`。自动化测试只用 `capture`，不访问微信。`live` 面向真实扫码 |
+| `timeimprint.identity.wechat.web.app-id` / `app-secret` / `redirect-uri` | `live` 时必填。只从环境读取，不得写入仓库或日志。扫码地址只使用 `web` |
+| `timeimprint.identity.wechat.<appType>.app-id` / `app-secret` / `redirect-uri` | `appType` 为 `ios`、`android` 时本期不用于扫码，缺少凭据不阻止 `web` 的 `live` 启动 |
+| 飞书扫码登录 | 不配置、不装配 |
 
 测试库由测试夹具创建测试账号，口令只出现在测试代码。本地库不在仓库中写死口令；开发者用短信注册本地开发账号。短信正式模式缺少凭据，或已启用的微信应用缺少凭据时，对应登录方式启动失败。`capture` 模式不得出现在面向真实用户的部署。
 

@@ -360,6 +360,19 @@ IN_APP处理器在一个短事务中核对tenant/definition/instance链路，插
 
 唯一键`uk_identity_social(provider,app_type,openid)`。索引`ix_identity_social_union(provider,unionid)`。绑定冲突和手机号合并必须在同一事务内完成。
 
+### 3.17 `tt_identity_oauth_state`
+
+| 字段 | 类型与约束 | 说明 |
+| --- | --- | --- |
+| `oauth_state_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 记录标识 |
+| `state_hash` | BINARY(32) NOT NULL | state 的 SHA-256；不明文落库 |
+| `app_type` | VARCHAR(32) NOT NULL | 本期扫码只写入 `web` |
+| `expires_at` | DATETIME(0) NOT NULL | UTC；签发后 10 分钟 |
+| `consumed_at` | DATETIME(0) NULL | 首次成功校验时间；非空则不可再用 |
+| `created_at` | DATETIME(0) NOT NULL | UTC |
+
+唯一键`uk_identity_oauth_state(state_hash)`。`capture` 模式不写本表。消费必须与登录或绑定处于同一事务：过期、已消费或 appType 不一致时拒绝，且不换取微信身份。
+
 ## 4. 状态与字段组合约束
 
 Flyway必须使用CHECK约束验证可枚举的公共技术状态。场景状态不建立全局CHECK；由scenarioKey + schemaVersion的处理器验证。

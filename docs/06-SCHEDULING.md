@@ -105,7 +105,8 @@ E06/E09不经过后台Signal队列，但与Signal共享同一TransitionPlan校�
 
 `update/pause/resume/retire`由application实现，不路由TaskCommandHandler。update严格使用04的完整替换payload；锁内先规划全部7天窗口变化并估算总行数，再决定提交。
 
-- 创建ACTIVE定义、ACTIVE状态下的update和resume必须在一个事务中完整写入新的7天窗口；PAUSED状态下的update只保存定义/绑定变化并保持无未来窗口。S01/S02只有一个calendar绑定且每天最多一次，正常最多7个occurrence，仍需受03的100 occurrence和2000行硬上限。超过即整笔拒绝，不先提交definition再补首窗。
+- 创建ACTIVE定义、ACTIVE状态下的update和resume必须在一个事务中完整写入新的7天窗口；PAUSED状态下的update只保存定义/绑定变化并保持无未来窗口。S01/S02只有一个calendar绑定。原五种规则每天最多一次，正常最多7个occurrence，仍需受03的100 occurrence和2000行硬上限。这五种超过上限时整笔拒绝，不先提交definition再补首窗。
+- `EVERY_N_HOURS` 与 `EVERY_N_MINUTES` 的 7 天视野可以超过 100 次。同步事务写入该视野内最早的至多 100 次并提交定义；尚未写入且仍不晚于视野终点的发生，由 Planner 按每绑定每轮至多 100 次补齐。不得把视野扩到 7 天之外，也不得因此放宽原五种规则。
 - pause、retire和时间规则update在同一事务终结当前窗口中全部WAITING实例及其计划Signal；这些对象数量受已提交窗口边界限制。不得在该事务扫描或锁定全部历史ACTIVE实例和全部Action。
 - definition控制状态或controlGeneration提交后，所有旧代次Action立即失去执行资格。旧代次READY/RETRY_WAIT Action由后续Worker领取、过期扫描或诊断清理按批次转CANCELLED；在物理状态更新前，公开DeliverySummary按CANCELLED计数，内部诊断同时返回storedStatus与effectiveStatus=CANCELLED，不得向使用者显示为仍可执行。
 - pause或retire前已经RUNNING且effectStartedAt已提交的EXTERNAL Action按既有结果闭合；其他旧代次工作不能重新排队。resume不为暂停前ACTIVE/PENDING的S02实例重建提醒，只允许其complete/skip。
@@ -175,7 +176,7 @@ S01与S02使用同一接收人规则：没有显式RECIPIENT时，最终接收�
 
 complete或skip原子终结实例，并取消尚未开始的READY/RETRY_WAIT提醒；RUNNING调用和已经产生的收件事实按正常结果闭合且保留。skip必须保存1—500个Unicode码点的原因；complete原因可选。
 
-snooze只允许ACTIVE/PENDING实例且`snoozeCount < maxSnoozeCount`。命令先按固定锁序锁实例，再按action_job_id稳定顺序锁定本批次未开始的提醒；目标时间必须晚于业务时间T且早于expiresAt。最早一个仍可执行提醒移动到snoozeUntil，其余仍可执行提醒整体平移相同差值；原批次统一CANCELLED，新批次以递增actionGeneration创建相同数量的新Action。SUCCEEDED、RUNNING、DEAD、EXPIRED或CANCELLED不移动、不复活。只要任一新时间达到或超过expiresAt，整笔命令拒绝且不写任何变化。
+snooze只允许ACTIVE/PENDING实例且`snoozeCount < maxSnoozeCount`。实例快照 `snoozeAllowed=false` 时（小时或分钟间隔物化的 S02），命令直接拒绝，不消耗次数，不移动 Action。飞书卡片不为这些实例放置稍后按钮。命令先按固定锁序锁实例，再按action_job_id稳定顺序锁定本批次未开始的提醒；目标时间必须晚于业务时间T且早于expiresAt。最早一个仍可执行提醒移动到snoozeUntil，其余仍可执行提醒整体平移相同差值；原批次统一CANCELLED，新批次以递增actionGeneration创建相同数量的新Action。SUCCEEDED、RUNNING、DEAD、EXPIRED或CANCELLED不移动、不复活。只要任一新时间达到或超过expiresAt，整笔命令拒绝且不写任何变化。
 
 ## 9. 暂停、恢复、退役与版本屏障
 

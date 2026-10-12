@@ -94,6 +94,19 @@ public class InboxRepositoryImpl implements InboxRepository {
     }
 
     @Override
+    public Long maxInboxId(String tenantId, String recipientType, String recipientId) {
+        return jdbc.queryForObject(
+                """
+                SELECT MAX(inbox_id) FROM tt_inbox
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                """,
+                Long.class,
+                tenantId,
+                recipientType,
+                recipientId);
+    }
+
+    @Override
     public boolean markReadIfUnread(long inboxId, Instant readAt) {
         int n = jdbc.update(
                 "UPDATE tt_inbox SET read_at = ? WHERE inbox_id = ? AND read_at IS NULL",

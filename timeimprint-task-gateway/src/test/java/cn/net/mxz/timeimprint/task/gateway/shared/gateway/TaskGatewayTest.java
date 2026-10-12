@@ -31,6 +31,7 @@ class TaskGatewayTest {
                 "getInbox/1",
                 "getInstance/1",
                 "getSignal/1",
+                "latestInboxId/3",
                 "listActionJobs/6",
                 "listDefinitions/5",
                 "listInbox/2",
@@ -42,7 +43,8 @@ class TaskGatewayTest {
                 "processSignal/1",
                 "redriveAction/2",
                 "redriveSignal/2",
-                "unreadCount/0"), actual);
+                "unreadCount/0",
+                "unreadCountFor/3"), actual);
         assertFalse(actual.isEmpty());
     }
 

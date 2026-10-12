@@ -1,5 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.application.inbox.service;
 
+import cn.net.mxz.timeimprint.task.common.wake.InboxWake;
 import cn.net.mxz.timeimprint.task.common.time.BusinessClock;
 import cn.net.mxz.timeimprint.task.service.application.shared.port.ActorContextProvider;
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
@@ -48,17 +49,32 @@ public class InboxService {
     /** E12: Unread count. */
     public int unreadCount() {
         var actor = actorContextProvider.requireCurrentActor();
-        return inboxRepository.countUnread(actor.tenantKey(), actor.principalType(), actor.principalId());
+        return unreadCountFor(actor.tenantKey(), actor.principalType(), actor.principalId());
+    }
+
+    /** 指定接收人的未读数。事件流在请求线程之外调用，不能再读当前线程身份。 */
+    public int unreadCountFor(String tenantId, String recipientType, String recipientId) {
+        return inboxRepository.countUnread(tenantId, recipientType, recipientId);
+    }
+
+    /** 指定接收人当前最大收件编号。没有收件时返回 null。 */
+    public Long latestInboxId(String tenantId, String recipientType, String recipientId) {
+        return inboxRepository.maxInboxId(tenantId, recipientType, recipientId);
     }
 
     /** E13: Mark-read. */
     public InboxRecord markRead(long inboxId) {
         var actor = actorContextProvider.requireCurrentActor();
         return tx.execute(() -> {
-            inboxRepository.markReadIfUnread(inboxId, clock.nowUtcSeconds());
-            return inboxRepository
+            boolean firstRead = inboxRepository.markReadIfUnread(inboxId, clock.nowUtcSeconds());
+            InboxRecord record = inboxRepository
                     .findByIdForRecipient(inboxId, actor.tenantKey(), actor.principalType(), actor.principalId())
                     .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "inbox item not found"));
+            if (firstRead) {
+                tx.afterCommit(() -> InboxWake.wake(
+                        actor.tenantKey(), actor.principalType(), actor.principalId()));
+            }
+            return record;
         });
     }
 }

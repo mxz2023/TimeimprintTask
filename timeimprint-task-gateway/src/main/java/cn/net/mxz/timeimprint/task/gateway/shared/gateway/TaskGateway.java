@@ -294,6 +294,14 @@ public class TaskGateway {
         return new UnreadCountView(inboxService.unreadCount(), clock.nowUtcSeconds().toString());
     }
 
+    public int unreadCountFor(String tenantId, String recipientType, String recipientId) {
+        return inboxService.unreadCountFor(tenantId, recipientType, recipientId);
+    }
+
+    public Long latestInboxId(String tenantId, String recipientType, String recipientId) {
+        return inboxService.latestInboxId(tenantId, recipientType, recipientId);
+    }
+
     public InboxView markRead(long inboxId, MarkReadRequest req) {
         return views.toInbox(inboxService.markRead(inboxId));
     }

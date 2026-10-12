@@ -12,6 +12,8 @@ import org.springframework.dao.TransientDataAccessException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -63,6 +65,28 @@ public class SpringTransactionBoundary implements TransactionBoundary {
             work.run();
             return null;
         });
+    }
+
+    @Override
+    public void afterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            runAfterCommit(action);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                runAfterCommit(action);
+            }
+        });
+    }
+
+    private static void runAfterCommit(Runnable action) {
+        try {
+            action.run();
+        } catch (RuntimeException ignored) {
+            // 提交后的通知失败保持业务结果。
+        }
     }
 
     /** Visible for IT. */

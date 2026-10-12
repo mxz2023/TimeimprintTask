@@ -167,6 +167,10 @@ P01 基线没有京ME、邮件、外部日历、模型服务、AI业务能力或
 
 测试库由测试夹具创建测试账号，口令只出现在测试代码。本地库不在仓库中写死口令；开发者用短信注册本地开发账号。短信正式模式缺少凭据，或已启用的微信应用缺少凭据时，对应登录方式启动失败。`capture` 模式不得出现在面向真实用户的部署。
 
+### 3.3 站内信事件流（P08）
+
+[E30](04-API.md) 的时序是固定协议，不提供配置项。空闲注释间隔 25 秒，单条连接最长 30 分钟，跨进程水位核对间隔 5 秒。前置代理对 `/api/v1/inbox/events` 关闭响应缓冲，读超时保持 120 秒；不得因此放宽其他 `/api/v1/` 路径的读超时。事件流不使用消息队列或缓存。
+
 local与test profile的HTTP监听地址必须是回环地址，内部端点和健康检查也不得暴露到局域网。若部署者把`SERVER_ADDRESS`改为非回环地址，应用必须启动失败；这一限制只能在增加正式身份、网络入口和安全审核后的新profile中解除。
 
 每个ActionHandler在注册描述中声明`timeoutSeconds`，范围1至`LEASE_SECONDS - ACTION_LEASE_SAFETY_SECONDS`。IN_APP等LOCAL_TRANSACTIONAL处理器还受BUSINESS_TX_TIMEOUT_SECONDS限制；EXTERNAL处理器必须把连接、读取和总调用超时控制在timeoutSeconds内。无法满足时启动失败，不以运行时续租掩盖不受控调用。

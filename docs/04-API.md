@@ -180,12 +180,13 @@ I01的SignalAcceptedView固定返回`signalId, duplicated, processStatus, receiv
 | E11 | GET `/api/v1/inbox/{inboxId}` | 路径ID | InboxView |
 | E12 | GET `/api/v1/inbox-unread-count` | 无 | unreadCount、asOf |
 | E13 | POST `/api/v1/inbox/{inboxId}/commands/mark-read` | requestId | InboxView；重复读取保留首次readAt |
+| E30 | GET `/api/v1/inbox/events` | Bearer 令牌；无查询参数 | `text/event-stream`。不是 JSON 信封。见 4.2 |
 
 E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 
-E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。
+E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。E30 是同一收件模型上的只读事件流，不新增收件字段，也不代替 E10—E13。
 
 ### 4.1 账号端点（P06）
 
@@ -211,6 +212,25 @@ E01—E13 是任务公开接口，不另建第二套任务状态。未来若增�
 | E29 | POST `/api/v1/users/wechat/bind-phone` | phoneNumber、code、password；须登录 | 绑定或合并后的登录数据 |
 
 手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。`live` 模式下只有 `appType=web` 返回扫码地址；`ios` 与 `android` 请求配置时拒绝。state 保存摘要，10 分钟内且未消费才能用于回调或绑定，成功校验后立即消费。`capture` 不访问微信，测试使用固定 state。由 `EVERY_N_HOURS` 或 `EVERY_N_MINUTES` 物化的 S02 实例，稍后命令返回冲突；实例投影含 `snoozeAllowed=false`。日及以上规则的稍后命令不变。
+
+### 4.2 站内信事件流（P08）
+
+[E30](04-API.md) 供已登录客户端在不刷新页面时得知自己的收件变化。阶段范围见 [P08](phases/P08/README.md)。浏览器发起请求并保持响应不结束；服务端不主动连接浏览器。
+
+请求使用与 E10 相同的 `Authorization: Bearer`。缺少令牌、令牌无效或账号停用时返回 401，响应使用既有错误信封，并且不发送事件流。`events` 是字面路径，不得被解释为 `inboxId`。
+
+成功时状态码为 200，`Content-Type` 为 `text/event-stream`，响应体按 SSE 帧追加，不使用 `ApiResponse` 信封。空闲时每 25 秒写一行注释 `: ping`。注释只用于让前置代理的 120 秒读超时重新计时，不表示有新收件。单条连接最长 30 分钟，到点后服务端结束响应。客户端断开、写出失败或到期后，服务端删除该订阅。
+
+变化帧为：
+
+```text
+event: inbox-changed
+data: {"unreadCount":1,"latestInboxId":10,"asOf":"2026-10-12T14:00:00Z"}
+```
+
+`unreadCount` 是当前登录接收人的未读数，语义与 E12 相同。`latestInboxId` 是该接收人当前最大 `inboxId`；尚无收件时为 null。`asOf` 是本次帧的生成时间。帧里没有标题和正文。客户端需要列表时再调用 E10。重复帧必须可以安全忽略。
+
+服务端在收件插入或首次写入 `readAt` 的事务提交之后，向该接收人当前进程上的订阅写帧。推送失败不回滚收件，也不改变 E13。没有订阅时不保存待投递帧。另一进程写入的变化，由持有连接的进程至多每 5 秒按该接收人水位核对一次后补发。客户端在重连成功后应先调用 E12。
 
 ## 5. 内部端点
 

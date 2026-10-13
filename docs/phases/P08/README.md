@@ -10,15 +10,15 @@
 | --- | --- |
 | 阶段 | P08 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P07；Git 标签 `v20261011-P07` |
 | baselineGitRef | `8bbf257dff0f60b7cfee40002b8c4ef80cdfeb08`（授权实施前的 HEAD） |
-| 工程状态 | IMPLEMENTING |
+| 工程状态 | VERIFYING |
 | Git发布标签 | 尚未发布 |
-| 下一动作 | 为 [R04](../../07-ACCEPTANCE.md)（断开与另一进程）补上「另一 JVM 插入后 5 秒内收到变化帧」的真库证据 |
+| 下一动作 | 冻结本次交付并打上 `v20261014-P08` |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | [DELIVERY](DELIVERY.md)：回归退出码 0；[R04](../../07-ACCEPTANCE.md) 仍是 NOT_RUN |
+| 交付证据 | [DELIVERY](DELIVERY.md)：[R01](../../07-ACCEPTANCE.md)—[R04](../../07-ACCEPTANCE.md) 为 PASS |
 
 用户于 2026-10-12 确认草案并授权实施。P01—P07 已冻结，不得改写。
 

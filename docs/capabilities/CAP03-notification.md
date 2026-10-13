@@ -23,7 +23,7 @@
 | NOT-05 | 可配置多IM渠道 + 飞书整体接入（出站卡片与入站命令） | P05 | RELEASED | VERIFIED | C12 飞书子集；阶段 [P05](../phases/P05/README.md) RELEASED（标签 `v20261007-P05`）；证据[DELIVERY](../phases/P05/DELIVERY.md) |
 | NOT-06 | 委托和多接收人增强 | BACKLOG | OUTLINE | NOT_STARTED | C16，主要协作规则归collaboration |
 | NOT-07 | 通知保留、删除和合规清理 | BACKLOG | OUTLINE | NOT_STARTED | C18 |
-| NOT-08 | 站内信实时提示 | P08 | READY_FOR_IMPLEMENTATION | IN_PROGRESS | [E30](../04-API.md)；阶段 [P08](../phases/P08/README.md) IMPLEMENTING |
+| NOT-08 | 站内信实时提示 | P08 | READY_FOR_IMPLEMENTATION | VERIFIED | [E30](../04-API.md)；阶段 [P08](../phases/P08/README.md) VERIFYING；证据 [DELIVERY](../phases/P08/DELIVERY.md)，R01—R04 为 PASS |
 
 ## P01正式范围
 
@@ -88,7 +88,7 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 
 ## NOT-08（P08：站内信实时提示）
 
-> 契约状态：`READY_FOR_IMPLEMENTATION`；实现状态：`IN_PROGRESS`。[P08](../phases/P08/README.md) 正在实施。字段与时序以 [04 第 4.2 节](../04-API.md) 和 [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为准。[DELIVERY](../phases/P08/DELIVERY.md) 里 R01—R03 为 PASS，R04 仍是 NOT_RUN，因此本项还不是 VERIFIED。
+> 契约状态：`READY_FOR_IMPLEMENTATION`；实现状态：`VERIFIED`。[P08](../phases/P08/README.md) 处于 VERIFYING。字段与时序以 [04 第 4.2 节](../04-API.md) 和 [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为准。[DELIVERY](../phases/P08/DELIVERY.md) 里 R01—R04 为 PASS。阶段尚未打标签，因此契约状态仍未改为 RELEASED。
 
 已登录客户端用 `GET /api/v1/inbox/events` 保持一条响应。收件插入或首次已读提交之后，服务端向该接收人已打开的连接追加 `inbox-changed`。帧只含未读数、最新 `inboxId` 和生成时间。E10—E13 与 `tt_inbox` 的写入语义不变。没有连接时不排队。另一进程的变化靠 5 秒水位核对补发。
 

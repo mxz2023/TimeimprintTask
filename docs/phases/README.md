@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 入口 |
 | --- | --- | --- |
-| [P08 站内信实时提示](P08/README.md) | IMPLEMENTING | 用户于 2026-10-12 授权实施。baselineGitRef `8bbf257dff0f60b7cfee40002b8c4ef80cdfeb08` |
+| [P08 站内信实时提示](P08/README.md) | VERIFYING | [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为 PASS。人工步骤已于 2026-10-13 完成。尚未打标签 |
 
 ## 已发布阶段
 

@@ -114,4 +114,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-当前阶段是 [P08](phases/P08/README.md)（站内信实时提示），总体状态 IMPLEMENTING。[P07](phases/P07/README.md)（微信扫码与小时分钟间隔）已于 2026-10-11 人工验收通过并 RELEASED（标签 `v20261011-P07`）。证据见[DELIVERY](phases/P07/DELIVERY.md)，W01—W04 与 H01—H04 为 PASS。[P01](phases/P01/README.md)—[P07](phases/P07/README.md) 均已冻结。不得改写已冻结阶段。
+当前阶段是 [P08](phases/P08/README.md)（站内信实时提示），总体状态 VERIFYING。[P07](phases/P07/README.md)（微信扫码与小时分钟间隔）已于 2026-10-11 人工验收通过并 RELEASED（标签 `v20261011-P07`）。证据见[DELIVERY](phases/P07/DELIVERY.md)，W01—W04 与 H01—H04 为 PASS。[P01](phases/P01/README.md)—[P07](phases/P07/README.md) 均已冻结。不得改写已冻结阶段。

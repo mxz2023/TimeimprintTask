@@ -255,7 +255,11 @@ class InstanceCommandServiceTest {
                     }
                 },
                 () -> Instant.parse("2026-10-02T01:00:00Z"),
-                JsonMapper.builder().build());
+                JsonMapper.builder().build(),
+                (cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort)
+                        proxy(
+                                cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort.class,
+                                (method, args) -> null));
     }
 
     private static TaskInstanceSnapshot instance(long revision) {

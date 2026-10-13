@@ -69,6 +69,7 @@ public final class StructureQualityGate {
             "timeimprint-task-identity",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
+            "timeimprint-task-service-scenario-deadline",
             "timeimprint-task-gateway",
             "timeimprint-task-web",
             "timeimprint-task-boot-loader");
@@ -527,6 +528,13 @@ public final class StructureQualityGate {
                         "cn.net.mxz.timeimprint.task.service.scenario.basic",
                         Set.of("reminder", "recurringtodo"),
                         Set.of("extension", "command", "projection"),
+                        false));
+        m.put(
+                "timeimprint-task-service-scenario-deadline",
+                new ModuleRule(
+                        "cn.net.mxz.timeimprint.task.service.scenario.deadline",
+                        Set.of("anniversary", "deadline", "payment"),
+                        Set.of("extension", "command", "materialization"),
                         false));
         m.put(
                 "timeimprint-task-gateway",

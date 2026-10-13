@@ -101,7 +101,7 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
         Map<String, Object> newConfigMap = parseMap(tb.configJson());
         final CalendarOccurrenceCalculator.Rule rule;
         try {
-            rule = CalendarConfigParser.parse(newConfigMap);
+            rule = CalendarConfigParser.parse(newConfigMap, tb.schemaVersion());
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {
@@ -162,10 +162,22 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
             if (active) {
                 window = buildWindow(rule, now, cmd.windowEnd(), newConfigMap);
             }
-            Instant nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
-            boolean exhausted = !active
-                    || window.isEmpty()
-                    || "ONCE".equalsIgnoreCase(String.valueOf(newConfigMap.get("type")));
+            Instant nextFire;
+            boolean exhausted;
+            if (!active) {
+                exhausted = true;
+                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+            } else if (CalendarOccurrenceCalculator.openEnded(rule)) {
+                var beyond = CalendarOccurrenceCalculator.preview(rule, cmd.windowEnd(), 1);
+                exhausted = beyond.isEmpty();
+                nextFire = beyond.isEmpty()
+                        ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
+                        : beyond.get(0).occurrenceAt();
+            } else {
+                exhausted = window.isEmpty()
+                        || "ONCE".equalsIgnoreCase(String.valueOf(newConfigMap.get("type")));
+                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+            }
             int bindingUpdated = bindingMapper.updateConfigAndSchedule(
                     binding.getTriggerBindingId(),
                     binding.getRevision(),

@@ -44,7 +44,10 @@ public class ListQueryService {
             List.of("update", "pause", "resume", "retire");
     private static final Map<String, String> DISPLAY_NAMES = Map.of(
             "reminder", "通用提醒",
-            "recurring_todo", "周期待办");
+            "recurring_todo", "周期待办",
+            "anniversary", "生日与纪念日",
+            "deadline", "到期管理",
+            "payment", "缴费管理");
 
     private final ActorContextProvider actorContextProvider;
     private final ExtensionRegistry extensionRegistry;

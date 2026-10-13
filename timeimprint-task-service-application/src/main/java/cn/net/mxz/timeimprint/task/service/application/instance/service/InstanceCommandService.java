@@ -9,6 +9,7 @@ import cn.net.mxz.timeimprint.task.service.application.shared.port.CommandDedupR
 import cn.net.mxz.timeimprint.task.service.application.instance.port.InstanceCommandPort;
 import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionCommitRequest;
 import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionCommitResult;
+import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.instance.port.TaskInstanceRepository;
 import cn.net.mxz.timeimprint.task.service.application.shared.transaction.TransactionBoundary;
@@ -20,6 +21,7 @@ import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRe
 import cn.net.mxz.timeimprint.task.service.extension.command.registry.TaskCommandHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
@@ -48,6 +50,7 @@ public class InstanceCommandService {
     private final TransactionBoundary tx;
     private final BusinessClock clock;
     private final JsonMapper objectMapper;
+    private final DefinitionControlPort definitionControlPort;
 
     public InstanceCommandService(
             ActorContextProvider actorContextProvider,
@@ -60,7 +63,8 @@ public class InstanceCommandService {
             ActionJobExecutionPort actionJobExecutionPort,
             TransactionBoundary tx,
             BusinessClock clock,
-            JsonMapper objectMapper) {
+            JsonMapper objectMapper,
+            DefinitionControlPort definitionControlPort) {
         this.actorContextProvider = actorContextProvider;
         this.definitionRepository = definitionRepository;
         this.instanceRepository = instanceRepository;
@@ -72,6 +76,7 @@ public class InstanceCommandService {
         this.tx = tx;
         this.clock = clock;
         this.objectMapper = objectMapper;
+        this.definitionControlPort = definitionControlPort;
     }
 
     public record InstanceCommandResult(
@@ -206,6 +211,11 @@ public class InstanceCommandService {
                     if ("snooze".equals(commandKey)) {
                         instanceCommandPort.cancelRemainingActions(instanceId, now);
                     }
+                    var definitionTransition = applied.plan().definitionControlTransition();
+                    if (definitionTransition != null
+                            && definitionTransition.toControlState() == ControlState.RETIRED) {
+                        definitionControlPort.cancelWindowAndSignals(instSnap.definitionId(), now);
+                    }
                     TransitionCommitResult commit = committer.commit(
                             new TransitionCommitRequest(
                                     applied.plan(), instSnap.definitionId(), instanceId, "COMMAND", commandKey));
@@ -223,6 +233,10 @@ public class InstanceCommandService {
                     }
                     if ("snooze".equals(commandKey)) {
                         scenarioResult = buildSnoozeScenarioResult(instanceId);
+                    }
+                    if (definitionTransition != null
+                            && definitionTransition.toControlState() == ControlState.ACTIVE) {
+                        definitionControlPort.rebuildFutureWindow(instSnap.definitionId(), now);
                     }
                     commandDedupRepository.complete(actor.tenantKey(), actor.principalId(), op, requestId,
                             "OK", "INSTANCE", String.valueOf(instanceId), newRevision,

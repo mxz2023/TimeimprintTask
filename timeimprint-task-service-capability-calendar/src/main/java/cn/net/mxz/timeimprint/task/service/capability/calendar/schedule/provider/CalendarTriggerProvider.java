@@ -37,15 +37,15 @@ public class CalendarTriggerProvider implements TriggerProvider {
 
     @Override
     public Set<Integer> supportedSchemaVersions() {
-        return Set.of(1);
+        return Set.of(1, 2);
     }
 
     @Override
     public List<PlannedSignalIntent> evaluate(TriggerEvaluationContext context) {
-        if (context.configSchemaVersion() != 1) {
+        if (!supportedSchemaVersions().contains(context.configSchemaVersion())) {
             throw new IllegalArgumentException("UNSUPPORTED_SCHEMA_VERSION");
         }
-        var rule = CalendarConfigParser.parse(context.bindingConfig());
+        var rule = CalendarConfigParser.parse(context.bindingConfig(), context.configSchemaVersion());
         Instant after = clock.nowUtcSeconds();
         Instant windowEnd = after.plus(7, ChronoUnit.DAYS);
         var occurrences = CalendarOccurrenceCalculator.preview(rule, after, 100);

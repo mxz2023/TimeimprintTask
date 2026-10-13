@@ -5,10 +5,12 @@ import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculat
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNHours;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNMinutes;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNDays;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.AnchorOffsets;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Monthly;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Once;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Rule;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Weekly;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Yearly;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioMutationPayload;
 import java.time.LocalDate;
@@ -16,9 +18,12 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /** 将 calendar schemaVersion=1 配置解码为计算器 Rule。 */
 public final class CalendarConfigParser {
@@ -35,17 +40,32 @@ public final class CalendarConfigParser {
             Set.of("type", "startDate", "intervalHours", "localTime", "zoneId");
     private static final Set<String> EVERY_N_MINUTES_KEYS =
             Set.of("type", "startDate", "intervalMinutes", "localTime", "zoneId");
+    private static final Set<String> YEARLY_KEYS =
+            Set.of("type", "startDate", "month", "dayOfMonth", "offsetDays", "localTime", "zoneId");
+    private static final Set<String> ANCHOR_KEYS =
+            Set.of("type", "anchorDate", "offsetDays", "dailyAfterAnchor", "localTime", "zoneId");
 
     private CalendarConfigParser() {}
 
     public static Rule parse(ScenarioMutationPayload payload) {
+        return parse(payload, 1);
+    }
+
+    public static Rule parse(ScenarioMutationPayload payload, int schemaVersion) {
         if (!(payload instanceof JsonPayload json)) {
             throw new IllegalArgumentException("INVALID_REQUEST: calendar config must be object");
         }
-        return parse(json.fields());
+        return parse(json.fields(), schemaVersion);
     }
 
     public static Rule parse(Map<String, Object> fields) {
+        return parse(fields, 1);
+    }
+
+    public static Rule parse(Map<String, Object> fields, int schemaVersion) {
+        if (schemaVersion != 1 && schemaVersion != 2) {
+            throw new IllegalArgumentException("INVALID_REQUEST: unsupported calendar schemaVersion");
+        }
         if (fields == null || fields.isEmpty()) {
             throw new IllegalArgumentException("INVALID_REQUEST: calendar config required");
         }
@@ -54,6 +74,9 @@ public final class CalendarConfigParser {
             throw new IllegalArgumentException("INVALID_REQUEST: calendar type required");
         }
         String type = String.valueOf(typeObj).toUpperCase(Locale.ROOT);
+        if (schemaVersion == 1 && ("YEARLY".equals(type) || "ANCHOR_OFFSETS".equals(type))) {
+            throw new IllegalArgumentException("INVALID_REQUEST: unknown calendar type " + type);
+        }
         Set<String> allowed = switch (type) {
             case "ONCE" -> ONCE_KEYS;
             case "DAILY" -> DAILY_KEYS;
@@ -62,6 +85,8 @@ public final class CalendarConfigParser {
             case "EVERY_N_DAYS" -> EVERY_N_KEYS;
             case "EVERY_N_HOURS" -> EVERY_N_HOURS_KEYS;
             case "EVERY_N_MINUTES" -> EVERY_N_MINUTES_KEYS;
+            case "YEARLY" -> YEARLY_KEYS;
+            case "ANCHOR_OFFSETS" -> ANCHOR_KEYS;
             default -> throw new IllegalArgumentException("INVALID_REQUEST: unknown calendar type " + type);
         };
         rejectUnknownKeys(fields, allowed);
@@ -112,6 +137,29 @@ public final class CalendarConfigParser {
                 yield new EveryNMinutes(
                         parseLocalDate(requireString(fields, "startDate")), intervalMinutes, localTime, zone);
             }
+            case "YEARLY" -> {
+                int month = requireInt(fields, "month");
+                int day = requireInt(fields, "dayOfMonth");
+                if (month < 1 || month > 12) {
+                    throw new IllegalArgumentException("INVALID_REQUEST: month must be 1..12");
+                }
+                if (!validAnniversaryDay(month, day)) {
+                    throw new IllegalArgumentException("INVALID_REQUEST: dayOfMonth is not valid for month");
+                }
+                yield new Yearly(
+                        parseLocalDate(requireString(fields, "startDate")),
+                        month,
+                        day,
+                        readOffsets(fields),
+                        localTime,
+                        zone);
+            }
+            case "ANCHOR_OFFSETS" -> new AnchorOffsets(
+                    parseLocalDate(requireString(fields, "anchorDate")),
+                    readOffsets(fields),
+                    requireBoolean(fields, "dailyAfterAnchor"),
+                    localTime,
+                    zone);
             default -> throw new IllegalArgumentException("INVALID_REQUEST: unknown calendar type " + type);
         };
     }
@@ -146,6 +194,39 @@ public final class CalendarConfigParser {
             throw new IllegalArgumentException("INVALID_REQUEST: missing " + key);
         }
         return String.valueOf(v);
+    }
+
+    private static boolean validAnniversaryDay(int month, int day) {
+        if (month == 2 && day == 29) {
+            return true;
+        }
+        return day >= 1 && day <= LocalDate.of(2021, month, 1).lengthOfMonth();
+    }
+
+    private static List<Integer> readOffsets(Map<String, Object> fields) {
+        Object raw = fields.get("offsetDays");
+        if (!(raw instanceof List<?> list) || list.isEmpty() || list.size() > 4) {
+            throw new IllegalArgumentException("INVALID_REQUEST: offsetDays must contain 1..4 integers");
+        }
+        TreeSet<Integer> sorted = new TreeSet<>();
+        for (Object item : list) {
+            int value = item instanceof Number n ? n.intValue() : Integer.parseInt(String.valueOf(item));
+            if (value < -366 || value > 366) {
+                throw new IllegalArgumentException("INVALID_REQUEST: offsetDays item out of range");
+            }
+            if (!sorted.add(value)) {
+                throw new IllegalArgumentException("INVALID_REQUEST: offsetDays must be unique");
+            }
+        }
+        return new ArrayList<>(sorted);
+    }
+
+    private static boolean requireBoolean(Map<String, Object> fields, String key) {
+        Object v = fields.get(key);
+        if (v instanceof Boolean b) {
+            return b;
+        }
+        throw new IllegalArgumentException("INVALID_REQUEST: " + key + " must be boolean");
     }
 
     private static int requireInt(Map<String, Object> fields, String key) {

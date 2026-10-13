@@ -4,13 +4,17 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Year;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 五种公历规则的纯算法实现；预览与 Planner 共用。
@@ -25,7 +29,8 @@ public final class CalendarOccurrenceCalculator {
 
     public record Occurrence(String occurrenceKey, Instant occurrenceAt) {}
 
-    public sealed interface Rule permits Once, Daily, Weekly, Monthly, EveryNDays, EveryNHours, EveryNMinutes {}
+    public sealed interface Rule
+            permits Once, Daily, Weekly, Monthly, EveryNDays, EveryNHours, EveryNMinutes, Yearly, AnchorOffsets {}
 
     public record Once(LocalDate localDate, LocalTime localTime, ZoneId zoneId) implements Rule {}
 
@@ -46,6 +51,37 @@ public final class CalendarOccurrenceCalculator {
     public record EveryNMinutes(LocalDate startDate, int intervalMinutes, LocalTime localTime, ZoneId zoneId)
             implements Rule {}
 
+    /** 公历周年。dayOfMonth 为 2 月 29 日时，平年落到 3 月 1 日，再加 offsetDays。 */
+    public record Yearly(
+            LocalDate startDate,
+            int month,
+            int dayOfMonth,
+            List<Integer> offsetDays,
+            LocalTime localTime,
+            ZoneId zoneId)
+            implements Rule {
+        public Yearly {
+            offsetDays = List.copyOf(offsetDays);
+        }
+    }
+
+    /** 相对锚点日的有限偏移；dailyAfterAnchor 为真时锚点次日起每个自然日继续。 */
+    public record AnchorOffsets(
+            LocalDate anchorDate,
+            List<Integer> offsetDays,
+            boolean dailyAfterAnchor,
+            LocalTime localTime,
+            ZoneId zoneId)
+            implements Rule {
+        public AnchorOffsets {
+            offsetDays = List.copyOf(offsetDays);
+        }
+    }
+
+    public static boolean openEnded(Rule rule) {
+        return rule instanceof Yearly || rule instanceof AnchorOffsets;
+    }
+
     public static List<Occurrence> preview(Rule rule, Instant afterExclusive, int limit) {
         Objects.requireNonNull(rule, "rule");
         Objects.requireNonNull(afterExclusive, "afterExclusive");
@@ -60,6 +96,8 @@ public final class CalendarOccurrenceCalculator {
             case EveryNDays every -> previewEveryNDays(every, afterExclusive, limit);
             case EveryNHours every -> previewEveryNHours(every, afterExclusive, limit);
             case EveryNMinutes every -> previewEveryNMinutes(every, afterExclusive, limit);
+            case Yearly yearly -> previewYearly(yearly, afterExclusive, limit);
+            case AnchorOffsets offsets -> previewAnchorOffsets(offsets, afterExclusive, limit);
         };
     }
 
@@ -213,6 +251,70 @@ public final class CalendarOccurrenceCalculator {
                 out.add(occurrence(at));
             }
             k++;
+        }
+        return out;
+    }
+
+    private static List<Occurrence> previewYearly(Yearly rule, Instant after, int limit) {
+        requireZone(rule.zoneId());
+        List<Occurrence> out = new ArrayList<>(limit);
+        int year = rule.startDate().getYear() - 1;
+        int guard = 0;
+        while (out.size() < limit && guard++ < 10000) {
+            LocalDate anniversary = anniversaryDate(year, rule.month(), rule.dayOfMonth());
+            if (anniversary.isBefore(rule.startDate())) {
+                year++;
+                continue;
+            }
+            for (int offset : rule.offsetDays()) {
+                if (out.size() >= limit) {
+                    break;
+                }
+                LocalDate day = anniversary.plusDays(offset);
+                Instant at = toUtc(day, rule.localTime(), rule.zoneId());
+                if (at.isAfter(after)) {
+                    out.add(occurrence(at));
+                }
+            }
+            year++;
+        }
+        return out;
+    }
+
+    public static LocalDate anniversaryDate(int year, int month, int dayOfMonth) {
+        if (month == 2 && dayOfMonth == 29 && !Year.isLeap(year)) {
+            return LocalDate.of(year, 3, 1);
+        }
+        return LocalDate.of(year, month, dayOfMonth);
+    }
+
+    private static List<Occurrence> previewAnchorOffsets(AnchorOffsets rule, Instant after, int limit) {
+        requireZone(rule.zoneId());
+        Set<LocalDate> days = new LinkedHashSet<>();
+        for (int offset : rule.offsetDays()) {
+            days.add(rule.anchorDate().plusDays(offset));
+        }
+        if (rule.dailyAfterAnchor()) {
+            LocalDate start = rule.anchorDate().plusDays(1);
+            LocalDate afterDate = after.atZone(rule.zoneId()).toLocalDate();
+            if (start.isBefore(afterDate)) {
+                start = afterDate;
+            }
+            for (int i = 0; i < limit + rule.offsetDays().size() + 2; i++) {
+                days.add(start.plusDays(i));
+            }
+        }
+        List<LocalDate> ordered = new ArrayList<>(days);
+        ordered.sort(Comparator.naturalOrder());
+        List<Occurrence> out = new ArrayList<>(limit);
+        for (LocalDate day : ordered) {
+            if (out.size() >= limit) {
+                break;
+            }
+            Instant at = toUtc(day, rule.localTime(), rule.zoneId());
+            if (at.isAfter(after)) {
+                out.add(occurrence(at));
+            }
         }
         return out;
     }

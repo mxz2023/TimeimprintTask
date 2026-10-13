@@ -162,6 +162,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-12 | P08、NOT-08、E30 | 用户确认使用 SSE，并同意先写草案 | 阶段包 DRAFT / CURRENT；契约写入 03、04、07、CAP03；未授权编码 |
 | 2026-10-12 | P08、NOT-08 | 用户确认草案；阶段改为 READY | NOT-08 为 READY_FOR_IMPLEMENTATION；未授权编码 |
 | 2026-10-12 | P08、NOT-08 | 用户授权实施；阶段改为 IMPLEMENTING | baselineGitRef=`8bbf257dff0f60b7cfee40002b8c4ef80cdfeb08` |
+| 2026-10-13 | P08、NOT-08、R01—R04 | 写入 [DELIVERY](phases/P08/DELIVERY.md) | 真库与双进程退出码 0；用户已在页面收到通知；[R04](07-ACCEPTANCE.md) 仍是 NOT_RUN，阶段保持 IMPLEMENTING |
 
 ## 8. 下一场景进入实施的检查
 

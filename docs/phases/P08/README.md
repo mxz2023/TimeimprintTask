@@ -16,9 +16,9 @@
 | baselineGitRef | `8bbf257dff0f60b7cfee40002b8c4ef80cdfeb08`（授权实施前的 HEAD） |
 | 工程状态 | IMPLEMENTING |
 | Git发布标签 | 尚未发布 |
-| 下一动作 | 按 IMPLEMENTATION 执行 T02、T03，然后 T04 |
+| 下一动作 | 为 [R04](../../07-ACCEPTANCE.md)（断开与另一进程）补上「另一 JVM 插入后 5 秒内收到变化帧」的真库证据 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 实施完成前不创建 DELIVERY |
+| 交付证据 | [DELIVERY](DELIVERY.md)：回归退出码 0；[R04](../../07-ACCEPTANCE.md) 仍是 NOT_RUN |
 
 用户于 2026-10-12 确认草案并授权实施。P01—P07 已冻结，不得改写。
 

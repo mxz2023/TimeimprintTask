@@ -88,7 +88,7 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 
 ## NOT-08（P08：站内信实时提示）
 
-> 契约状态：`READY_FOR_IMPLEMENTATION`；实现状态：`IN_PROGRESS`。[P08](../phases/P08/README.md) 正在实施。字段与时序以 [04 第 4.2 节](../04-API.md) 和 [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为准。
+> 契约状态：`READY_FOR_IMPLEMENTATION`；实现状态：`IN_PROGRESS`。[P08](../phases/P08/README.md) 正在实施。字段与时序以 [04 第 4.2 节](../04-API.md) 和 [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为准。[DELIVERY](../phases/P08/DELIVERY.md) 里 R01—R03 为 PASS，R04 仍是 NOT_RUN，因此本项还不是 VERIFIED。
 
 已登录客户端用 `GET /api/v1/inbox/events` 保持一条响应。收件插入或首次已读提交之后，服务端向该接收人已打开的连接追加 `inbox-changed`。帧只含未读数、最新 `inboxId` 和生成时间。E10—E13 与 `tt_inbox` 的写入语义不变。没有连接时不排队。另一进程的变化靠 5 秒水位核对补发。
 

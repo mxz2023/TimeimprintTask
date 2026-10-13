@@ -7,7 +7,12 @@ import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.Page;
 import cn.net.mxz.timeimprint.task.domain.shared.view.UnreadCountView;
 import cn.net.mxz.timeimprint.task.gateway.shared.gateway.TaskGateway;
+import cn.net.mxz.timeimprint.task.service.application.access.model.ActorContext;
+import cn.net.mxz.timeimprint.task.service.application.access.model.TestActorContextHolder;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,9 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class InboxController {
 
     private final TaskGateway gateway;
+    private final InboxEventHub inboxEventHub;
 
-    public InboxController(TaskGateway gateway) {
+    public InboxController(TaskGateway gateway, InboxEventHub inboxEventHub) {
         this.gateway = gateway;
+        this.inboxEventHub = inboxEventHub;
     }
 
     @GetMapping("/inbox")
@@ -55,6 +62,15 @@ public class InboxController {
                         + view.readAt()
                         + (view.readAt() == null ? "（未读，可 mark-read）" : "（已读）"),
                 view);
+    }
+
+    @GetMapping(value = "/inbox/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter events(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
+        ActorContext actor = TestActorContextHolder.get()
+                .orElseThrow(() -> new IllegalStateException("missing actor"));
+        return inboxEventHub.open(actor);
     }
 
     @GetMapping("/inbox-unread-count")

@@ -249,6 +249,33 @@ public class IdentityStore {
         return n != null && n > 0;
     }
 
+    public void insertOauthState(byte[] stateHash, String appType, LocalDateTime expiresAt, LocalDateTime createdAt) {
+        jdbc.update(
+                """
+                INSERT INTO tt_identity_oauth_state(state_hash, app_type, expires_at, created_at)
+                VALUES (?,?,?,?)
+                """,
+                stateHash,
+                appType,
+                Timestamp.valueOf(expiresAt),
+                Timestamp.valueOf(createdAt));
+    }
+
+    /** 过期、已消费或 appType 不匹配时返回 false。 */
+    public boolean consumeOauthState(byte[] stateHash, String appType, LocalDateTime consumedAt) {
+        int updated = jdbc.update(
+                """
+                UPDATE tt_identity_oauth_state
+                SET consumed_at = ?
+                WHERE state_hash = ? AND app_type = ? AND consumed_at IS NULL AND expires_at > ?
+                """,
+                Timestamp.valueOf(consumedAt),
+                stateHash,
+                appType,
+                Timestamp.valueOf(consumedAt));
+        return updated == 1;
+    }
+
     private Optional<IdentityUser> one(String sql, Object... args) {
         List<IdentityUser> rows = jdbc.query(sql, (rs, i) -> map(rs), args);
         return rows.stream().findFirst();

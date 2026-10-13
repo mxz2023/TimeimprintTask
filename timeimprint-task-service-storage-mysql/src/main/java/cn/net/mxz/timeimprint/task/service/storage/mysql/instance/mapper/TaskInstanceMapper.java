@@ -34,6 +34,7 @@ public interface TaskInstanceMapper {
     List<TaskInstanceRow> selectByDefinitionIdAll(@Param("definitionId") long definitionId);
 
     List<TaskInstanceRow> selectList(@Param("tenantId") String tenantId,
+                                     @Param("participantPrincipalId") String participantPrincipalId,
                                      @Param("definitionId") Long definitionId,
                                      @Param("scenarioKey") String scenarioKey,
                                      @Param("lifecycleCategory") String lifecycleCategory,

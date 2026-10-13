@@ -12,6 +12,7 @@ import cn.net.mxz.timeimprint.task.service.kernel.instance.model.TaskInstanceSna
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioDataMutation;
 import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ class RecurringTodoScenarioExtensionTest {
         assertEquals(List.of("buildActionIntent/10",
                 "descriptor/0",
                 "expandDefaults/1",
+                "isSnoozeDisallowed/1",
                 "planInitialDefinition/1",
                 "processSignal/1",
                 "registrationKey/0",
@@ -51,6 +53,28 @@ class RecurringTodoScenarioExtensionTest {
         assertEquals("INITIAL|提交周报|整理本周工作", lines.get(0));
         assertTrue(lines.size() > 1);
         assertTrue(lines.stream().skip(1).allMatch(line -> line.equals("CHASE|催办：提交周报|整理本周工作")));
+    }
+
+    @Test
+    void processSignalPreservesSnoozeDisallowedFromInitialSnapshot() {
+        Instant due = Instant.parse("2026-10-02T01:00:00Z");
+        var extension = new RecurringTodoScenarioExtension(JsonMapper.builder().build());
+        var definition = new TaskDefinitionSnapshot(
+                3L, "local", "recurring_todo", 1, "t", "d", "{\"maxSnoozeCount\":3}",
+                ControlState.ACTIVE, 1L, 1L, due, due);
+        var instance = new TaskInstanceSnapshot(
+                7L, 3L, 1L, 1L, 1L, "occ", due, due,
+                LifecycleCategory.WAITING, "PLANNED", 1,
+                "{\"occurrenceKey\":\"k\",\"snoozeAllowed\":false}",
+                "t", "d", 1L, null);
+        var applied = assertInstanceOf(
+                HandlerResult.Applied.class,
+                extension.processSignal(new SignalProcessContext(
+                        definition, instance, 9L, "calendar", "due", 1, new JsonPayload(Map.of()))));
+        ScenarioDataMutation mutation = applied.plan().scenarioDataMutations().get(0);
+        var snapshot = (JsonPayload) mutation.payload();
+        assertEquals(false, snapshot.fields().get("snoozeAllowed"));
+        assertEquals(0, snapshot.fields().get("maxSnoozeCount"));
     }
 
     @Test

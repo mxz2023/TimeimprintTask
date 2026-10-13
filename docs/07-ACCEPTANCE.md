@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，当前没有 CURRENT 阶段。[P06](phases/P06/README.md) 已 RELEASED（标签 `v20261010-P06`，见[阶段索引](phases/README.md)）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，[P08](phases/P08/README.md) 已 RELEASED（标签 `v20261014-P08`，R01—R04 为 PASS，见[阶段索引](phases/README.md)）。当前没有 CURRENT 阶段。[P07](phases/P07/README.md) 已 RELEASED（标签 `v20261011-P07`）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）；P07的W01—W04与H01—H04已在[P07 DELIVERY](phases/P07/DELIVERY.md)记为PASS并RELEASED（标签`v20261011-P07`）。
 
 ## 1. 验收分层与环境
 
@@ -204,6 +204,32 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | U09 | 参与人 | 活跃用户 id 可成为 OWNER；停用或不存在的 id 拒绝；两个测试账号互不可见对方资源 |
 | U10 | 模块边界 | 短信与微信 HTTP 客户端只在 adapter；identity 不依赖 kernel；飞书扫码无端点、无客户端 |
 
+## 6.3 P07 验收项（W01—W04、H01—H04）
+
+[P07](phases/P07/README.md) 必须用真实 MySQL 证明下列项。微信 `live` 用测试夹具拦截 HTTP，不得把 CI 门禁绑到真实微信开放平台。`capture` 仍不得访问外网。证据写入 P07 DELIVERY 之前不得预填 PASS。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| W01 | 扫码配置 | `live` 且 `appType=web` 时，响应含扫码地址和一次性 state，不含 appSecret；`ios` 与 `android` 拒绝 |
+| W02 | state | 错误、过期或第二次使用的 state 拒绝，且不换取身份；成功路径消费 state |
+| W03 | 换票 | 夹具返回的 openid 能登录或绑定；响应与库中不出现访问令牌 |
+| W04 | 捕获模式 | `capture` 仍把 code 当作 openid，不访问微信；飞书扫码仍无端点 |
+| H01 | 小时间隔 | `EVERY_N_HOURS` 按锚点每 N 小时发生，`intervalHours` 越界拒绝；原五种规则的下一次发生不变 |
+| H02 | 分钟间隔 | `EVERY_N_MINUTES` 按锚点每 N 分钟发生，`intervalMinutes` 越界拒绝 |
+| H03 | 不支持稍后 | 这两种规则物化的 S02 实例，HTTP 稍后与飞书稍后都拒绝；卡片没有「稍后提醒」；完成和跳过仍可用 |
+| H04 | 日规则稍后 | DAILY 等原规则的稍后仍成功；7 天整窗写入行为不变 |
+
+## 6.4 P08 验收项（R01—R04）
+
+[P08](phases/P08/README.md) 在获得实施授权并完成后，必须用真实 MySQL 证明下列项。证据写入 P08 DELIVERY 之前不得预填 PASS。网页上不刷新即出现新信，属于该阶段 README 的必要人工步骤，不能用阅读本文代替。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| R01 | 鉴权与隔离 | 无令牌或坏令牌返回 401，且响应不是事件流；连接只能观察到当前接收人的未读数和 `latestInboxId` |
+| R02 | 同进程变化 | 收件插入或首次已读提交后，该接收人已打开的连接收到 `inbox-changed`；帧不含标题和正文；推送失败不回滚 `tt_inbox` |
+| R03 | 超时 | 空闲连接在 25 秒内收到注释心跳；注释不改变未读数；连接在 30 分钟内结束。其他 `/api/v1/` 路径的读超时仍为 120 秒 |
+| R04 | 断开与另一进程 | 没有连接时不保留待投递帧；重连后的 E12 与库中未读数一致。另一进程提交的收件，在持有连接的进程上 5 秒内出现变化帧 |
+
 ## 7. 交付证据与总判定
 
 P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约/任务/用例编号、实现文件、实际命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际JDK/MySQL/驱动/操作系统/进程数与关键配置。重试保留所有尝试，不只显示最后一次成功；后续阶段写入各自目录的DELIVERY，不覆盖P01证据。
@@ -217,6 +243,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P08须把[R01](07-ACCEPTANCE.md)—[R04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

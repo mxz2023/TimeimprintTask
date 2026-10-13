@@ -2,6 +2,8 @@ package cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configu
 
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Daily;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNHours;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNMinutes;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNDays;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Monthly;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Once;
@@ -29,6 +31,10 @@ public final class CalendarConfigParser {
     private static final Set<String> WEEKLY_KEYS = Set.of("type", "startDate", "weekday", "localTime", "zoneId");
     private static final Set<String> MONTHLY_KEYS = Set.of("type", "startDate", "dayOfMonth", "localTime", "zoneId");
     private static final Set<String> EVERY_N_KEYS = Set.of("type", "startDate", "intervalDays", "localTime", "zoneId");
+    private static final Set<String> EVERY_N_HOURS_KEYS =
+            Set.of("type", "startDate", "intervalHours", "localTime", "zoneId");
+    private static final Set<String> EVERY_N_MINUTES_KEYS =
+            Set.of("type", "startDate", "intervalMinutes", "localTime", "zoneId");
 
     private CalendarConfigParser() {}
 
@@ -54,6 +60,8 @@ public final class CalendarConfigParser {
             case "WEEKLY" -> WEEKLY_KEYS;
             case "MONTHLY" -> MONTHLY_KEYS;
             case "EVERY_N_DAYS" -> EVERY_N_KEYS;
+            case "EVERY_N_HOURS" -> EVERY_N_HOURS_KEYS;
+            case "EVERY_N_MINUTES" -> EVERY_N_MINUTES_KEYS;
             default -> throw new IllegalArgumentException("INVALID_REQUEST: unknown calendar type " + type);
         };
         rejectUnknownKeys(fields, allowed);
@@ -87,6 +95,22 @@ public final class CalendarConfigParser {
                 }
                 yield new EveryNDays(
                         parseLocalDate(requireString(fields, "startDate")), intervalDays, localTime, zone);
+            }
+            case "EVERY_N_HOURS" -> {
+                int intervalHours = requireInt(fields, "intervalHours");
+                if (intervalHours < 1 || intervalHours > 168) {
+                    throw new IllegalArgumentException("INVALID_REQUEST: intervalHours must be 1..168");
+                }
+                yield new EveryNHours(
+                        parseLocalDate(requireString(fields, "startDate")), intervalHours, localTime, zone);
+            }
+            case "EVERY_N_MINUTES" -> {
+                int intervalMinutes = requireInt(fields, "intervalMinutes");
+                if (intervalMinutes < 1 || intervalMinutes > 1440) {
+                    throw new IllegalArgumentException("INVALID_REQUEST: intervalMinutes must be 1..1440");
+                }
+                yield new EveryNMinutes(
+                        parseLocalDate(requireString(fields, "startDate")), intervalMinutes, localTime, zone);
             }
             default -> throw new IllegalArgumentException("INVALID_REQUEST: unknown calendar type " + type);
         };

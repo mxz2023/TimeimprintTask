@@ -406,7 +406,7 @@ public final class StructureQualityGate {
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.common",
                         Set.of(),
-                        Set.of("time", "hashing"),
+                        Set.of("time", "hashing", "wake"),
                         true));
         m.put(
                 "timeimprint-task-boot-loader",

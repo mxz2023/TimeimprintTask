@@ -167,6 +167,7 @@ public class ListQueryService {
         int fetch = participantRole == null || participantRole.isBlank() ? safeLimit + 1 : Math.min(100, safeLimit * 5 + 1);
         List<TaskInstanceSnapshot> rows = instanceRepository.list(
                 actor.tenantKey(),
+                actor.principalId(),
                 definitionId,
                 sk,
                 lc,

@@ -41,6 +41,10 @@ timeimprint:
       region: ${IDENTITY_SMS_REGION:ap-guangzhou}
     wechat:
       mode: ${IDENTITY_WECHAT_MODE:capture}
+      web:
+        app-id: ${IDENTITY_WECHAT_WEB_APP_ID:}
+        app-secret: ${IDENTITY_WECHAT_WEB_APP_SECRET:}
+        redirect-uri: ${IDENTITY_WECHAT_WEB_REDIRECT_URI:}
   local:
     tenant-id: ${LOCAL_TENANT_ID:local-tenant}
     actor-id: ${LOCAL_ACTOR_ID:local-actor}

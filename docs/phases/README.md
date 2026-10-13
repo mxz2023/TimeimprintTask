@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-当前没有进行中的阶段。下一阶段须用户从 [09演进路线](../09-SCENARIO-ROADMAP.md) 另选范围、建立阶段包并授权。
+没有 CURRENT 阶段。下一阶段须用户另选范围。
 
 ## 已发布阶段
 
@@ -16,14 +16,16 @@
 | [P04 标题与锁序](P04/README.md) | RELEASED | [DELIVERY](P04/DELIVERY.md)；Git 标签 `v20261003-P04`；人工验收 2026-10-03 |
 | [P05 飞书整体接入](P05/README.md) | RELEASED | [DELIVERY](P05/DELIVERY.md)；Git 标签 `v20261007-P05`；人工验收 2026-10-07 |
 | [P06 多用户账号](P06/README.md) | RELEASED | [DELIVERY](P06/DELIVERY.md)；Git 标签 `v20261010-P06`；人工验收 2026-10-10 |
+| [P07 微信扫码与小时分钟间隔](P07/README.md) | RELEASED | [DELIVERY](P07/DELIVERY.md)；Git 标签 `v20261011-P07`；人工验收 2026-10-11 |
+| [P08 站内信实时提示](P08/README.md) | RELEASED | [DELIVERY](P08/DELIVERY.md)；Git 标签 `v20261014-P08`；人工验收 2026-10-13 |
 
 ## 未来阶段
 
-S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。均不自动进入实施。须用户另选范围、建立阶段包并授权。
+S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。它们不自动进入实施。P08 已发布，不取代这些 NEXT_REVIEW 项。
 
 ## 更新规则
 
 - 阶段变为RELEASED时，把它移入“已发布阶段”，补充DELIVERY和Git标签链接。
-- 创建下一阶段时，只增加一行CURRENT记录，不复制上一阶段任务或状态。
+- 创建下一阶段时，只增加一行CURRENT记录，不复制上一阶段任务或状态。新阶段 README 必须按 [08](../08-AI-IMPLEMENTATION-TASKS.md) 第 4 节写明本期必要人工步骤；未写不得转为 READY，用户未实际做完不得转为 RELEASED。
 - 阶段详细状态以其README为准，任务状态以其IMPLEMENTATION为准，交付事实以其DELIVERY为准。
 - 若本索引与阶段README不一致，立即停止实施并修正，不允许智能体自行选择。

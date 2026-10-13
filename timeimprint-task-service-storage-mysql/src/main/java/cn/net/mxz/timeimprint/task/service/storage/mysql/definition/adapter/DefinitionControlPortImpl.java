@@ -5,6 +5,7 @@ import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationE
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.definition.mapper.TaskDefinitionMapper;
@@ -128,6 +129,7 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
                         schedGen,
                         controlGen,
                         occ,
+                        configMap,
                         now);
             }
 
@@ -159,8 +161,9 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
             long scheduleGeneration,
             long controlGeneration,
             CalendarOccurrenceCalculator.Occurrence occ,
+            Map<String, Object> calendarConfig,
             Instant now) {
-        String snapshotJson = "{\"occurrenceKey\":\"" + occ.occurrenceKey() + "\"}";
+        String snapshotJson = CalendarPlannedInstanceSnapshot.json(occ.occurrenceKey(), calendarConfig);
         TaskInstanceRow inst = new TaskInstanceRow();
         inst.setDefinitionId(definitionId);
         inst.setTriggerBindingId(bindingId);

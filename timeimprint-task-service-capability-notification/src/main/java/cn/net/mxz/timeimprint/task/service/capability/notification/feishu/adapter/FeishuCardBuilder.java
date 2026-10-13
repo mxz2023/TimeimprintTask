@@ -33,6 +33,20 @@ public final class FeishuCardBuilder {
      */
     public String build(
             String title, String body, boolean withActions, long definitionId, long instanceId, long revision) {
+        return build(title, body, withActions, definitionId, instanceId, revision, null);
+    }
+
+    /**
+     * @param snoozeAllowed null 或 true 时 S02 仍含稍后按钮；显式 false 时仅完成与跳过
+     */
+    public String build(
+            String title,
+            String body,
+            boolean withActions,
+            long definitionId,
+            long instanceId,
+            long revision,
+            Boolean snoozeAllowed) {
         ObjectNode card = mapper.createObjectNode();
         card.put("schema", "2.0");
         card.putObject("config").put("update_multi", true);
@@ -53,10 +67,14 @@ public final class FeishuCardBuilder {
             set.put("horizontal_spacing", "small");
             set.put("horizontal_align", "right");
             ArrayNode columns = set.putArray("columns");
-            List<String[]> buttons = List.of(
-                    new String[] {"完成", "primary", COMMAND_COMPLETE},
-                    new String[] {"跳过", "default", COMMAND_SKIP},
-                    new String[] {"稍后提醒", "default", COMMAND_SNOOZE});
+            List<String[]> buttons = Boolean.FALSE.equals(snoozeAllowed)
+                    ? List.of(
+                            new String[] {"完成", "primary", COMMAND_COMPLETE},
+                            new String[] {"跳过", "default", COMMAND_SKIP})
+                    : List.of(
+                            new String[] {"完成", "primary", COMMAND_COMPLETE},
+                            new String[] {"跳过", "default", COMMAND_SKIP},
+                            new String[] {"稍后提醒", "default", COMMAND_SNOOZE});
             for (String[] b : buttons) {
                 ObjectNode column = columns.addObject();
                 column.put("tag", "column").put("width", "auto");

@@ -24,6 +24,7 @@ class InboxRepositoryContractTest {
                 "findById/1",
                 "findByIdForRecipient/4",
                 "listForRecipient/5",
-                "markReadIfUnread/2"), actual);
+                "markReadIfUnread/2",
+                "maxInboxId/3"), actual);
     }
 }

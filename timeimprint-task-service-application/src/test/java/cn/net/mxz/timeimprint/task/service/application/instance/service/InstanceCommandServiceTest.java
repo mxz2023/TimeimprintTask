@@ -106,9 +106,9 @@ class InstanceCommandServiceTest {
 
             @Override
             public List<TaskInstanceSnapshot> list(
-                    String tenantId, Long definitionId, String scenarioKey, String lifecycleCategory,
-                    String scenarioState, Instant from, Instant to, Instant cursorOccurrenceAt,
-                    Long cursorInstanceId, int limit) {
+                    String tenantId, String participantPrincipalId, Long definitionId, String scenarioKey,
+                    String lifecycleCategory, String scenarioState, Instant from, Instant to,
+                    Instant cursorOccurrenceAt, Long cursorInstanceId, int limit) {
                 return List.of();
             }
         };

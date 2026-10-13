@@ -116,11 +116,14 @@ public class UserController {
 
     @GetMapping("/api/v1/users/wechat/config")
     public ApiResponse<Map<String, Object>> wechatConfig(@RequestParam(defaultValue = "web") String appType) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("appType", appType);
-        data.put("state", "capture-state");
-        data.put("authUrl", "");
-        return ApiResponses.ok("已返回微信登录配置", data);
+        return call(() -> {
+            var config = identity.wechatConfig(appType);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("appType", config.appType());
+            data.put("state", config.state());
+            data.put("authUrl", config.authUrl());
+            return ApiResponses.ok("已返回微信登录配置", data);
+        });
     }
 
     @PostMapping("/api/v1/users/wechat/callback")

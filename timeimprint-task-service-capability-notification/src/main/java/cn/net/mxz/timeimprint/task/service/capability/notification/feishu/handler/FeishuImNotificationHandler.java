@@ -121,8 +121,15 @@ public class FeishuImNotificationHandler implements ActionHandler {
         if (!(fields.get(REVISION_FIELD) instanceof Number revision)) {
             throw new IllegalArgumentException("actionable card requires " + REVISION_FIELD);
         }
+        Boolean snoozeAllowed = parseSnoozeAllowed(fields.get("snoozeAllowed"));
         return cardBuilder.build(
-                title, body, true, context.definitionId(), context.instanceId(), revision.longValue());
+                title,
+                body,
+                true,
+                context.definitionId(),
+                context.instanceId(),
+                revision.longValue(),
+                snoozeAllowed);
     }
 
     /** 飞书 uuid 上限 50：用 actionKey 的 SHA-256 做 URL-safe Base64（43 字符），稳定且不泄露内部键。 */
@@ -137,5 +144,16 @@ public class FeishuImNotificationHandler implements ActionHandler {
 
     private static String text(Object o) {
         return o == null ? null : String.valueOf(o);
+    }
+
+    /** 缺省视为允许稍后（与旧实例快照一致）。 */
+    private static Boolean parseSnoozeAllowed(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Boolean b) {
+            return b;
+        }
+        return Boolean.parseBoolean(String.valueOf(raw));
     }
 }

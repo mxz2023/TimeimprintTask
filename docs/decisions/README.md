@@ -22,5 +22,6 @@ ADR状态只允许PROPOSED、ACCEPTED、SUPERSEDED或REJECTED。只有用户明�
 | 编号 | 状态 | 主题 | 文档 |
 | --- | --- | --- | --- |
 | ADR-0001 | ACCEPTED | 多用户账号与会话身份 | [ADR-0001](ADR-0001-multi-user-identity.md) |
+| ADR-0002 | ACCEPTED | 正式微信扫码与小时/分钟间隔 | [ADR-0002](ADR-0002-wechat-qr-and-subday-interval.md) |
 
-P01初始设计依据以10为准。ADR-0001 已于 2026-10-10 接受，执行规则以回写后的 01—07 为准。
+P01初始设计依据以10为准。ADR-0001 已于 2026-10-10 接受。ADR-0002 已于 2026-10-11 接受。执行规则以回写后的 01—07 为准。

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNHours;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNMinutes;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Weekly;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,6 +13,33 @@ import org.junit.jupiter.api.Test;
 
 /** A37：calendar schemaVersion=1 字段白名单与非法锚点。 */
 class CalendarConfigParserTest {
+
+    @Test
+    void parsesSubDayIntervalsAndRejectsIllegalBounds() {
+        Map<String, Object> hours = baseEveryNHours();
+        EveryNHours hourRule = (EveryNHours) CalendarConfigParser.parse(hours);
+        assertEquals(2, hourRule.intervalHours());
+
+        Map<String, Object> minutes = baseEveryNMinutes();
+        EveryNMinutes minuteRule = (EveryNMinutes) CalendarConfigParser.parse(minutes);
+        assertEquals(15, minuteRule.intervalMinutes());
+
+        Map<String, Object> badHours = baseEveryNHours();
+        badHours.put("intervalHours", 0);
+        assertInvalid(badHours, "intervalHours must be 1..168");
+
+        Map<String, Object> badHoursHigh = baseEveryNHours();
+        badHoursHigh.put("intervalHours", 169);
+        assertInvalid(badHoursHigh, "intervalHours must be 1..168");
+
+        Map<String, Object> badMinutes = baseEveryNMinutes();
+        badMinutes.put("intervalMinutes", 1441);
+        assertInvalid(badMinutes, "intervalMinutes must be 1..1440");
+
+        Map<String, Object> extraField = baseEveryNHours();
+        extraField.put("intervalDays", 1);
+        assertInvalid(extraField, "unknown calendar field");
+    }
 
     @Test
     void parsesWeeklyAndRejectsUnknownMissingIllegal() {
@@ -44,6 +73,26 @@ class CalendarConfigParserTest {
         onceWrongKey.put("localTime", "09:00:00");
         onceWrongKey.put("zoneId", "Asia/Shanghai");
         assertInvalid(onceWrongKey, "unknown calendar field");
+    }
+
+    private static Map<String, Object> baseEveryNHours() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", "EVERY_N_HOURS");
+        m.put("startDate", "2026-09-01");
+        m.put("intervalHours", 2);
+        m.put("localTime", "09:00:00");
+        m.put("zoneId", "Asia/Shanghai");
+        return m;
+    }
+
+    private static Map<String, Object> baseEveryNMinutes() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", "EVERY_N_MINUTES");
+        m.put("startDate", "2026-09-01");
+        m.put("intervalMinutes", 15);
+        m.put("localTime", "09:00:00");
+        m.put("zoneId", "Asia/Shanghai");
+        return m;
     }
 
     private static Map<String, Object> baseWeekly() {

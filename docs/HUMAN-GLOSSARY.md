@@ -158,7 +158,8 @@
 | PreviewResult / ScenarioMetadataView | 时间规则规范化与发生预览结果 / 已装配场景的公开能力说明 |
 | TaskDefinitionView / TaskInstanceView / InboxView | 定义公开视图 / 实例公开视图 / 站内收件视图 |
 | SignalDiagnosticView / ActionJobDiagnosticView | 内部Signal安全诊断视图 / 内部Action安全诊断视图 |
-| E01—E13 / E14—E29 / I01—I07 | 04中的任务公开端点 / 账号公开端点 / 内部端点编号 |
+| E01—E13 / E14—E29 / E30 / I01—I07 | 04中的任务公开端点 / 账号公开端点 / 站内信事件流 / 内部端点编号 |
+| SSE / text/event-stream / inbox-changed | 服务器发送事件 / E30 的响应媒体类型 / 收件变化帧的事件名。帧只含未读数、最新收件编号和生成时间 |
 | keyset pagination / asOf | 以稳定排序键继续翻页的弱一致分页 / 响应生成时间，不代表数据库快照时间 |
 | DeliverySummary / deliveryState | 实例全部Action、入箱和未读数量汇总 / 按固定优先级得出的执行状态，不等同用户已读 |
 | NOT_SCHEDULED / IN_PROGRESS / PARTIALLY_DELIVERED / DELIVERED / FAILED | 尚无Action / 仍有待处理动作 / 部分成功 / Handler全部成功 / 无成功且存在失败 |
@@ -219,7 +220,7 @@
 | timeimprint-task-service-storage-mysql | MySQL存储适配器和平台公共迁移 |
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
 | timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
-| timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；飞书扫码登录本期不实现） |
+| timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；网页扫码在 live 模式访问微信，飞书扫码登录不实现） |
 | timeimprint-task-identity | 账号、验证码、会话和社交绑定；不解释任务状态 |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |

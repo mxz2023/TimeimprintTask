@@ -181,9 +181,11 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         }
 
         Map<String, Object> scenarioConfig = parseScenarioConfig(context.definitionSnapshot().scenarioConfigJson());
+        Map<String, Object> priorInstanceSnapshot = parseInstanceScenarioSnapshot(instSnapshot.scenarioSnapshotJson());
+        boolean snoozeDisallowed = isSnoozeDisallowed(priorInstanceSnapshot);
         List<Integer> chaseOffsets = getChaseOffsets(scenarioConfig);
         int expireMinutes = getExpireMinutes(scenarioConfig);
-        int maxSnooze = getMaxSnoozeCount(scenarioConfig);
+        int maxSnooze = snoozeDisallowed ? 0 : getMaxSnoozeCount(scenarioConfig);
 
         Instant dueAt = instSnapshot.dueAt() != null ? instSnapshot.dueAt()
                 : (instSnapshot.occurrenceAt() != null ? instSnapshot.occurrenceAt() : Instant.now());
@@ -198,6 +200,9 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         snapshot.put("maxSnoozeCount", maxSnooze);
         snapshot.put("snoozeCount", 0);
         snapshot.put("actionGeneration", 1);
+        if (snoozeDisallowed) {
+            snapshot.put("snoozeAllowed", false);
+        }
 
         long definitionId = context.definitionSnapshot().definitionId();
         String titleSnapshot = instSnapshot.titleSnapshot();
@@ -205,14 +210,14 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         List<ActionJobIntent> actions = new ArrayList<>();
         actions.add(buildExpandableActionIntent(
                 definitionId, instSnapshot.instanceId(), "INITIAL", 0, 1, dueAt, expiresAt,
-                notificationTitle("INITIAL", titleSnapshot), body));
+                notificationTitle("INITIAL", titleSnapshot), body, snoozeDisallowed));
 
         for (int i = 0; i < chaseOffsets.size(); i++) {
             Instant chaseAt = dueAt.plus(chaseOffsets.get(i), ChronoUnit.MINUTES);
             if (chaseAt.isBefore(expiresAt)) {
                 actions.add(buildExpandableActionIntent(
                         definitionId, instSnapshot.instanceId(), "CHASE", i + 1, 1, chaseAt, expiresAt,
-                        notificationTitle("CHASE", titleSnapshot), body));
+                        notificationTitle("CHASE", titleSnapshot), body, snoozeDisallowed));
             }
         }
 
@@ -283,7 +288,8 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
             Instant availableAt,
             Instant expiresAt,
             String title,
-            String body) {
+            String body,
+            boolean snoozeDisallowed) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("purpose", purpose);
         payload.put("slotIndex", slotIndex);
@@ -292,6 +298,9 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
         payload.put("instanceId", instanceId);
         payload.put("title", title);
         payload.put("body", body);
+        if (snoozeDisallowed) {
+            payload.put("snoozeAllowed", false);
+        }
 
         return new ActionJobIntent(
                 NEUTRAL_NOTIFICATION_HANDLER_KEY,
@@ -366,6 +375,25 @@ public class RecurringTodoScenarioExtension implements ScenarioExtension {
             return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             return Map.of();
+        }
+    }
+
+    public static boolean isSnoozeDisallowed(Map<String, Object> instanceSnapshot) {
+        if (instanceSnapshot == null || instanceSnapshot.isEmpty()) {
+            return false;
+        }
+        Object v = instanceSnapshot.get("snoozeAllowed");
+        return Boolean.FALSE.equals(v);
+    }
+
+    Map<String, Object> parseInstanceScenarioSnapshot(String json) {
+        try {
+            if (json == null || json.isBlank() || "{}".equals(json.trim())) {
+                return new LinkedHashMap<>();
+            }
+            return new LinkedHashMap<>(objectMapper.readValue(json, new TypeReference<>() {}));
+        } catch (Exception e) {
+            return new LinkedHashMap<>();
         }
     }
 

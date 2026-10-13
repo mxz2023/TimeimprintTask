@@ -156,7 +156,7 @@ boot-loader ────────────→ 选择并装配全部运行�
 | `timeimprint-task-gateway` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `gateway`、`mapper` |
 | `timeimprint-task-web` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`callback`（P05 飞书）、`shared` | `controller`、`filter`、`error`、`configuration` |
 
-`common`和`boot-loader`是没有业务切片的例外：`common`按`time`、`hashing`等稳定技术能力分包，`boot-loader`只允许`bootstrap`、`configuration`、`health`、`lifecycle`。不得为追求形式一致而虚构业务分类。
+`common`和`boot-loader`是没有业务切片的例外：`common`按`time`、`hashing`、`wake`这些稳定技术能力分包，`boot-loader`只允许`bootstrap`、`configuration`、`health`、`lifecycle`。不得为追求形式一致而虚构业务分类。`wake`只放同进程监听，不保存待投递队列。
 
 附加规则：
 

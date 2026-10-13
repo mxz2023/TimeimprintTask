@@ -4,6 +4,7 @@ import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import cn.net.mxz.timeimprint.task.service.application.shared.port.TriggerPlannerPort;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.definition.mapper.TaskDefinitionMapper;
@@ -140,7 +141,7 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
                 continue;
             }
 
-            String snapshotJson = "{\"occurrenceKey\":\"" + occ.occurrenceKey() + "\"}";
+            String snapshotJson = CalendarPlannedInstanceSnapshot.json(occ.occurrenceKey(), configMap);
             TaskInstanceRow inst = new TaskInstanceRow();
             inst.setDefinitionId(definitionId);
             inst.setTriggerBindingId(bindingId);

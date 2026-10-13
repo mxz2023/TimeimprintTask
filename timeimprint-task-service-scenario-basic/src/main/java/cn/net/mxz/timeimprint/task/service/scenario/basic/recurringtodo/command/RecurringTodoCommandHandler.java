@@ -157,6 +157,9 @@ public class RecurringTodoCommandHandler {
             }
 
             Map<String, Object> snapshot = parseSnapshot(inst.scenarioSnapshotJson());
+            if (RecurringTodoScenarioExtension.isSnoozeDisallowed(snapshot)) {
+                return new HandlerResult.Rejected("STATE_CONFLICT", "该实例不支持稍后提醒");
+            }
             int snoozeCount = asInt(snapshot.get("snoozeCount"), 0);
             int maxSnooze = asInt(snapshot.get("maxSnoozeCount"),
                     RecurringTodoScenarioExtension.DEFAULT_MAX_SNOOZE_COUNT);

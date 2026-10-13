@@ -1,5 +1,6 @@
 package cn.net.mxz.timeimprint.task.service.capability.notification.inapp.handler;
 
+import cn.net.mxz.timeimprint.task.common.wake.InboxWake;
 import cn.net.mxz.timeimprint.task.service.capability.notification.inapp.mapper.InboxMapper;
 import cn.net.mxz.timeimprint.task.service.capability.notification.inapp.row.InboxRow;
 import cn.net.mxz.timeimprint.task.service.extension.action.result.ActionExecutionMode;
@@ -80,6 +81,7 @@ public class InAppNotificationHandler implements ActionHandler {
 
             try {
                 inboxMapper.insert(row);
+                CommitAfter.run(() -> InboxWake.wake(tenantId, recipientType, recipientId));
                 return new ActionExecutionResult(ActionHandlerOutcome.SUCCEEDED, "INBOX_CREATED", null);
             } catch (RuntimeException insertEx) {
                 // At-least-once / dirty-queue safe: unique recipient or action_job already materialised.

@@ -5,6 +5,7 @@ import cn.net.mxz.timeimprint.task.adapter.sms.client.SmsSender;
 import cn.net.mxz.timeimprint.task.adapter.sms.client.TencentSmsSender;
 import cn.net.mxz.timeimprint.task.adapter.wechat.client.CaptureWeChatOAuthClient;
 import cn.net.mxz.timeimprint.task.adapter.wechat.client.DisabledWeChatOAuthClient;
+import cn.net.mxz.timeimprint.task.adapter.wechat.client.LiveWeChatOAuthClient;
 import cn.net.mxz.timeimprint.task.adapter.wechat.client.WeChatOAuthClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -53,10 +54,29 @@ public class IdentityClientConfiguration {
     }
 
     @Bean
-    WeChatOAuthClient weChatOAuthClient(@Value("${timeimprint.identity.wechat.mode:capture}") String mode) {
+    WeChatOAuthClient weChatOAuthClient(
+            @Value("${timeimprint.identity.wechat.mode:capture}") String mode,
+            @Value("${timeimprint.identity.wechat.web.app-id:}") String appId,
+            @Value("${timeimprint.identity.wechat.web.app-secret:}") String appSecret,
+            @Value("${timeimprint.identity.wechat.web.redirect-uri:}") String redirectUri) {
         if ("disabled".equals(mode)) {
             return new DisabledWeChatOAuthClient();
         }
+        if ("live".equals(mode)) {
+            requireWeChatWebConfig(appId, appSecret, redirectUri);
+            return new LiveWeChatOAuthClient(appId, appSecret);
+        }
         return new CaptureWeChatOAuthClient();
+    }
+
+    private static void requireWeChatWebConfig(String appId, String appSecret, String redirectUri) {
+        StringBuilder missing = new StringBuilder();
+        appendMissing(missing, "web.app-id", appId);
+        appendMissing(missing, "web.app-secret", appSecret);
+        appendMissing(missing, "web.redirect-uri", redirectUri);
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException(
+                    "timeimprint.identity.wechat mode live requires " + missing);
+        }
     }
 }

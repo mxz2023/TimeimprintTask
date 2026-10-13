@@ -51,7 +51,7 @@ JSON库、Mapper类型和HTTP消息转换器属于实现细节，从Jackson 2迁
 
 ### 3.1 Calendar schemaVersion 1
 
-S01/S02首期必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`、`schemaVersion=1`的trigger binding。config是以下五种互斥对象之一，表中字段全部必填且不允许额外字段：
+S01/S02必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`、`schemaVersion=1`的trigger binding。config是以下七种互斥对象之一，表中字段全部必填且不允许额外字段。后两种由 [P07](phases/P07/README.md) 增加，不改变前五种的发生结果：
 
 | 类型 | 配置精确字段 | 语义 |
 | --- | --- | --- |
@@ -60,8 +60,10 @@ S01/S02首期必须且只能传一个`bindingKey="primary"`、`providerKey="cale
 | WEEKLY | `type, startDate, weekday, localTime, zoneId` | 从startDate起每周在weekday发生 |
 | MONTHLY | `type, startDate, dayOfMonth, localTime, zoneId` | 从startDate起每月发生；无该日取月末 |
 | EVERY_N_DAYS | `type, startDate, intervalDays, localTime, zoneId` | 以startDate为固定锚点每N个自然日发生 |
+| EVERY_N_HOURS | `type, startDate, intervalHours, localTime, zoneId` | 以startDate与localTime为固定锚点每N小时发生 |
+| EVERY_N_MINUTES | `type, startDate, intervalMinutes, localTime, zoneId` | 以startDate与localTime为固定锚点每N分钟发生 |
 
-`localDate/startDate`格式固定`yyyy-MM-dd`；`localTime`固定`HH:mm:ss`且必须有秒；`zoneId`一期只能是`Asia/Shanghai`；`weekday`为ISO 1—7（周一至周日）；`dayOfMonth`为1—31；`intervalDays`为1—3650。startDate是包含边界，算法只返回同时满足规则且严格晚于`after`的发生；它可以早于当前日期，不能因重启改写。ONCE在E03/E06提交判定时必须严格晚于事务时间T，E02预览若已不晚于after则返回空列表。
+`localDate/startDate`格式固定`yyyy-MM-dd`；`localTime`固定`HH:mm:ss`且必须有秒；`zoneId`一期只能是`Asia/Shanghai`；`weekday`为ISO 1—7（周一至周日）；`dayOfMonth`为1—31；`intervalDays`为1—3650；`intervalHours`为1—168；`intervalMinutes`为1—1440。startDate是包含边界，算法只返回同时满足规则且严格晚于`after`的发生；它可以早于当前日期，不能因重启改写。ONCE在E03/E06提交判定时必须严格晚于事务时间T，E02预览若已不晚于after则返回空列表。
 
 occurrenceAt由本地日期时间按zoneId转换为UTC整秒，occurrenceKey固定为其UTC格式`yyyyMMdd'T'HHmmss'Z'`；唯一性范围还包含definition、binding、scheduleGeneration和controlGeneration。预览、创建和Planner必须调用同一规范化与计算实现。规范化只展开S02默认值、统一日期/时间格式和对象键顺序，不trim文本、不改变数组顺序，也不替调用方猜测缺失的日历字段。
 
@@ -178,12 +180,13 @@ I01的SignalAcceptedView固定返回`signalId, duplicated, processStatus, receiv
 | E11 | GET `/api/v1/inbox/{inboxId}` | 路径ID | InboxView |
 | E12 | GET `/api/v1/inbox-unread-count` | 无 | unreadCount、asOf |
 | E13 | POST `/api/v1/inbox/{inboxId}/commands/mark-read` | requestId | InboxView；重复读取保留首次readAt |
+| E30 | GET `/api/v1/inbox/events` | Bearer 令牌；无查询参数 | `text/event-stream`。不是 JSON 信封。见 4.2 |
 
-E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。
+E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。E05 与 E08 只返回当前登录人作为定义级参与人可见的记录。当前账号没有任务时返回空页，状态码仍是 200，不把「别人的任务」或「空列表」报成 404。
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 
-E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。
+E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。E30 是同一收件模型上的只读事件流，不新增收件字段，也不代替 E10—E13。
 
 ### 4.1 账号端点（P06）
 
@@ -202,13 +205,32 @@ E01—E13 是任务公开接口，不另建第二套任务状态。未来若增�
 | E22 | POST `/api/v1/users/change-nickname` | nickname | 修改结果 |
 | E23 | POST `/api/v1/users/password-reset` | phoneNumber、code、password | 重置结果；不存在的手机号不创建用户 |
 | E24 | GET `/api/v1/users` | keyword、page、pageSize；须管理员 | 用户页；不含密码、令牌和社交原始数据 |
-| E25 | GET `/api/v1/users/wechat/config` | appType、可选 next | state 与授权地址；不含 appSecret |
+| E25 | GET `/api/v1/users/wechat/config` | appType、可选 next | state 与授权地址；不含 appSecret。`live` 且 appType 为 web 时，state 为一次性随机值，授权地址为微信网站应用扫码地址 |
 | E26 | POST `/api/v1/users/wechat/callback` | code、state、appType | 查找或创建用户后的登录结果 |
 | E27 | POST `/api/v1/users/wechat/bind` | code、state、appType；须登录 | 绑定结果 |
 | E28 | POST `/api/v1/users/wechat/unbind` | 令牌 | 解绑结果；解绑后必须仍有手机号或可用密码 |
 | E29 | POST `/api/v1/users/wechat/bind-phone` | phoneNumber、code、password；须登录 | 绑定或合并后的登录数据 |
 
-手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。
+手机号为大陆 11 位。密码非空且不超过 128 字符，只存摘要。验证码为 6 位，10 分钟有效，错误或过期拒绝。昵称最长 30，缺省为「用户」。已注册手机号拒绝再次注册。手机号或密码错误统一返回 401，不说明是哪一项错误。微信身份已属于其他用户时拒绝绑定。绑定手机号若命中另一活跃账号，必须在同一事务内迁入微信身份、更新密码并停用临时账号。空库中第一个完成授权的账号成为管理员。飞书等扫码没有端点。`live` 模式下只有 `appType=web` 返回扫码地址；`ios` 与 `android` 请求配置时拒绝。state 保存摘要，10 分钟内且未消费才能用于回调或绑定，成功校验后立即消费。`capture` 不访问微信，测试使用固定 state。由 `EVERY_N_HOURS` 或 `EVERY_N_MINUTES` 物化的 S02 实例，稍后命令返回冲突；实例投影含 `snoozeAllowed=false`。日及以上规则的稍后命令不变。
+
+### 4.2 站内信事件流（P08）
+
+[E30](04-API.md) 供已登录客户端在不刷新页面时得知自己的收件变化。阶段范围见 [P08](phases/P08/README.md)。浏览器发起请求并保持响应不结束；服务端不主动连接浏览器。
+
+请求使用与 E10 相同的 `Authorization: Bearer`。缺少令牌、令牌无效或账号停用时返回 401，响应使用既有错误信封，并且不发送事件流。`events` 是字面路径，不得被解释为 `inboxId`。
+
+成功时状态码为 200，`Content-Type` 为 `text/event-stream`，响应体按 SSE 帧追加，不使用 `ApiResponse` 信封。空闲时每 25 秒写一行注释 `: ping`。注释只用于让前置代理的 120 秒读超时重新计时，不表示有新收件。单条连接最长 30 分钟，到点后服务端结束响应。客户端断开、写出失败或到期后，服务端删除该订阅。
+
+变化帧为：
+
+```text
+event: inbox-changed
+data: {"unreadCount":1,"latestInboxId":10,"asOf":"2026-10-12T14:00:00Z"}
+```
+
+`unreadCount` 是当前登录接收人的未读数，语义与 E12 相同。`latestInboxId` 是该接收人当前最大 `inboxId`；尚无收件时为 null。`asOf` 是本次帧的生成时间。帧里没有标题和正文。客户端需要列表时再调用 E10。重复帧必须可以安全忽略。
+
+服务端在收件插入或首次写入 `readAt` 的事务提交之后，向该接收人当前进程上的订阅写帧。推送失败不回滚收件，也不改变 E13。没有订阅时不保存待投递帧。另一进程写入的变化，由持有连接的进程至多每 5 秒按该接收人水位核对一次后补发。客户端在重连成功后应先调用 E12。
 
 ## 5. 内部端点
 

@@ -16,5 +16,8 @@ public interface InboxRepository {
 
     int countUnread(String tenantId, String recipientType, String recipientId);
 
+    /** 该接收人最大 inboxId。没有收件时返回 null。 */
+    Long maxInboxId(String tenantId, String recipientType, String recipientId);
+
     boolean markReadIfUnread(long inboxId, java.time.Instant readAt);
 }

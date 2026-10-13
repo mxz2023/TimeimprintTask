@@ -24,6 +24,8 @@
 - 每个周一交周报：上周一没交不影响本周一再出一份。
 - 每月15日提交报销材料。
 - 从今天起每7天备份一次手机。
+- 从今天 9 点起每 2 小时巡检一次：可以完成或跳过，不能稍后。
+- 每 15 分钟核对一次队列：可以完成或跳过，不能稍后。
 - 今晚的待办先向后推迟再通知；可以推迟的次数有上限，也不能推迟到通知失效之后。
 - 到期后仍未办理，会按设定间隔再催几次，直到完成、跳过或通知失效。
 - 暂停一周：暂停期间不再出新的待办；暂停前已经到期的那份仍可完成或跳过，但不能再往后推迟。
@@ -74,7 +76,9 @@ S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 实例仅支持`complete`、`skip`和`snooze`，都必须经过requestId幂等、expectedRevision并发校验、Policy和统一TransitionPlan提交。
 
-启用飞书渠道时，出站交互卡片对 ACTIVE/PENDING 实例固定提供三按钮，分别映射上述三命令；「稍后提醒」点击时取业务时间`T + 1小时`作为`snoozeUntil`，不提供时间选择器。跳过原因固定为「飞书卡片跳过」。卡片回调须走与 HTTP 相同的命令管道，规则见[CAP03 NOT-05](../capabilities/CAP03-notification.md)与[P05](../phases/P05/README.md)。
+由 `EVERY_N_HOURS` 或 `EVERY_N_MINUTES` 物化的实例不支持 snooze。快照写入 `snoozeAllowed=false`。HTTP 与飞书入站的稍后命令都拒绝，不消耗次数。这两种实例的飞书卡片只有完成和跳过。
+
+其余 ACTIVE/PENDING 实例在启用飞书渠道时，出站交互卡片提供三按钮，分别映射上述三命令；「稍后提醒」点击时取业务时间`T + 1小时`作为`snoozeUntil`，不提供时间选择器。跳过原因固定为「飞书卡片跳过」。卡片回调须走与 HTTP 相同的命令管道，规则见[CAP03 NOT-05](../capabilities/CAP03-notification.md)与[P05](../phases/P05/README.md)。
 
 ### 5.1 complete与skip
 

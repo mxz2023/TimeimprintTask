@@ -23,6 +23,6 @@
 
 已明确：所有者、办理人和通知接收人是不同概念；收到通知不自动获得完成权限；调用者必须来自会话构造的 ActorContext，不能信任请求体自报 userId。账号子集已在 [P06](../phases/P06/README.md) 交付并 VERIFIED。团队隔离和权限矩阵还没有进入实施。
 
-[P06](../phases/P06/README.md) 的账号子集已经写入 [01](../01-MVP-SPEC.md)—[07](../07-ACCEPTANCE.md)：短信验证后的手机号注册、手机号密码登录、一次性授权、微信登录与绑定，以及会话令牌。飞书等扫码登录本期不实现。规则见 [ADR-0001](../decisions/ADR-0001-multi-user-identity.md)。证据见 [DELIVERY](../phases/P06/DELIVERY.md)。团队/组织来源、角色权限矩阵、任一人或全部完成、转交历史、成员离开、代理期限、轮值算法和跨租户边界仍待后续阶段决定。
+[P06](../phases/P06/README.md) 的账号子集已经写入 [01](../01-MVP-SPEC.md)—[07](../07-ACCEPTANCE.md)：短信验证后的手机号注册、手机号密码登录、一次性授权、微信登录与绑定，以及会话令牌。飞书等扫码登录不实现。规则见 [ADR-0001](../decisions/ADR-0001-multi-user-identity.md)。证据见 [DELIVERY](../phases/P06/DELIVERY.md)。[P07](../phases/P07/README.md) 为网页增加正式扫码：`live` 模式签发一次性 state 并访问微信换取身份，见 [ADR-0002](../decisions/ADR-0002-wechat-qr-and-subday-interval.md)。证据见 [P07 DELIVERY](../phases/P07/DELIVERY.md)，标签 `v20261011-P07`。团队/组织来源、角色权限矩阵、任一人或全部完成、转交历史、成员离开、代理期限、轮值算法和跨租户边界仍待后续阶段决定。
 
 本能力可以提供主体解析和Policy实现，但不能隐式改变场景状态。参与人变化产生的业务迁移仍由场景通过TransitionPlan声明；通知投影交给notification执行。

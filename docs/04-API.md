@@ -182,7 +182,7 @@ I01的SignalAcceptedView固定返回`signalId, duplicated, processStatus, receiv
 | E13 | POST `/api/v1/inbox/{inboxId}/commands/mark-read` | requestId | InboxView；重复读取保留首次readAt |
 | E30 | GET `/api/v1/inbox/events` | Bearer 令牌；无查询参数 | `text/event-stream`。不是 JSON 信封。见 4.2 |
 
-E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。
+E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。E05 与 E08 只返回当前登录人作为定义级参与人可见的记录。当前账号没有任务时返回空页，状态码仍是 200，不把「别人的任务」或「空列表」报成 404。
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 

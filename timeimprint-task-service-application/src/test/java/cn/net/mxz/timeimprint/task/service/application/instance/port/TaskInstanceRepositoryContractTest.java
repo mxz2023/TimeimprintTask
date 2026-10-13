@@ -22,7 +22,7 @@ class TaskInstanceRepositoryContractTest {
                 .collect(Collectors.toList());
         assertEquals(List.of("findById/1",
                 "findByIdForUpdate/1",
-                "list/10",
+                "list/11",
                 "listByDefinition/1"), actual);
     }
 }

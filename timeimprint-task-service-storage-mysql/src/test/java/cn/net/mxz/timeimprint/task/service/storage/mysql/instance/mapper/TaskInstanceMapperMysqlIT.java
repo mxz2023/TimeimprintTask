@@ -32,14 +32,15 @@ class TaskInstanceMapperMysqlIT {
                 "selectByDefinitionIdAll/1",
                 "selectById/1",
                 "selectByIdForUpdate/1",
-                "selectList/10",
+                "selectList/11",
                 "updateRevision/9"), actual);
 
-        String resource = "/mapper/TaskInstanceMapper.xml";
+        String resource = "/cn/net/mxz/timeimprint/task/service/storage/mysql/instance/mapper/TaskInstanceMapper.xml";
         try (InputStream in = TaskInstanceMapper.class.getResourceAsStream(resource)) {
             assertNotNull(in, "missing classpath resource " + resource);
             String xml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             assertTrue(xml.contains("namespace=\"cn.net.mxz.timeimprint.task.service.storage.mysql.instance.mapper.TaskInstanceMapper\""), xml);
+            assertTrue(xml.contains("p.principal_id = #{participantPrincipalId}"), xml);
             for (String sig : actual) {
                 String method = sig.substring(0, sig.indexOf('/'));
                 assertTrue(xml.contains("id=\"" + method + "\""), () -> "XML missing statement id for " + method);

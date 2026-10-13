@@ -37,6 +37,7 @@ public class TaskInstanceRepositoryImpl implements TaskInstanceRepository {
     @Override
     public List<TaskInstanceSnapshot> list(
             String tenantId,
+            String participantPrincipalId,
             Long definitionId,
             String scenarioKey,
             String lifecycleCategory,
@@ -48,6 +49,7 @@ public class TaskInstanceRepositoryImpl implements TaskInstanceRepository {
             int limit) {
         return mapper.selectList(
                         tenantId,
+                        participantPrincipalId,
                         definitionId,
                         scenarioKey,
                         lifecycleCategory,

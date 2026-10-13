@@ -76,6 +76,13 @@
         SELECT i.* FROM tt_task_instance i
         INNER JOIN tt_task_definition d ON d.definition_id = i.definition_id
         WHERE d.tenant_id = #{tenantId}
+        AND EXISTS (
+            SELECT 1 FROM tt_task_participant p
+            WHERE p.definition_id = i.definition_id
+              AND p.instance_id IS NULL
+              AND p.principal_type = 'USER'
+              AND p.principal_id = #{participantPrincipalId}
+        )
         <if test="definitionId != null">AND i.definition_id = #{definitionId}</if>
         <if test="scenarioKey != null">AND d.scenario_key = #{scenarioKey}</if>
         <if test="lifecycleCategory != null">AND i.lifecycle_category = #{lifecycleCategory}</if>

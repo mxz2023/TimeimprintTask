@@ -14,11 +14,12 @@ public interface TaskInstanceRepository {
     List<TaskInstanceSnapshot> listByDefinition(long definitionId);
 
     /**
-     * E08: list instances for tenant with optional filters.
-     * {@code cursorOccurrenceAt}/{@code cursorInstanceId} are a frozen keyset boundary.
+     * E08：只列出当前参与人在该租户下可见的实例。没有可见实例时返回空列表。
+     * {@code cursorOccurrenceAt}/{@code cursorInstanceId} 是稳定的键集边界。
      */
     List<TaskInstanceSnapshot> list(
             String tenantId,
+            String participantPrincipalId,
             Long definitionId,
             String scenarioKey,
             String lifecycleCategory,

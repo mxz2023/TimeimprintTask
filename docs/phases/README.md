@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 入口 |
-| --- | --- | --- |
-| [P08 站内信实时提示](P08/README.md) | VERIFYING | [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为 PASS。人工步骤已于 2026-10-13 完成。尚未打标签 |
+没有 CURRENT 阶段。下一阶段须用户另选范围。
 
 ## 已发布阶段
 
@@ -19,10 +17,11 @@
 | [P05 飞书整体接入](P05/README.md) | RELEASED | [DELIVERY](P05/DELIVERY.md)；Git 标签 `v20261007-P05`；人工验收 2026-10-07 |
 | [P06 多用户账号](P06/README.md) | RELEASED | [DELIVERY](P06/DELIVERY.md)；Git 标签 `v20261010-P06`；人工验收 2026-10-10 |
 | [P07 微信扫码与小时分钟间隔](P07/README.md) | RELEASED | [DELIVERY](P07/DELIVERY.md)；Git 标签 `v20261011-P07`；人工验收 2026-10-11 |
+| [P08 站内信实时提示](P08/README.md) | RELEASED | [DELIVERY](P08/DELIVERY.md)；Git 标签 `v20261014-P08`；人工验收 2026-10-13 |
 
 ## 未来阶段
 
-S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。它们不自动进入实施。当前阶段是 P08，不取代这些 NEXT_REVIEW 项。
+S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。它们不自动进入实施。P08 已发布，不取代这些 NEXT_REVIEW 项。
 
 ## 更新规则
 

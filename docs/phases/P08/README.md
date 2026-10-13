@@ -9,18 +9,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P08 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P07；Git 标签 `v20261011-P07` |
 | baselineGitRef | `8bbf257dff0f60b7cfee40002b8c4ef80cdfeb08`（授权实施前的 HEAD） |
-| 工程状态 | VERIFYING |
-| Git发布标签 | 尚未发布 |
-| 下一动作 | 冻结本次交付并打上 `v20261014-P08` |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261014-P08`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-13 用户确认可以正常收到通知 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY](DELIVERY.md)：[R01](../../07-ACCEPTANCE.md)—[R04](../../07-ACCEPTANCE.md) 为 PASS |
 
-用户于 2026-10-12 确认草案并授权实施。P01—P07 已冻结，不得改写。
+用户于 2026-10-12 确认草案并授权实施，于 2026-10-13 确认页面可以收到通知。阶段已 RELEASED（标签 `v20261014-P08`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。P01—P07 已冻结，不得改写。
 
 ## 2. 已接受口径
 

@@ -4,7 +4,7 @@
 > 阶段身份见 [README](README.md)，任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-10-13T16:25:21Z
-阶段状态: VERIFYING。[R01](../../07-ACCEPTANCE.md)—[R04](../../07-ACCEPTANCE.md) 均为 PASS，2026-10-13 的页面确认也已记录。尚未打标签，因此还不是 RELEASED。
+阶段状态: RELEASED（2026-10-13 用户确认页面可以收到通知；2026-10-14 冻结；Git 标签 `v20261014-P08`；本文此后不再改写）。[R01](../../07-ACCEPTANCE.md)—[R04](../../07-ACCEPTANCE.md) 为 PASS。
 
 ---
 
@@ -51,4 +51,4 @@ recordedAtUtc: 2026-10-13T16:25:21Z
 
 2026-10-13 用户在本地工作台（`http://localhost:8080`）确认可以正常收到通知。当时页面已经打开，没有靠刷新取信。该页面连的是容器 `mystudio-local-task-mysql`（端口 3308），任务进程是 `mystudio-local-task`，网页镜像含提交 `9d82bad` 的帧解析。
 
-这一步满足 [README](README.md) 第 4 节的页面观察。自动证据与这一步都已完成。阶段记为 VERIFYING，标签留到冻结提交。
+这一步满足 [README](README.md) 第 4 节的页面观察。自动证据与这一步都已完成，阶段已 RELEASED。

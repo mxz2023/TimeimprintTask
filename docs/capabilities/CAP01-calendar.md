@@ -25,10 +25,10 @@
 | CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-15 | EVERY_N_HOURS固定锚点每N小时 | P07 | RELEASED | VERIFIED | S01、S02 |
 | CAL-16 | EVERY_N_MINUTES固定锚点每N分钟 | P07 | RELEASED | VERIFIED | S01、S02 |
-| CAL-06 | 扩展周期：每年、季度、每N时间单位的其余部分、月末 | BACKLOG | OUTLINE | NOT_STARTED | C01、S03 |
+| CAL-06 | 扩展周期：公历每年已进入 P09；季度、每N时间单位的其余部分、月末仍未做 | P09（仅 YEARLY）/ BACKLOG（其余） | READY_FOR_IMPLEMENTATION（仅 YEARLY）/ OUTLINE（其余） | VERIFIED（仅 YEARLY） | C01、S03 |
 | CAL-07 | 工作日与节假日日历 | BACKLOG | OUTLINE | NOT_STARTED | C02 |
 | CAL-08 | 业务时间计时 | BACKLOG | OUTLINE | NOT_STARTED | C03、S09 |
-| CAL-09 | 相对时间与多阶段时间点 | NEXT_REVIEW | OUTLINE | NOT_STARTED | C04、S04、S05 |
+| CAL-09 | 相对锚点日的天数偏移；可选在锚点之后按自然日继续 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | C04、S04、S05 |
 | CAL-10 | 农历与周年换算 | NEXT_REVIEW | OUTLINE | NOT_STARTED | S03 |
 | CAL-11 | 多时区与夏令时 | BACKLOG | OUTLINE | NOT_STARTED | C08 |
 | CAL-12 | 排除、额外和单次改期 | BACKLOG | OUTLINE | NOT_STARTED | C10 |
@@ -44,6 +44,19 @@ CAL-01—CAL-05使用一个`bindingKey=primary`、`providerKey=calendar`、`sche
 创建ACTIVE定义时原子物化未来7天内的WAITING实例和时间Signal，不预建Action。Planner按有界批次滚动补窗；相同definition、binding、scheduleGeneration、controlGeneration和occurrenceKey只能产生一组事实。停机采用ALL_MISSED追赶，暂停恢复不补暂停区间。完整字段和边界不在本文复制，以01、04和06为准。
 
 能力通过`TriggerProvider`把日历发生转换成持久化Signal，不直接改变场景状态，不生成通知，不决定实例业务终态。具体Signal结果由场景契约负责。
+
+## P09 正式范围
+
+calendar `schemaVersion=2` 在 schemaVersion 1 的七种类型之外增加两种。schemaVersion 1 不接受这两种类型，也不改变已有七种规则的发生结果。
+
+| 类型 | 配置精确字段 | 语义 |
+| --- | --- | --- |
+| YEARLY | `type, startDate, month, dayOfMonth, offsetDays, localTime, zoneId` | 每年在该月日发生。2 月 29 日在平年落到 3 月 1 日，再按 `offsetDays` 平移。禁止用每 365 天代替 |
+| ANCHOR_OFFSETS | `type, anchorDate, offsetDays, dailyAfterAnchor, localTime, zoneId` | 锚点日加上每个偏移各发生一次。`dailyAfterAnchor=true` 时，锚点日之后每个自然日继续发生 |
+
+`offsetDays` 为 1—4 个不重复整数，范围 -366—366。`month` 为 1—12，`dayOfMonth` 为该月存在的日，2 月 29 日除外允许。`zoneId` 仍只能是 `Asia/Shanghai`。下一次发生若在 7 天窗口之外，绑定不标记为耗尽，`nextFireAt` 指向窗口之后的下一次，由 Planner 到点再物化。锚点或偏移变更沿用定义更新：取消尚未发生的 Signal，按新规则重算。
+
+[CAL-13](CAP01-calendar.md) 本期不实现。
 
 ## 未来规划边界
 

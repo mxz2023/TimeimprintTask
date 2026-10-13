@@ -4,7 +4,9 @@
 
 ## 当前阶段
 
-没有 CURRENT 阶段。下一阶段须用户另选范围。
+| 阶段 | 状态 | 说明 |
+| --- | --- | --- |
+| [P09 生日、到期与缴费](P09/README.md) | CURRENT / VERIFYING | S03 公历、S04 到期、S05 人工缴费。证据见 [DELIVERY](P09/DELIVERY.md) |
 
 ## 已发布阶段
 
@@ -21,7 +23,7 @@
 
 ## 未来阶段
 
-S03、S04、S05、S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW；C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。它们不自动进入实施。P08 已发布，不取代这些 NEXT_REVIEW 项。
+S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已进入当前 P09，不自动包含 S14。
 
 ## 更新规则
 

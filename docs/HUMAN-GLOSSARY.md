@@ -223,6 +223,7 @@
 | timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；网页扫码在 live 模式访问微信，飞书扫码登录不实现） |
 | timeimprint-task-identity | 账号、验证码、会话和社交绑定；不解释任务状态 |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
+| timeimprint-task-service-scenario-deadline | P09 的 anniversary、deadline、payment 场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |
 | timeimprint-task-boot-loader | 启动、配置、装配、迁移加载和集成测试入口 |

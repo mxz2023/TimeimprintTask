@@ -67,7 +67,11 @@ S01/S02必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`
 
 occurrenceAt由本地日期时间按zoneId转换为UTC整秒，occurrenceKey固定为其UTC格式`yyyyMMdd'T'HHmmss'Z'`；唯一性范围还包含definition、binding、scheduleGeneration和controlGeneration。预览、创建和Planner必须调用同一规范化与计算实现。规范化只展开S02默认值、统一日期/时间格式和对象键顺序，不trim文本、不改变数组顺序，也不替调用方猜测缺失的日历字段。
 
-E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenarioConfig, after, limit`，不含requestId；limit为1—100，after为UTC整秒。PreviewResult精确返回`scenarioKey, scenarioSchemaVersion, normalizedTriggerBindings, normalizedScenarioConfig, occurrences`；每个occurrence含`occurrenceKey, occurrenceAt, dueAt`，S01的dueAt为null，S02的dueAt等于occurrenceAt。预览不返回definitionId或写入任何幂等记录。
+### 3.1.1 Calendar schemaVersion 2
+
+[P09](phases/P09/README.md) 增加 `schemaVersion=2`。它接受上一节七种类型，并增加 `YEARLY` 与 `ANCHOR_OFFSETS`，字段与语义见 [CAP01](capabilities/CAP01-calendar.md) 的 P09 正式范围。`schemaVersion=1` 传入这两种类型必须拒绝，且不得改变已有规则的下一次发生。S03 使用 `YEARLY` 且 `offsetDays=[-1,0]`。S04 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=false`。S05 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=true`。三个场景仍然每个定义只有一个 `primary` / `calendar` 绑定。
+
+E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenarioConfig, after, limit`，不含requestId；limit为1—100，after为UTC整秒。PreviewResult精确返回`scenarioKey, scenarioSchemaVersion, normalizedTriggerBindings, normalizedScenarioConfig, occurrences`；每个occurrence含`occurrenceKey, occurrenceAt, dueAt`。S01 与 S03 的 dueAt 为 null。S02、S04、S05 的 dueAt 等于 occurrenceAt。预览不返回definitionId或写入任何幂等记录。
 
 ### 3.2 创建任务定义
 

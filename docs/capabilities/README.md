@@ -34,7 +34,7 @@ CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](..
 | C01 | 扩展周期 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C02 | 工作日历 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C03 | 业务时间计时 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
-| C04 | 相对时间与多阶段提醒 | [calendar](CAP01-calendar.md) | NEXT_REVIEW | OUTLINE | NOT_STARTED |
+| C04 | 相对时间与多阶段提醒 | [calendar](CAP01-calendar.md) | P09 | READY_FOR_IMPLEMENTATION | VERIFIED |
 | C05 | 时间与条件组合 | [trigger](CAP02-trigger.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C06 | 串行与并行协作 | [workflow](CAP05-workflow.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C07 | 自动完成 | [trigger](CAP02-trigger.md) | BACKLOG | OUTLINE | NOT_STARTED |

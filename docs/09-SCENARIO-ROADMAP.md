@@ -16,10 +16,11 @@
 | 已发布P06 | 不新增场景 | [C13](capabilities/README.md) 账号子集（[COL-01](capabilities/CAP04-collaboration.md)） | [P06](phases/P06/README.md) RELEASED（标签 `v20261010-P06`）：账号登录、短信验证与微信捕获登录；人工验收 2026-10-10 |
 | 已发布P07 | 不新增场景 | calendar 的 CAL-15、CAL-16 | [P07](phases/P07/README.md) RELEASED（标签 `v20261011-P07`）：网页微信扫码与小时、分钟间隔；人工验收 2026-10-11 |
 | 已发布P08 | 不新增场景 | notification 的 NOT-08 | [P08](phases/P08/README.md) RELEASED（标签 `v20261014-P08`）：站内信事件流；人工验收 2026-10-13 |
-| NEXT_REVIEW | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) | CAL-09、CAL-10、CAL-13、被选场景需要的trigger/integration能力；C12 其余 IM | 不自动进入实施；由用户另行决定是否进入下一阶段 |
+| 当前 P09 | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md) | CAL-09 与 CAL-06 的公历 YEARLY 子集 | [P09](phases/P09/README.md) VERIFYING。农历、真实支付和 CAL-13 不在本期 |
+| NEXT_REVIEW | [S14](scenarios/S14-maintenance-follow-up.md) | CAL-10、CAL-13；C12 其余 IM | 不自动进入实施 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。当前没有 CURRENT 阶段。NEXT_REVIEW 中的业务场景仍须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。当前 CURRENT 阶段是 [P09](phases/P09/README.md)。S14 仍须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -27,9 +28,9 @@ P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复�
 | --- | --- | --- | --- | --- | --- |
 | S01 | 通用提醒 | P01 | RELEASED | VERIFIED | [S01](scenarios/S01-reminder.md) |
 | S02 | 周期待办 | P01 | RELEASED | VERIFIED | [S02](scenarios/S02-recurring-todo.md) |
-| S03 | 生日与纪念日 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S03](scenarios/S03-anniversary.md) |
-| S04 | 到期管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S04](scenarios/S04-deadline-management.md) |
-| S05 | 缴费管理 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S05](scenarios/S05-payment-management.md) |
+| S03 | 生日与纪念日 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | [S03](scenarios/S03-anniversary.md) |
+| S04 | 到期管理 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | [S04](scenarios/S04-deadline-management.md) |
+| S05 | 缴费管理 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | [S05](scenarios/S05-payment-management.md) |
 | S06 | 会议管理 | BACKLOG | OUTLINE | NOT_STARTED | [S06](scenarios/S06-meeting-management.md) |
 | S07 | 团队共享任务 | BACKLOG | OUTLINE | NOT_STARTED | [S07](scenarios/S07-shared-team-task.md) |
 | S08 | 轮值与交接 | BACKLOG | OUTLINE | NOT_STARTED | [S08](scenarios/S08-duty-handover.md) |
@@ -54,7 +55,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 | C01 | 扩展周期 | calendar | BACKLOG | NOT_STARTED |
 | C02 | 工作日历 | calendar | BACKLOG | NOT_STARTED |
 | C03 | 业务时间计时 | calendar | BACKLOG | NOT_STARTED |
-| C04 | 相对时间与多阶段提醒 | calendar | NEXT_REVIEW | NOT_STARTED |
+| C04 | 相对时间与多阶段提醒 | calendar | P09 | VERIFIED |
 | C05 | 时间与条件组合 | trigger | BACKLOG | NOT_STARTED |
 | C06 | 串行与并行协作 | workflow | BACKLOG | NOT_STARTED |
 | C07 | 自动完成 | trigger | BACKLOG | NOT_STARTED |

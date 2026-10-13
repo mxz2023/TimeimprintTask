@@ -425,6 +425,8 @@ T03在代表性数据规模下保存EXPLAIN证据，至少覆盖：
 
 一期平台迁移位于storage-mysql，notification和scenario-basic仅在确有专有表时提供迁移。首期scenario-basic没有必要专有表，S01/S02的`chaseOffsetsMinutes`、`notificationExpireAfterMinutes`、`maxSnoozeCount`、`snoozeCount`和`actionGeneration`可由版本化场景配置/快照、通用实例、Transition、Action及notification表表达，因此不得创建空场景表。
 
+[P09](phases/P09/README.md) 在 `timeimprint-task-service-scenario-deadline` 增加专有表，不修改上面的平台公共表：`tt_anniversary_subject`、`tt_anniversary_revision`、`tt_deadline_subject`、`tt_deadline_renewal`、`tt_payment_subject`、`tt_payment_event`。它们通过 `definition_id` 关联定义，金额、月日和到期日不得出现在公共表列中。
+
 平台与通知的 Flyway 迁移必须创建上述 12 张表、外键、CHECK、唯一键和索引。身份四表由 identity 模块的后续迁移创建，不并入这 12 张表。除明确声明可空的业务关联外，所有FK使用`ON DELETE RESTRICT ON UPDATE RESTRICT`；不得依赖数据库级联清理历史。真库测试使用information_schema逐项核对表名、字段类型、可空性、默认值、生成列、注释、字符集、排序规则、索引顺序、外键动作和CHECK，并实际插入非法组合证明约束生效。
 
 必须验证：空库迁移、重复启动、两个进程并发启动、坏迁移不就绪、已执行迁移不被覆盖、JSON合法性与字节上限、UTC整秒、revision/control_generation上限、幂等冲突、重复Signal、重复发生、重复Action、旧代次拒绝执行、人工重驱次数和父链、旧token回写失败、事务总变更行数、IN_APP原子提交及审计16KiB边界。

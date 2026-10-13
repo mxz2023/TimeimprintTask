@@ -13,6 +13,7 @@
     "timeimprint-task-identity": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-service-capability-notification": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-service-scenario-basic": {"lineRatio": 0.000000, "branchRatio": 0.000000},
+    "timeimprint-task-service-scenario-deadline": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-gateway": {"lineRatio": 0.028686, "branchRatio": 0.128000},
     "timeimprint-task-web": {"lineRatio": 0.000000, "branchRatio": 0.000000},
     "timeimprint-task-boot-loader": {"lineRatio": 0.000000, "branchRatio": 0.000000}

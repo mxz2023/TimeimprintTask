@@ -21,6 +21,7 @@ import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRe
 import cn.net.mxz.timeimprint.task.service.extension.command.registry.TaskCommandHandlerKey;
 import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
+import cn.net.mxz.timeimprint.task.service.kernel.transition.model.TransitionPlan;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.LifecycleCategory;
 import tools.jackson.core.type.TypeReference;
@@ -238,6 +239,10 @@ public class InstanceCommandService {
                             && definitionTransition.toControlState() == ControlState.ACTIVE) {
                         definitionControlPort.rebuildFutureWindow(instSnap.definitionId(), now);
                     }
+                    if (replacesCalendarBinding(applied.plan())
+                            && defSnap.controlState() == ControlState.ACTIVE) {
+                        definitionControlPort.rebuildFutureWindow(instSnap.definitionId(), now);
+                    }
                     commandDedupRepository.complete(actor.tenantKey(), actor.principalId(), op, requestId,
                             "OK", "INSTANCE", String.valueOf(instanceId), newRevision,
                             "{\"changed\":true,\"revision\":" + newRevision + "}");
@@ -249,6 +254,11 @@ public class InstanceCommandService {
             return new InstanceCommandResult(instanceId, instSnap.definitionId(), updated.revision(), changed,
                     updated.scenarioState(), scenarioResult);
         });
+    }
+
+    private static boolean replacesCalendarBinding(TransitionPlan plan) {
+        return plan.triggerBindingChanges().stream().anyMatch(change ->
+                change.configPayload() instanceof JsonPayload json && json.fields().containsKey("bindingConfig"));
     }
 
     private Map<String, Object> buildSnoozeScenarioResult(long instanceId) {

@@ -533,7 +533,7 @@ public final class StructureQualityGate {
                 "timeimprint-task-service-scenario-deadline",
                 new ModuleRule(
                         "cn.net.mxz.timeimprint.task.service.scenario.deadline",
-                        Set.of("anniversary", "deadline", "payment"),
+                        Set.of("anniversary", "deadline", "payment", "maintenance"),
                         Set.of("extension", "command", "materialization"),
                         false));
         m.put(

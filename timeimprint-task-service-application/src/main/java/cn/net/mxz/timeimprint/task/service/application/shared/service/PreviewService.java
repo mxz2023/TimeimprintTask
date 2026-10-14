@@ -77,6 +77,7 @@ public class PreviewService {
                     Instant dueAt = "recurring_todo".equals(scenarioKey)
                                     || "deadline".equals(scenarioKey)
                                     || "payment".equals(scenarioKey)
+                                    || "maintenance".equals(scenarioKey)
                             ? o.occurrenceAt()
                             : null;
                     return new Occurrence(o.occurrenceKey(), o.occurrenceAt(), dueAt);

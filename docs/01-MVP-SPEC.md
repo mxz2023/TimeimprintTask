@@ -17,6 +17,8 @@ TimeImprintTask 是通用任务平台，不把“任务”固定等同于定时�
 | [S01](scenarios/S01-reminder.md) | 通用提醒 | 创建、预览、读取、修改、暂停、恢复、退役；到时生成站内通知，无需完成确认 |
 | [S02](scenarios/S02-recurring-todo.md) | 周期待办 | 创建、预览、读取、修改、暂停、恢复、退役；实例可完成、跳过、稍后提醒和有限催办 |
 
+上表是首期范围，不因后续阶段改写。[P09](phases/P09/README.md) 另交付 [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)，仍不修改内核和公共表。
+
 首期产品形态是 API 优先的可运行后端服务。直接使用者通过 HTTP API 创建任务、查询实例/收件和诊断执行状态。普通终端用户界面不在交付范围。README、完整 API 示例、健康检查和可诊断结果属于可用性的一部分。不得把 Swagger 页面、管理后台或桌面界面加进没有单独授权的交付。
 
 P01 曾以本地固定身份运行。[P06](phases/P06/README.md) 起，公开身份只有账号：手机短信验证后注册，再用手机号密码或微信登录。飞书等扫码登录仍不实现。[P07](phases/P07/README.md) 起，`live` 模式下网页微信登录使用扫码地址和一次性 state；自动化测试仍用捕获模式，不访问微信。本地开发与自动化测试使用各自账号，不再使用固定 actor 或调试头。身份由外层会话构造 ActorContext，核心业务代码不得硬编码某个用户或绕过 Policy。本期仍不是多租户，也不把生产网络安全验收算作已经通过。
@@ -105,6 +107,7 @@ S01、S02 共用 `capability-calendar` 和时间 TriggerProvider，支持：
 
 - [S01 通用提醒](scenarios/S01-reminder.md)：拥有`reminder`的配置、状态、通知、控制操作和追赶结果语义。
 - [S02 周期待办](scenarios/S02-recurring-todo.md)：拥有`recurring_todo`的配置、状态、实例命令、通知槽位、控制操作和追赶结果语义。
+- [S03 生日与纪念日](scenarios/S03-anniversary.md)、[S04 到期管理](scenarios/S04-deadline-management.md)、[S05 缴费管理](scenarios/S05-payment-management.md)：P09 专有规则，不改变 S01/S02。
 
 场景契约拥有业务含义与默认值；[04 API契约](04-API.md)拥有HTTP线协议，[06运行协议](06-SCHEDULING.md)拥有锁、事务、租约和Worker执行方式，[07验收](07-ACCEPTANCE.md)拥有可执行证据。相同概念因实现映射需要出现在多份文档时，不得产生不同默认值或边界；变更必须按[08变更流程](08-AI-IMPLEMENTATION-TASKS.md)同步影响面。
 

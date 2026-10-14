@@ -31,6 +31,7 @@
         <module>timeimprint-task-identity</module>
         <module>timeimprint-task-service-capability-notification</module>
         <module>timeimprint-task-service-scenario-basic</module>
+        <module>timeimprint-task-service-scenario-deadline</module>
         <module>timeimprint-task-gateway</module>
         <module>timeimprint-task-web</module>
         <module>timeimprint-task-boot-loader</module>
@@ -127,6 +128,11 @@
             <dependency>
                 <groupId>cn.net.mxz</groupId>
                 <artifactId>timeimprint-task-service-scenario-basic</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.net.mxz</groupId>
+                <artifactId>timeimprint-task-service-scenario-deadline</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

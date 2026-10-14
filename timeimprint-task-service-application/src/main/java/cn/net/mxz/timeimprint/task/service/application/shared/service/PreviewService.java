@@ -60,9 +60,10 @@ public class PreviewService {
         Map<String, Object> binding = triggerBindings.get(0);
         @SuppressWarnings("unchecked")
         Map<String, Object> config = (Map<String, Object>) binding.get("config");
+        int bindingSchema = binding.get("schemaVersion") instanceof Number n ? n.intValue() : 1;
         final CalendarOccurrenceCalculator.Rule rule;
         try {
-            rule = CalendarConfigParser.parse(config);
+            rule = CalendarConfigParser.parse(config, bindingSchema);
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {
@@ -73,7 +74,11 @@ public class PreviewService {
         var occs = CalendarOccurrenceCalculator.preview(rule, after, limit).stream()
                 .map(o -> {
                     // docs/04-API.md: S01 dueAt=null；S02 dueAt=occurrenceAt
-                    Instant dueAt = "recurring_todo".equals(scenarioKey) ? o.occurrenceAt() : null;
+                    Instant dueAt = "recurring_todo".equals(scenarioKey)
+                                    || "deadline".equals(scenarioKey)
+                                    || "payment".equals(scenarioKey)
+                            ? o.occurrenceAt()
+                            : null;
                     return new Occurrence(o.occurrenceKey(), o.occurrenceAt(), dueAt);
                 })
                 .toList();

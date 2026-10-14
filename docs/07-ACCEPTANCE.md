@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，[P08](phases/P08/README.md) 已 RELEASED（标签 `v20261014-P08`，R01—R04 为 PASS，见[阶段索引](phases/README.md)）。当前没有 CURRENT 阶段。[P07](phases/P07/README.md) 已 RELEASED（标签 `v20261011-P07`）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）；P07的W01—W04与H01—H04已在[P07 DELIVERY](phases/P07/DELIVERY.md)记为PASS并RELEASED（标签`v20261011-P07`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，[P08](phases/P08/README.md) 已 RELEASED（标签 `v20261014-P08`，R01—R04 为 PASS，见[阶段索引](phases/README.md)）。[P09](phases/P09/README.md) 已 RELEASED（标签 `v20261014-P09`，D01—D05 为 PASS，D06 由全量回归覆盖）。当前没有 CURRENT 阶段。[P07](phases/P07/README.md) 已 RELEASED（标签 `v20261011-P07`）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）；P07的W01—W04与H01—H04已在[P07 DELIVERY](phases/P07/DELIVERY.md)记为PASS并RELEASED（标签`v20261011-P07`）。
 
 ## 1. 验收分层与环境
 
@@ -230,6 +230,19 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | R03 | 超时 | 空闲连接在 25 秒内收到注释心跳；注释不改变未读数；连接在 30 分钟内结束。其他 `/api/v1/` 路径的读超时仍为 120 秒 |
 | R04 | 断开与另一进程 | 没有连接时不保留待投递帧；重连后的 E12 与库中未读数一致。另一进程提交的收件，在持有连接的进程上 5 秒内出现变化帧 |
 
+## 6.5 P09 验收项（D01—D06）
+
+[P09](phases/P09/README.md) 在获得实施授权并完成后，必须用真实 MySQL 证明下列项。证据写入 P09 DELIVERY 之前不得预填 PASS。本期没有真实外部系统或界面步骤。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| D01 | 公历周年 | `YEARLY` 在闰年的 2 月 29 日和平年的 3 月 1 日各发生一次；`offsetDays=[-1,0]` 产生前一天和当天。schemaVersion 1 拒绝该类型 |
+| D02 | 锚点偏移 | `ANCHOR_OFFSETS` 只在给定偏移上发生。`dailyAfterAnchor=true` 时锚点次日继续按自然日发生 |
+| D03 | S03 | 创建公历纪念日后，提前一天和当天各有一个等待实例；修改月日会留下修订行，已触发实例不变 |
+| D04 | S04 | 所选提前天数物化为等待实例。更新到期日写入续期历史并取消旧的未发生提醒。到期日信号把主体标为 `EXPIRED`。`cancel` 后不再产生新提醒 |
+| D05 | S05 | 部分支付后状态为 `PARTIAL` 且催办仍在。同一 requestId 不重复入账。付清后定义退役且未发生提醒取消。冲正后已付归零并恢复后续窗口 |
+| D06 | 回归 | 既有 S01/S02 规则的下一次发生不变。平台公共表结构不变 |
+
 ## 7. 交付证据与总判定
 
 P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约/任务/用例编号、实现文件、实际命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际JDK/MySQL/驱动/操作系统/进程数与关键配置。重试保留所有尝试，不只显示最后一次成功；后续阶段写入各自目录的DELIVERY，不覆盖P01证据。
@@ -243,6 +256,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P08须把[R01](07-ACCEPTANCE.md)—[R04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P08须把[R01](07-ACCEPTANCE.md)—[R04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P09须把[D01](07-ACCEPTANCE.md)—[D06](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

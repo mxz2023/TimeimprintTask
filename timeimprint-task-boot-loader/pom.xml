@@ -54,6 +54,10 @@
             <artifactId>timeimprint-task-service-scenario-basic</artifactId>
         </dependency>
         <dependency>
+            <groupId>cn.net.mxz</groupId>
+            <artifactId>timeimprint-task-service-scenario-deadline</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>

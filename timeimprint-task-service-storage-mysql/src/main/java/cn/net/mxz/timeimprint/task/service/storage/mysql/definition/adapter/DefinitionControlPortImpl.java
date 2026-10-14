@@ -104,7 +104,7 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
             Map<String, Object> configMap = parseMap(binding.getConfigJson());
             final CalendarOccurrenceCalculator.Rule rule;
             try {
-                rule = CalendarConfigParser.parse(configMap);
+                rule = CalendarConfigParser.parse(configMap, binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion());
             } catch (IllegalArgumentException ex) {
                 throw new ApplicationException("INVALID_REQUEST", ex.getMessage());
             }
@@ -133,9 +133,19 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
                         now);
             }
 
-            Instant nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
-            boolean exhausted = window.isEmpty()
-                    || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
+            Instant nextFire;
+            boolean exhausted;
+            if (CalendarOccurrenceCalculator.openEnded(rule)) {
+                var beyond = CalendarOccurrenceCalculator.preview(rule, windowEnd, 1);
+                exhausted = beyond.isEmpty();
+                nextFire = beyond.isEmpty()
+                        ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
+                        : beyond.get(0).occurrenceAt();
+            } else {
+                exhausted = window.isEmpty()
+                        || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
+                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+            }
             int updated = triggerMapper.updateCursor(
                     binding.getTriggerBindingId(),
                     binding.getRevision(),

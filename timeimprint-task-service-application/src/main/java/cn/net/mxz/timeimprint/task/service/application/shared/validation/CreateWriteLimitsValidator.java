@@ -62,7 +62,7 @@ public final class CreateWriteLimitsValidator {
             Map<String, Object> configMap = parseMap(tb.configJson(), objectMapper);
             CalendarOccurrenceCalculator.Rule rule;
             try {
-                rule = CalendarConfigParser.parse(configMap);
+                rule = CalendarConfigParser.parse(configMap, tb.schemaVersion());
             } catch (IllegalArgumentException ex) {
                 return; // scenario-specific validation will surface parse errors
             }

@@ -8,6 +8,7 @@ import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculat
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.EveryNMinutes;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Weekly;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -103,6 +104,21 @@ class CalendarConfigParserTest {
         m.put("localTime", "09:00:00");
         m.put("zoneId", "Asia/Shanghai");
         return m;
+    }
+
+    @Test
+    void schema1RejectsYearlyAndSchema2AcceptsIt() {
+        Map<String, Object> yearly = new LinkedHashMap<>();
+        yearly.put("type", "YEARLY");
+        yearly.put("startDate", "2024-02-29");
+        yearly.put("month", 2);
+        yearly.put("dayOfMonth", 29);
+        yearly.put("offsetDays", List.of(-1, 0));
+        yearly.put("localTime", "09:00:00");
+        yearly.put("zoneId", "Asia/Shanghai");
+        assertInvalid(yearly, "unknown calendar type");
+        assertTrue(CalendarConfigParser.parse(yearly, 2) instanceof
+                cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Yearly);
     }
 
     private static void assertInvalid(Map<String, Object> fields, String messageContains) {

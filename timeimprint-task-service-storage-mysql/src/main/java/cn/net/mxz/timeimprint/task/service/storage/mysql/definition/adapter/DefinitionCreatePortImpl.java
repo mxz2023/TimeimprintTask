@@ -114,7 +114,7 @@ public class DefinitionCreatePortImpl implements DefinitionCreatePort {
         Map<String, Object> configMap = parseMap(tb.configJson());
         final cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Rule rule;
         try {
-            rule = CalendarConfigParser.parse(configMap);
+            rule = CalendarConfigParser.parse(configMap, tb.schemaVersion());
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {
@@ -142,10 +142,26 @@ public class DefinitionCreatePortImpl implements DefinitionCreatePort {
         binding.setConfigHash(Sha256.digestUtf8(tb.configJson()));
         binding.setBindingState("ACTIVE");
         binding.setScheduleGeneration(1L);
-        Instant nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+        boolean openEnded = CalendarOccurrenceCalculator.openEnded(rule);
+        List<CalendarOccurrenceCalculator.Occurrence> beyond = openEnded
+                ? CalendarOccurrenceCalculator.preview(rule, cmd.windowEnd(), 1)
+                : List.of();
+        Instant nextFire;
+        boolean exhausted;
+        if (openEnded) {
+            exhausted = beyond.isEmpty();
+            if (!beyond.isEmpty()) {
+                nextFire = beyond.get(0).occurrenceAt();
+            } else {
+                nextFire = window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt();
+            }
+        } else {
+            exhausted = window.isEmpty() || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
+            nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+        }
         binding.setNextFireAt(StorageTime.toUtcLdt(nextFire));
         binding.setCursorJson("{}");
-        binding.setExhausted(window.isEmpty() || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type"))));
+        binding.setExhausted(exhausted);
         binding.setRevision(1L);
         binding.setCreatedAt(StorageTime.toUtcLdt(now));
         binding.setUpdatedAt(StorageTime.toUtcLdt(now));

@@ -7,12 +7,16 @@ import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationE
 import cn.net.mxz.timeimprint.task.service.application.definition.model.CreateDefinitionCommand;
 import cn.net.mxz.timeimprint.task.service.application.shared.port.CommandDedupRepository;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionUpdatePort;
+import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionCommitRequest;
+import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionPlanCommitter;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.shared.transaction.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.shared.validation.ParticipantCreateValidator;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
+import cn.net.mxz.timeimprint.task.service.extension.shared.context.InitialDefinitionContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
+import cn.net.mxz.timeimprint.task.service.extension.shared.result.HandlerResult;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.shared.state.ControlState;
@@ -49,6 +53,7 @@ public class DefinitionUpdateExecutor {
     private final BusinessClock clock;
     private final JsonMapper objectMapper;
     private final ParticipantCreateValidator participantCreateValidator;
+    private final TransitionPlanCommitter transitionPlanCommitter;
 
     public DefinitionUpdateExecutor(
             ActorContextProvider actorContextProvider,
@@ -59,7 +64,8 @@ public class DefinitionUpdateExecutor {
             TransactionBoundary tx,
             BusinessClock clock,
             JsonMapper objectMapper,
-            ParticipantCreateValidator participantCreateValidator) {
+            ParticipantCreateValidator participantCreateValidator,
+            TransitionPlanCommitter transitionPlanCommitter) {
         this.actorContextProvider = actorContextProvider;
         this.definitionRepository = definitionRepository;
         this.commandDedupRepository = commandDedupRepository;
@@ -69,6 +75,7 @@ public class DefinitionUpdateExecutor {
         this.clock = clock;
         this.objectMapper = objectMapper;
         this.participantCreateValidator = participantCreateValidator;
+        this.transitionPlanCommitter = transitionPlanCommitter;
     }
 
     public DefinitionCommandService.CommandResult execute(
@@ -159,6 +166,17 @@ public class DefinitionUpdateExecutor {
                     parsed.triggerBindings(),
                     now,
                     now.plus(7, ChronoUnit.DAYS)));
+            if (result.changed()) {
+                var fresh = definitionRepository
+                        .findById(definitionId)
+                        .orElseThrow(() -> new ApplicationException("RESOURCE_NOT_FOUND", "definition"));
+                var synced = ext.planInitialDefinition(new InitialDefinitionContext(fresh));
+                if (synced instanceof HandlerResult.Applied applied
+                        && !applied.plan().scenarioDataMutations().isEmpty()) {
+                    transitionPlanCommitter.commit(new TransitionCommitRequest(
+                            applied.plan(), definitionId, null, "SYSTEM", "sync_subject"));
+                }
+            }
 
             commandDedupRepository.complete(
                     actor.tenantKey(),
@@ -305,7 +323,7 @@ public class DefinitionUpdateExecutor {
             throw new ApplicationException("INVALID_REQUEST", "invalid trigger config json");
         }
         try {
-            CalendarConfigParser.parse(config);
+            CalendarConfigParser.parse(config, tb.schemaVersion());
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {

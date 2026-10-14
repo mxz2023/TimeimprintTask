@@ -1,40 +1,58 @@
-# S04 · 到期管理规划
+# S04 · 到期管理
 
-> 本文是S04的长期规划入口，不是可编码契约。当前`OUTLINE + NOT_STARTED`。
+> 本文是 `scenarioKey=deadline` 的永久业务规则。当前契约可供 [P09](../phases/P09/README.md) 编码。
 
 | 项目 | 值 |
 | --- | --- |
-| scenarioKey | 未确定 |
-| 目标模块 | `timeimprint-task-service-scenario-deadline` |
-| planningPosition | NEXT_REVIEW |
-| contractStatus | OUTLINE |
-| implementationStatus | NOT_STARTED |
-| 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md) |
+| 场景编号 | S04 |
+| scenarioKey | `deadline` |
+| 首次交付阶段 | P09 |
+| planningPosition | P09 |
+| contractStatus | READY_FOR_IMPLEMENTATION |
+| implementationStatus | VERIFIED |
+| 配置 schemaVersion | 1 |
+| 所属模块 | `timeimprint-task-service-scenario-deadline` |
+| 依赖能力 | [calendar](../capabilities/CAP01-calendar.md) 的 [CAL-09](../capabilities/CAP01-calendar.md)；[notification](../capabilities/CAP03-notification.md) |
+| 明确不做 | [CAL-13](../capabilities/CAP01-calendar.md)。取消和续期是本场景生命周期，不是日历 `endAt` |
 
 ## 具体事例
 
-本节帮助理解规划用途，不是可编码契约。提前几天、续期后生成新对象还是更新原对象，仍以「编码前必须决定」为准。
+- 护照 2027-03-01 到期：从 30、7、1、0 天里选出若干次提醒。
+- 续期后仍能看到上一次到期日，未来提醒按新到期日重算。
+- 到期日当天仍未续期则标为已过期，不再继续提醒。
 
-- 护照2027年3月1日到期：提前30天和7天提醒，续期后仍能看到这本证件以前的到期记录。
-- 驾驶证到期前分几次提醒，过期后标记为已过期。
-- 家电保修期结束前提醒，可以选择续保或不再跟进。
-- 域名或软件订阅即将到期，续费后进入下一有效期。
-- 租赁合同到期前提醒，改期后按新的到期日重新计算提醒。
-- 把尚未到期的提醒暂停；已经到期并处理完的历史保持不变。
-- 取消一件不再需要跟踪的证件，停止它未来的到期提醒。
+没有证件对象的一次性提醒继续使用 [S01](S01-reminder.md)。
 
-只响一次、又不保存证件或合同对象的提醒，继续使用 [S01](S01-reminder.md)。
+## 1. 配置
 
-## 已规划内容
+每个定义一个到期对象，只有一个 calendar 绑定：`schemaVersion=2`，`type=ANCHOR_OFFSETS`，`dailyAfterAnchor=false`。`anchorDate` 等于 `dueDate`。`offsetDays` 是 `{30,7,1,0}` 的非空子集，写成负数或 0（30 天前提醒为 `-30`），1—4 个，不允许重复。
 
-管理合同、证件、订阅和保修等有明确到期日的业务对象，支持到期前多阶段提醒、续期、改期和取消。它不同于S01普通提醒：到期对象、有效期限和续期历史属于持续业务事实。
+`scenarioConfig` 字段：
 
-## 编码前必须决定
+| 字段 | 规则 |
+| --- | --- |
+| subjectType | `DOCUMENT`、`CONTRACT`、`SUBSCRIPTION`、`WARRANTY` |
+| dueDate | `yyyy-MM-dd` |
+| offsetDays | 与绑定中的偏移一致，但是非负天数 `30/7/1/0` |
+| localTime | `HH:mm:ss` |
 
-- 对象类型、必填字段、到期/过期/已续期/已取消状态。
-- 提前30/7/1天等时间点是否固定、可配置以及错过后的处理。
-- 续期创建新对象还是更新同一对象，历史如何保留。
-- 改期、暂停、恢复、退役对已生成提醒和到期状态的影响。
-- 所有者、接收人、权限、专有表、scenarioKey、schema和验收。
+## 2. 状态与命令
 
-所需CAL-09/CAL-13目前是OUTLINE。进入实施前必须先完成能力契约，不得把提前提醒逻辑直接写成S04专用调度分支。
+主体状态：`ACTIVE`、`EXPIRED`、`CANCELLED`。
+
+| 场景状态 | 平台生命周期 | 含义 |
+| --- | --- | --- |
+| `PLANNED` | `WAITING` | 未到点 |
+| `TRIGGERED` | `TERMINAL` | 提前提醒已发出 |
+| `EXPIRED` | `TERMINAL` | 到期日当天的实例；同时把主体标为 `EXPIRED` |
+| `CANCELLED` | `TERMINAL` | 未发生提醒被取消 |
+
+实例命令只有 `cancel`（commandSchemaVersion 1，载荷为空对象）：主体变为 `CANCELLED`，定义退役，尚未发生的提醒取消。
+
+续期不是单独命令。调用定义 `update`，给出新的 `dueDate` 和对应绑定。同一事务把旧到期日写入 `tt_deadline_renewal`，主体保持 `ACTIVE`，并重算未来提醒。已经终态的实例不改写。
+
+到期日当天的信号若主体仍是 `ACTIVE`，实例进入 `EXPIRED`，主体进入 `EXPIRED`，不再生成更晚的提醒（绑定没有锚点之后的每日发生）。
+
+## 3. 专有表
+
+`tt_deadline_subject` 每个定义一行。`tt_deadline_renewal` 追加旧到期日与新到期日。暂停和退役沿用平台控制语义。

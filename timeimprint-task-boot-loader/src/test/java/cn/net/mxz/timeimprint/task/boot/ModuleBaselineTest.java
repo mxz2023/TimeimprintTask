@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * 确认批准的 15 个平级模块目录存在（含 P06 新增的 identity）。
+ * 确认批准的平级模块目录存在（含 P06 identity 与 P09 scenario-deadline）。
  */
 class ModuleBaselineTest {
 
@@ -25,6 +25,7 @@ class ModuleBaselineTest {
             "timeimprint-task-identity",
             "timeimprint-task-service-capability-notification",
             "timeimprint-task-service-scenario-basic",
+            "timeimprint-task-service-scenario-deadline",
             "timeimprint-task-gateway",
             "timeimprint-task-web",
             "timeimprint-task-boot-loader");

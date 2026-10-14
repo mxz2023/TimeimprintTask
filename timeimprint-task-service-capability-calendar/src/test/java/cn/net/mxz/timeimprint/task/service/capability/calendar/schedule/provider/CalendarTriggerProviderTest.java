@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provide
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -26,5 +27,8 @@ class CalendarTriggerProviderTest {
                 "signalKey/5",
                 "supportedSchemaVersions/0"), actual);
         assertFalse(actual.isEmpty());
+        CalendarTriggerProvider provider = new CalendarTriggerProvider(() -> java.time.Instant.parse("2026-01-01T00:00:00Z"));
+        assertTrue(provider.supportedSchemaVersions().contains(1));
+        assertTrue(provider.supportedSchemaVersions().contains(2));
     }
 }

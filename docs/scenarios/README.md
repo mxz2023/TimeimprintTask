@@ -14,9 +14,9 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | S01 | 通用提醒 | `reminder` | basic / `scenario-basic` | P01 | RELEASED | VERIFIED | calendar、notification | [S01](S01-reminder.md) |
 | S02 | 周期待办 | `recurring_todo` | basic / `scenario-basic` | P01 | RELEASED | VERIFIED | calendar、notification | [S02](S02-recurring-todo.md) |
-| S03 | 生日与纪念日 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、notification | [S03](S03-anniversary.md) |
-| S04 | 到期管理 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、notification | [S04](S04-deadline-management.md) |
-| S05 | 缴费管理 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、trigger、notification、integration | [S05](S05-payment-management.md) |
+| S03 | 生日与纪念日 | `anniversary` | deadline / `scenario-deadline` | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | calendar、notification | [S03](S03-anniversary.md) |
+| S04 | 到期管理 | `deadline` | deadline / `scenario-deadline` | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | calendar、notification | [S04](S04-deadline-management.md) |
+| S05 | 缴费管理 | `payment` | deadline / `scenario-deadline` | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | calendar、notification | [S05](S05-payment-management.md) |
 | S06 | 会议管理 | 未确定 | collaboration / `scenario-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | calendar、collaboration、notification、integration | [S06](S06-meeting-management.md) |
 | S07 | 团队共享任务 | 未确定 | collaboration / `scenario-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | collaboration、notification | [S07](S07-shared-team-task.md) |
 | S08 | 轮值与交接 | 未确定 | collaboration / `scenario-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | calendar、collaboration、workflow、notification | [S08](S08-duty-handover.md) |
@@ -30,7 +30,7 @@
 | S16 | 外部日历同步 | 未确定 | automation / `scenario-automation` | BACKLOG | OUTLINE | NOT_STARTED | integration、trigger、calendar | [S16](S16-external-calendar-sync.md) |
 | S17 | 智能创建入口 | 不适用；默认不注册场景 | 不新增场景模块 | BACKLOG | OUTLINE | NOT_STARTED | intelligence及目标场景能力 | [S17](S17-intelligent-creation.md) |
 
-S01/S02 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。其余场景在进入 CURRENT 阶段并获授权前不得编码；S03/S04/S05/S14 只是下一批优先评审对象，不是 P02 范围或实施许可。
+S01/S02 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。[S03](S03-anniversary.md)、[S04](S04-deadline-management.md)、[S05](S05-payment-management.md) 已由 [P09 DELIVERY](../phases/P09/DELIVERY.md) 验收为 VERIFIED。阶段已随标签 `v20261014-P09` 发布。S14 仍是 NEXT_REVIEW，不是本期许可。其余场景在进入 CURRENT 阶段并获授权前不得编码。
 
 READY或RELEASED场景的`Sxx-<scenario-key>.md`是其业务含义、默认配置和行为边界的唯一正式来源。OUTLINE文件是长期规划入口，明确保存已知内容与未知问题，但不是可编码契约。各文件中的「具体事例」只帮助理解用途；与正文冲突时以正文为准，事例不单独构成可编码规则。跨场景公共规则写入01—03，通用能力规则写入[capabilities](../capabilities/README.md)，HTTP线协议写入04，数据与运行实现规则写入05—06，可执行证据写入07。
 

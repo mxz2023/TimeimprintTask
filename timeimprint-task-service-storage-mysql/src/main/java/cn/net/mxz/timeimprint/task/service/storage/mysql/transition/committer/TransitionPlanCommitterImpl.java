@@ -100,6 +100,9 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
             } else if ("ACTIVE".equals(newControlState) && "PAUSED".equals(defRow.getControlState())) {
                 newControlGen = controlGeneration + 1;
                 pausedAt = null;
+            } else if ("ACTIVE".equals(newControlState) && "RETIRED".equals(defRow.getControlState())) {
+                newControlGen = controlGeneration + 1;
+                retiredAt = null;
             }
             int updated = definitionMapper.updateRevision(
                     request.definitionId(),
@@ -216,6 +219,22 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
             transitionMapper.insert(tr);
             transitionId = tr.getTransitionId();
             affectedRows++;
+            if (defTransition == null) {
+                int bumped = definitionMapper.updateRevision(
+                        request.definitionId(),
+                        defRow.getRevision(),
+                        defRow.getRevision() + 1,
+                        defRow.getControlState(),
+                        controlGeneration,
+                        "SYSTEM",
+                        now,
+                        defRow.getPausedAt(),
+                        defRow.getRetiredAt());
+                if (bumped == 0) {
+                    throw new IllegalStateException("CAS failed for definition " + request.definitionId());
+                }
+                affectedRows += bumped;
+            }
         }
 
         affectedRows = sideEffectWriter.write(

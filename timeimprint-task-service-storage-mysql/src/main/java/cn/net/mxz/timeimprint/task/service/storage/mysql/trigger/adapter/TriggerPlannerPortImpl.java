@@ -116,7 +116,8 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
         String bindingKey = binding.getBindingKey();
 
         Map<String, Object> configMap = parseMap(binding.getConfigJson());
-        CalendarOccurrenceCalculator.Rule rule = CalendarConfigParser.parse(configMap);
+        int schemaVersion = binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion();
+        CalendarOccurrenceCalculator.Rule rule = CalendarConfigParser.parse(configMap, schemaVersion);
 
         Instant cursor = binding.getNextFireAt() != null
                 ? StorageTime.toInstant(binding.getNextFireAt()).minus(1, ChronoUnit.SECONDS)
@@ -226,11 +227,19 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
             }
         }
 
-        boolean exhausted = occurrences.isEmpty() || generated < maxPerBinding;
-        if ("ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")))) {
-            exhausted = true;
+        boolean exhausted;
+        Instant nextFireAt;
+        if (CalendarOccurrenceCalculator.openEnded(rule)) {
+            var beyond = CalendarOccurrenceCalculator.preview(rule, windowEnd, 1);
+            exhausted = beyond.isEmpty();
+            nextFireAt = beyond.isEmpty() ? lastOccurrence : beyond.get(0).occurrenceAt();
+        } else {
+            exhausted = occurrences.isEmpty() || generated < maxPerBinding;
+            if ("ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")))) {
+                exhausted = true;
+            }
+            nextFireAt = lastOccurrence != null ? lastOccurrence.plusSeconds(1) : null;
         }
-        Instant nextFireAt = lastOccurrence != null ? lastOccurrence.plusSeconds(1) : null;
         bindingMapper.updateCursor(
                 bindingId,
                 binding.getRevision(),

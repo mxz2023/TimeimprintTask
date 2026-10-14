@@ -139,4 +139,29 @@ class CalendarOccurrenceCalculatorTest {
         assertEquals(2, list.size());
         assertEquals("20260913T020000Z", list.get(0).occurrenceKey());
     }
+
+    @Test
+    void yearlyLeapDayFallsOnMarch1InCommonYear() {
+        var zone = CalendarOccurrenceCalculator.BUSINESS_ZONE;
+        var rule = new CalendarOccurrenceCalculator.Yearly(
+                LocalDate.of(2024, 2, 29), 2, 29, List.of(-1, 0), LocalTime.of(9, 0, 0), zone);
+        List<Occurrence> leap = CalendarOccurrenceCalculator.preview(rule, Instant.parse("2024-01-01T00:00:00Z"), 2);
+        assertEquals("20240228T010000Z", leap.get(0).occurrenceKey());
+        assertEquals("20240229T010000Z", leap.get(1).occurrenceKey());
+        List<Occurrence> common = CalendarOccurrenceCalculator.preview(rule, Instant.parse("2025-01-01T00:00:00Z"), 2);
+        assertEquals("20250228T010000Z", common.get(0).occurrenceKey());
+        assertEquals("20250301T010000Z", common.get(1).occurrenceKey());
+    }
+
+    @Test
+    void anchorOffsetsThenDaily() {
+        var zone = CalendarOccurrenceCalculator.BUSINESS_ZONE;
+        var rule = new CalendarOccurrenceCalculator.AnchorOffsets(
+                LocalDate.of(2026, 10, 20), List.of(-1, 0), true, LocalTime.of(9, 0, 0), zone);
+        List<Occurrence> list = CalendarOccurrenceCalculator.preview(rule, Instant.parse("2026-10-01T00:00:00Z"), 4);
+        assertEquals("20261019T010000Z", list.get(0).occurrenceKey());
+        assertEquals("20261020T010000Z", list.get(1).occurrenceKey());
+        assertEquals("20261021T010000Z", list.get(2).occurrenceKey());
+        assertEquals("20261022T010000Z", list.get(3).occurrenceKey());
+    }
 }

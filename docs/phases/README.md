@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-当前阶段是 [P10 保养与复查](P10/README.md)，总体状态 VERIFYING。
+当前没有 CURRENT 阶段。
 
 ## 已发布阶段
 
@@ -19,10 +19,11 @@
 | [P07 微信扫码与小时分钟间隔](P07/README.md) | RELEASED | [DELIVERY](P07/DELIVERY.md)；Git 标签 `v20261011-P07`；人工验收 2026-10-11 |
 | [P08 站内信实时提示](P08/README.md) | RELEASED | [DELIVERY](P08/DELIVERY.md)；Git 标签 `v20261014-P08`；人工验收 2026-10-13 |
 | [P09 生日、到期与缴费](P09/README.md) | RELEASED | [DELIVERY](P09/DELIVERY.md)；Git 标签 `v20261014-P09`；用户于 2026-10-14 确认可以发布 |
+| [P10 保养与复查](P10/README.md) | RELEASED | [DELIVERY](P10/DELIVERY.md)；Git 标签 `v20261014-P10`；用户于 2026-10-14 确认可以发布 |
 
 ## 未来阶段
 
-[S14](../scenarios/S14-maintenance-follow-up.md) 已选入 P10。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已随 P09 发布。
+C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。
 
 ## 更新规则
 

@@ -17,4 +17,4 @@
 | DRAFT → READY | 契约与必要人工步骤已写入；用户于 2026-10-14 确认口径 |
 | READY → IMPLEMENTING | 同一天用户要求完成 S14 |
 | IMPLEMENTING → VERIFYING | 2026-10-14：T02—T03 完成，真库命令见 [DELIVERY](DELIVERY.md) |
-| VERIFYING → RELEASED | 用户确认可以发布 |
+| VERIFYING → RELEASED | 2026-10-14 用户确认可以发布；标签 `v20261014-P10`（已完成） |

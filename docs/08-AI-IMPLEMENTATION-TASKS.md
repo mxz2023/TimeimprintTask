@@ -114,4 +114,4 @@ docs/phases/Pxx/
 
 ## 8. 当前阶段
 
-[P08](phases/P08/README.md)（站内信实时提示）已于 2026-10-14 人工验收通过并 RELEASED（标签 `v20261014-P08`）。证据见[DELIVERY](phases/P08/DELIVERY.md)，R01—R04 为 PASS。[P09](phases/P09/README.md)（生日、到期与缴费）为 CURRENT / VERIFYING。[P01](phases/P01/README.md)—[P08](phases/P08/README.md) 均已冻结。不得改写已冻结阶段。
+[P08](phases/P08/README.md)（站内信实时提示）已于 2026-10-14 人工验收通过并 RELEASED（标签 `v20261014-P08`）。证据见[DELIVERY](phases/P08/DELIVERY.md)，R01—R04 为 PASS。[P09](phases/P09/README.md)（生日、到期与缴费）已于 2026-10-14 RELEASED（标签 `v20261014-P09`）。证据见[DELIVERY](phases/P09/DELIVERY.md)，D01—D05 为 PASS，D06 由全量回归覆盖。当前没有 CURRENT 阶段。[P01](phases/P01/README.md)—[P09](phases/P09/README.md) 均已冻结。不得改写已冻结阶段。

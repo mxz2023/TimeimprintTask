@@ -9,17 +9,19 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P09 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P08；Git 标签 `v20261014-P08` |
 | baselineGitRef | `e5c3906045e01175788f4e665489884f7c9abdcd` |
-| 工程状态 | VERIFYING |
-| Git发布标签 | 未发布 |
-| 下一动作 | 用户确认可以发布后再标 RELEASED |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261014-P09`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-14 用户确认可以发布。本期无真实外部系统或界面步骤，已在批准计划时确认 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
+| 交付证据 | [DELIVERY](DELIVERY.md)：[D01](../../07-ACCEPTANCE.md)—[D05](../../07-ACCEPTANCE.md) 为 PASS；[D06](../../07-ACCEPTANCE.md) 由全量回归覆盖 |
 
-用户于 2026-10-14 批准 P09 计划并要求按该计划实施。P01—P08 已冻结，不得改写。
+用户于 2026-10-14 批准 P09 计划并要求按该计划实施，同日确认可以发布。阶段已 RELEASED（标签 `v20261014-P09`）。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。P01—P08 已冻结，不得改写。
 
 ## 2. 已接受口径
 

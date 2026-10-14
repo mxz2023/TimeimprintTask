@@ -16,11 +16,11 @@
 | 已发布P06 | 不新增场景 | [C13](capabilities/README.md) 账号子集（[COL-01](capabilities/CAP04-collaboration.md)） | [P06](phases/P06/README.md) RELEASED（标签 `v20261010-P06`）：账号登录、短信验证与微信捕获登录；人工验收 2026-10-10 |
 | 已发布P07 | 不新增场景 | calendar 的 CAL-15、CAL-16 | [P07](phases/P07/README.md) RELEASED（标签 `v20261011-P07`）：网页微信扫码与小时、分钟间隔；人工验收 2026-10-11 |
 | 已发布P08 | 不新增场景 | notification 的 NOT-08 | [P08](phases/P08/README.md) RELEASED（标签 `v20261014-P08`）：站内信事件流；人工验收 2026-10-13 |
-| 当前 P09 | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md) | CAL-09 与 CAL-06 的公历 YEARLY 子集 | [P09](phases/P09/README.md) VERIFYING。农历、真实支付和 CAL-13 不在本期 |
+| 已发布P09 | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md) | CAL-09 与 CAL-06 的公历 YEARLY 子集 | [P09](phases/P09/README.md) RELEASED（标签 `v20261014-P09`）。农历、真实支付和 CAL-13 不在本期 |
 | NEXT_REVIEW | [S14](scenarios/S14-maintenance-follow-up.md) | CAL-10、CAL-13；C12 其余 IM | 不自动进入实施 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。当前 CURRENT 阶段是 [P09](phases/P09/README.md)。S14 仍须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。当前没有 CURRENT 阶段。S14 仍须另建阶段并授权。
 
 ## 2. S01—S17总览
 
@@ -166,6 +166,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-13 | P08、NOT-08、R01—R04 | 写入 [DELIVERY](phases/P08/DELIVERY.md) | 真库与双进程退出码 0；用户已在页面收到通知；[R04](07-ACCEPTANCE.md) 仍是 NOT_RUN，阶段保持 IMPLEMENTING |
 | 2026-10-14 | P08、NOT-08、R04 | [R04](07-ACCEPTANCE.md) 记为 PASS；阶段改为 VERIFYING | 直接插入收件后 6 秒内收到变化帧；未打标签 |
 | 2026-10-14 | P08、NOT-08 | 用户同意冻结；阶段 RELEASED | Git 标签 `v20261014-P08`；NOT-08 契约状态改为 RELEASED |
+| 2026-10-14 | P09、S03—S05 | 用户确认可以发布；阶段 RELEASED | Git 标签 `v20261014-P09`。本期无真实外部系统或界面步骤 |
 
 ## 8. 下一场景进入实施的检查
 

@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 说明 |
-| --- | --- | --- |
-| [P09 生日、到期与缴费](P09/README.md) | CURRENT / VERIFYING | S03 公历、S04 到期、S05 人工缴费。证据见 [DELIVERY](P09/DELIVERY.md) |
+当前没有 CURRENT 阶段。
 
 ## 已发布阶段
 
@@ -20,10 +18,11 @@
 | [P06 多用户账号](P06/README.md) | RELEASED | [DELIVERY](P06/DELIVERY.md)；Git 标签 `v20261010-P06`；人工验收 2026-10-10 |
 | [P07 微信扫码与小时分钟间隔](P07/README.md) | RELEASED | [DELIVERY](P07/DELIVERY.md)；Git 标签 `v20261011-P07`；人工验收 2026-10-11 |
 | [P08 站内信实时提示](P08/README.md) | RELEASED | [DELIVERY](P08/DELIVERY.md)；Git 标签 `v20261014-P08`；人工验收 2026-10-13 |
+| [P09 生日、到期与缴费](P09/README.md) | RELEASED | [DELIVERY](P09/DELIVERY.md)；Git 标签 `v20261014-P09`；用户于 2026-10-14 确认可以发布 |
 
 ## 未来阶段
 
-S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已进入当前 P09，不自动包含 S14。
+S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已随 P09 发布，不自动包含 S14。
 
 ## 更新规则
 

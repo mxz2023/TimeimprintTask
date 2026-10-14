@@ -18,4 +18,4 @@
 | DRAFT → READY | 契约与必要人工步骤已写入；用户于 2026-10-14 批准计划 |
 | READY → IMPLEMENTING | 同一天用户要求按计划实施 |
 | IMPLEMENTING → VERIFYING | 2026-10-14：T02—T04 完成，真库命令见 [DELIVERY](DELIVERY.md) |
-| VERIFYING → RELEASED | T04 通过且用户确认可以发布 |
+| VERIFYING → RELEASED | 2026-10-14 用户确认可以发布；标签 `v20261014-P09`（已完成） |

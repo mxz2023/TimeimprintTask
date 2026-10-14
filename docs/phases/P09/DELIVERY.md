@@ -3,7 +3,7 @@
 > 本文只记录已经执行的命令和结果。阶段身份见 [README](README.md)。任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 recordedAtUtc: 2026-10-13T18:09:41Z
-阶段状态: VERIFYING。真库回归已通过。尚未 RELEASED，等待用户确认可以发布。
+阶段状态: RELEASED（2026-10-14 用户确认可以发布；Git 标签 `v20261014-P09`；本文此后不再改写）。本期无真实外部系统或界面步骤，已在批准计划时确认。D01—D05 为 PASS。D06 由本次全量回归覆盖既有场景且未改平台公共表。
 
 ## 1. 环境
 

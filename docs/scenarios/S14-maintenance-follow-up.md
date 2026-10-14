@@ -1,42 +1,62 @@
-# S14 · 保养与复查规划
+# S14 · 保养与复查
 
-> 本文是S14的长期规划入口，不是可编码契约。当前`OUTLINE + NOT_STARTED`。
+> 本文是 `scenarioKey=maintenance` 的永久业务规则。当前契约可供 [P10](../phases/P10/README.md) 编码。外部完成回传不在本期。
 
 | 项目 | 值 |
 | --- | --- |
-| scenarioKey | 未确定 |
-| 目标模块 | `timeimprint-task-service-scenario-deadline` |
-| planningPosition | NEXT_REVIEW |
-| contractStatus | OUTLINE |
-| implementationStatus | NOT_STARTED |
-| 依赖能力 | [calendar](../capabilities/CAP01-calendar.md)、[notification](../capabilities/CAP03-notification.md)；完成事件驱动时增加[trigger](../capabilities/CAP02-trigger.md) |
+| 场景编号 | S14 |
+| scenarioKey | `maintenance` |
+| 首次交付阶段 | P10 |
+| planningPosition | P10 |
+| contractStatus | READY_FOR_IMPLEMENTATION |
+| implementationStatus | VERIFIED |
+| 配置 schemaVersion | 1 |
+| 所属模块 | `timeimprint-task-service-scenario-deadline` |
+| 依赖能力 | [calendar](../capabilities/CAP01-calendar.md) 的 `ANCHOR_OFFSETS`；[notification](../capabilities/CAP03-notification.md) |
+| 明确不做 | [CAP02](../capabilities/CAP02-trigger.md) 外部完成、[CAL-10](../capabilities/CAP01-calendar.md) 农历、[CAL-13](../capabilities/CAP01-calendar.md) 结束条件、按自然月进位、跳过命令 |
 
 ## 具体事例
 
-本节帮助理解规划用途，不是可编码契约。下一次从哪一个完成事实起算、跳过是否产生下一次，仍以「编码前必须决定」为准。
+- 9 月 2 日换完滤芯，间隔 90 天：下一次是 12 月 1 日。本期把「三个月」写成调用方给出的天数，例如 90。
+- 9 月 2 日完成、间隔 3 天：下一次是 9 月 5 日。
+- 原计划 9 月 2 日，实际 9 月 6 日才完成：下一次从 9 月 6 日起算。
+- 到期日只提醒。未完成不自动产生下一次。
+- 对同一实例再执行一次 `complete`，不新增完成历史，也不再推进。
 
-- 9月2日换完滤芯：从这一天再数90天，提醒下一次更换。
-- 检查在9月2日完成，间隔3天，下一次是9月5日。
-- 体检做完后，按实际检查日安排三个月后的复查。
-- 原计划9月2日保养，实际9月6日才做完：下一次从9月6日起算。
-- 这次保养被跳过：按事先约定决定是不产生下一次，还是仍按原计划日起算。
-- 完成后由外部系统回传「已完成」，再安排下一次；重复的完成回传只采信一次。
-- 暂停期间完成了一次保养，恢复后要能分清这次是否已经作为下一次的起点。
+每周一固定保养、与上次完成日无关的待办，继续使用 [S02](S02-recurring-todo.md)。
 
-每周一固定保养、与上次实际完成日无关的待办，使用 [S02](S02-recurring-todo.md)。
+## 1. 配置
 
-## 已规划内容
+每个定义一条持续保养对象，只有一个 calendar 绑定：`schemaVersion=2`，`type=ANCHOR_OFFSETS`，`dailyAfterAnchor=false`，`offsetDays=[0]`。`anchorDate` 等于 `nextDueDate`，`localTime` 与配置一致，`zoneId` 为 `Asia/Shanghai`。
 
-覆盖换滤芯完成后90天再提醒、检查完成后安排复查等业务。下一次以实际完成时间为基准，例如9月2日完成、间隔3天得到9月5日；它不同于固定9月1/4/7日循环。
+`scenarioConfig` 字段只有：
 
-可以评估在S02基础上兼容扩展，但不能破坏S02固定时间锚点和历史实例语义。
+| 字段 | 规则 |
+| --- | --- |
+| subjectName | 1—40 个字符 |
+| intervalDays | 1—3650 的自然日 |
+| nextDueDate | `yyyy-MM-dd`，当前这一轮的到期日 |
+| localTime | `HH:mm:ss` |
 
-## 编码前必须决定
+未知字段整体拒绝。`update` 可以改 `subjectName` 和 `localTime`，并同步绑定时刻。`update` 不得修改 `intervalDays` 或 `nextDueDate`；这样的请求整笔回滚。下一次日期只由 `complete` 写入。
 
-- 完成事件来自人工命令还是外部系统，以及重复/更正/撤销。
-- 间隔按自然日、工作日还是精确时长，完成时间取哪一事实。
-- 延迟完成、跳过、未完成、暂停和退役是否产生下一次。
-- 一条持续定义还是完成后创建新定义/实例链，以及历史关联。
-- scenarioKey、schema、状态、专有数据、通知和验收。
+## 2. 状态与命令
 
-进入实施前必须明确是新增场景还是S02兼容版本；任何选择都要保持旧S02数据和行为不变。
+主体保持 `ACTIVE`。暂停和退役沿用平台控制：暂停取消未发生实例，已记下的完成日和下一次日期保留；恢复后按当前锚点重建窗口。退役后不再产生提醒。
+
+| 场景状态 | 平台生命周期 | 含义 |
+| --- | --- | --- |
+| `PLANNED` | `WAITING` | 未到点 |
+| `REMINDED` | `WAITING` | 到期日提醒已提交，这一轮仍待完成 |
+| `COMPLETED` | `TERMINAL` | 这一轮已完成 |
+| `CANCELLED` | `TERMINAL` | 暂停或退役取消的未发生实例 |
+
+实例命令只有 `complete`（commandSchemaVersion 1，载荷为空对象）。定义必须是 `ACTIVE`，实例必须是 `PLANNED` 或 `REMINDED`。完成日是命令时刻在北京时间的日期。下一次到期日等于完成日加 `intervalDays`。同一实例再次 `complete` 返回不变更。不提供跳过命令；未完成的轮次保持原到期日。
+
+到期日信号只把 `PLANNED` 改为 `REMINDED`，生命周期仍是 `WAITING`，并提交一条站内信。正文为「今天该保养：」加对象名。已经终态的实例不改写。
+
+## 3. 专有表
+
+`tt_maintenance_subject` 每个定义一行。`tt_maintenance_completion` 按实例追加完成日、完成前到期日和下一次到期日。同一实例最多一行。预览的 `dueAt` 等于该次 `occurrenceAt`。
+
+完成命令在同一事务更新专有表、定义上的 `scenarioConfig` 和日历绑定锚点，并按新锚点重建未来窗口。这不新增平台公共表列。

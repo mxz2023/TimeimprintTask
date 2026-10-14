@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-当前没有 CURRENT 阶段。
+当前阶段是 [P10 保养与复查](P10/README.md)，总体状态 VERIFYING。
 
 ## 已发布阶段
 
@@ -22,7 +22,7 @@
 
 ## 未来阶段
 
-S14 仍在 [09演进路线](../09-SCENARIO-ROADMAP.md) 的 NEXT_REVIEW。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已随 P09 发布，不自动包含 S14。
+[S14](../scenarios/S14-maintenance-follow-up.md) 已选入 P10。C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S03—S05 已随 P09 发布。
 
 ## 更新规则
 

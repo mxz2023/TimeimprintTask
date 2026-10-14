@@ -17,10 +17,10 @@
 | 已发布P07 | 不新增场景 | calendar 的 CAL-15、CAL-16 | [P07](phases/P07/README.md) RELEASED（标签 `v20261011-P07`）：网页微信扫码与小时、分钟间隔；人工验收 2026-10-11 |
 | 已发布P08 | 不新增场景 | notification 的 NOT-08 | [P08](phases/P08/README.md) RELEASED（标签 `v20261014-P08`）：站内信事件流；人工验收 2026-10-13 |
 | 已发布P09 | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md) | CAL-09 与 CAL-06 的公历 YEARLY 子集 | [P09](phases/P09/README.md) RELEASED（标签 `v20261014-P09`）。农历、真实支付和 CAL-13 不在本期 |
-| NEXT_REVIEW | [S14](scenarios/S14-maintenance-follow-up.md) | CAL-10、CAL-13；C12 其余 IM | 不自动进入实施 |
+| CURRENT | [P10](phases/P10/README.md) / [S14](scenarios/S14-maintenance-follow-up.md) | 保养与复查；不改 kernel 与平台公共表 | VERIFYING |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。当前没有 CURRENT 阶段。S14 仍须另建阶段并授权。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。当前阶段是 [P10](phases/P10/README.md)（保养与复查），总体状态 VERIFYING。
 
 ## 2. S01—S17总览
 
@@ -39,7 +39,7 @@ P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复�
 | S11 | 事件跟进 | BACKLOG | OUTLINE | NOT_STARTED | [S11](scenarios/S11-event-follow-up.md) |
 | S12 | 条件监控 | BACKLOG | OUTLINE | NOT_STARTED | [S12](scenarios/S12-condition-monitoring.md) |
 | S13 | 汇总提醒 | BACKLOG | OUTLINE | NOT_STARTED | [S13](scenarios/S13-digest-reminder.md) |
-| S14 | 保养与复查 | NEXT_REVIEW | OUTLINE | NOT_STARTED | [S14](scenarios/S14-maintenance-follow-up.md) |
+| S14 | 保养与复查 | P10 | READY_FOR_IMPLEMENTATION | VERIFIED | [S14](scenarios/S14-maintenance-follow-up.md) |
 | S15 | 资源预约 | BACKLOG | OUTLINE | NOT_STARTED | [S15](scenarios/S15-resource-reservation.md) |
 | S16 | 外部日历同步 | BACKLOG | OUTLINE | NOT_STARTED | [S16](scenarios/S16-external-calendar-sync.md) |
 | S17 | 智能创建入口 | BACKLOG | OUTLINE | NOT_STARTED | [S17](scenarios/S17-intelligent-creation.md) |
@@ -117,7 +117,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 1. P01 的 S01、S02、稳定内核、时间Signal、IN_APP通知Action及双进程验证已完成并 RELEASED（标签 `v20260915-P01`）。
 2. 完成P02的X04工程结构与测试镜像，形成可靠的所有者测试和JSON黄金基线。
 3. P02发布后以独立阶段优先迁移X05 Jackson 3，不与包移动混合。
-4. 从NEXT_REVIEW的S03/S04/S05/S14中由用户选择真实需求；先补齐相关calendar、trigger或integration能力契约。
+4. S03/S04/S05 已随 P09 发布。S14 已进入 P10。其余场景先补齐相关能力契约，再由用户选择。
 5. P05 收敛并交付飞书 IM（C12 子集）与可配置投递渠道列表后，再按需接入其他 IM 键。
 6. 团队身份和权限明确后再评审S07/S08/S09；其余场景按依赖和真实价值推进。
 

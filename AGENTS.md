@@ -13,6 +13,8 @@
 
 修改文件前必须说明当前阶段、阶段状态、当前任务、允许范围、禁止范围、适用的`INV-*`及验证方式。找不到CURRENT阶段、存在多个CURRENT阶段、状态不允许当前操作或文档互相冲突时，必须停止实现并先修正文档或请求决策，不能自行猜测。
 
+改`actor_key`形状、`timeimprint.*`配置键或 Compose 已绑定的环境变量时，阶段允许范围必须先列入 MyStudio 的`Deploy/docker/timeimprint-task/entrypoint.sh`、`docker-compose.yml`、`docker-compose.local.yml`、`.env.example`、`.env.local.example`和`Wiki/Deploy/environment.md`，并在同一轮修改它们。`Deploy/scripts/07-run-task-acceptance.sh`须静态对照当前`actor_key`前缀与入口映射，不能只靠预置账号`local-actor`的测试。接收人或对外投递变化时，必要人工步骤必须是真实登录账号在飞书收到消息；微信扫码登录成功不能代替。不要等用户提醒。
+
 ## 权威边界
 
 - `docs/00-READING-ORDER.md`只负责导航和当前阶段入口，不替代详细契约。

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 任务接口仍用既有会话表解析令牌，并预置本机测试账号。
+ * 既有会话的 actor_key 仍是 wx-、u- 或预置 local-actor。
  * 注册、短信和微信登录已由 TimeImprintUser 提供，这里不再实现。
  */
 @Service

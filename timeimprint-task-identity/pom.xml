@@ -11,16 +11,11 @@
     </parent>
     <artifactId>timeimprint-task-identity</artifactId>
     <name>timeimprint-task-identity</name>
-    <description>Accounts, SMS codes, sessions and social bindings</description>
+    <description>Session lookup for task APIs. Account registration lives in TimeImprintUser.</description>
     <dependencies>
         <dependency>
             <groupId>cn.net.mxz</groupId>
             <artifactId>timeimprint-task-common</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.net.mxz</groupId>
-            <artifactId>timeimprint-task-adapter</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>

@@ -18,7 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** 从 Authorization Bearer 解析账号。公开任务接口没有令牌时直接 401。调试头无效。 */
+/** 从 Authorization Bearer 解析任务调用身份。公开任务接口没有令牌时直接 401。账号注册不在本服务。 */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BearerSessionFilter extends OncePerRequestFilter {
@@ -76,15 +76,7 @@ public class BearerSessionFilter extends OncePerRequestFilter {
         if (path == null || !path.startsWith("/api/v1/")) {
             return false;
         }
-        if (path.startsWith("/api/v1/users/sms")) {
-            return false;
-        }
-        return !(path.equals("/api/v1/users/register")
-                || path.equals("/api/v1/users/login")
-                || path.equals("/api/v1/users/login-authorization")
-                || path.equals("/api/v1/users/password-reset")
-                || path.startsWith("/api/v1/users/wechat/config")
-                || path.equals("/api/v1/users/wechat/callback"));
+        return true;
     }
 
     /** 内部诊断与飞书回调不走用户令牌，仍用本机配置的账号执行。 */

@@ -169,16 +169,6 @@ class ArchitectureRulesTest {
     }
 
     @Test
-    void smsAndWechatClientsStayInAdapter() {
-        assertTrue(cn.net.mxz.timeimprint.task.adapter.sms.client.TencentSmsSender.class
-                .getPackageName()
-                .startsWith("cn.net.mxz.timeimprint.task.adapter.sms.client"));
-        assertTrue(cn.net.mxz.timeimprint.task.adapter.wechat.client.WeChatOAuthClient.class
-                .getPackageName()
-                .startsWith("cn.net.mxz.timeimprint.task.adapter.wechat.client"));
-    }
-
-    @Test
     void noFeishuScanLoginSurface() {
         JavaClasses classes = productionClasses("cn.net.mxz.timeimprint.task");
         assertTrue(classes.stream().noneMatch(type -> {

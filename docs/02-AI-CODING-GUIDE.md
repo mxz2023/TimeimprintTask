@@ -42,7 +42,7 @@ P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md
 | `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 为 `feishu` 包；P06 增加短信与微信 OAuth 客户端；飞书扫码登录只留扩展、本期不实现；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application/identity） |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
 | `timeimprint-task-service-scenario-deadline` | 公历纪念日、到期对象、人工缴费、保养与复查 | extension-api、kernel、calendar、common |
-| `timeimprint-task-identity` | 账号、短信验证码记录、会话、社交绑定和注册登录事务；专有表；不解释任务状态 | adapter、common（禁止依赖 kernel/scenario/application） |
+| `timeimprint-task-identity` | 为任务接口解析既有会话令牌，并预置本机测试账号；注册、短信和微信不在本模块 | common（禁止依赖 kernel/scenario/application） |
 | `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、identity、common |
 | `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理；P05 起可调用 adapter 做飞书回调验签 | domain、gateway、common、**adapter（P05，仅回调验签）** |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |

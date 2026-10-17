@@ -29,7 +29,7 @@ export JAVA_HOME=... # JDK 21
 ./mvnw -q package
 ```
 
-修改代码后，代理用 `bash Deploy/scripts/07-run-task-acceptance.sh` 对 `tit-mysql-t01` 跑全量真库验证，先 `mysql-it`，通过后再 `dual-process-it`。单次超过 20 分钟会终止本次验证并删除容器。单元测试不受此限。
+修改代码后，代理用 `bash scripts/run-task-acceptance.sh` 对 `tit-mysql-t01` 跑全量真库验证，先 `mysql-it`，通过后再 `dual-process-it`。单次超过 20 分钟会终止本次验证并删除容器。单元测试不受此限。
 
 4. 启动（任选其一）：
 
@@ -40,7 +40,7 @@ export JAVA_HOME=... # JDK 21
 # B. jar
 export SERVER_ADDRESS=127.0.0.1
 export SERVER_PORT=18080
-export DB_JDBC_URL='jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC'
+export DB_JDBC_URL='jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC'
 export DB_USERNAME=tit
 export DB_PASSWORD=tit_local
 export INSTANCE_ID=local-1

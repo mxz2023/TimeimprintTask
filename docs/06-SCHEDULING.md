@@ -101,6 +101,8 @@ E06/E09不经过后台Signal队列，但与Signal共享同一TransitionPlan校�
 
 同requestId同摘要返回首次CommandResultView；不同摘要冲突。相同目标终态的重复命令可以由场景返回NoChange，平台不得增加revision、Transition或Action，但可以写本次新的幂等结果。相反终态或不支持命令返回冲突且不写业务结果。
 
+实例迁移计划里的 `TriggerBindingChange` 若载荷含 `bindingConfig`，提交器在同一事务用它替换该 `bindingKey` 的日历配置、把 scheduleGeneration 加一，并在载荷同时含 `scenarioConfig` 时替换定义上的场景配置。定义仍为 ACTIVE 时，实例命令管道随后调用既有未来窗口重建。不含 `bindingConfig` 的计划仍只更新 cursor，S01—S05 的发生结果不变。
+
 ### 5.1 定义级命令的事务规模
 
 `update/pause/resume/retire`由application实现，不路由TaskCommandHandler。update严格使用04的完整替换payload；锁内先规划全部7天窗口变化并估算总行数，再决定提交。

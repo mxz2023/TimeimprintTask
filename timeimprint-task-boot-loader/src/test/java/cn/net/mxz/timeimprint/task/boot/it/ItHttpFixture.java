@@ -1,6 +1,5 @@
 package cn.net.mxz.timeimprint.task.boot.it;
 
-import cn.net.mxz.timeimprint.task.identity.account.service.IdentityBootstrap;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.CookieHandler;
@@ -20,6 +19,11 @@ import javax.net.ssl.SSLParameters;
 
 /** 测试 HTTP 客户端：访问任务接口时自动带上本地开发账号令牌。已有 Authorization 时不覆盖。 */
 public final class ItHttpFixture extends HttpClient {
+
+    public static final String LOCAL_TOKEN = "it-token-local-actor";
+    public static final String TEST_TOKEN = "it-token-test-actor";
+    public static final String ACTOR_A_TOKEN = "it-token-actor-a";
+    public static final String ACTOR_B_TOKEN = "it-token-actor-b";
 
     private final HttpClient delegate = HttpClient.newHttpClient();
 
@@ -100,7 +104,7 @@ public final class ItHttpFixture extends HttpClient {
             return request;
         }
         return HttpRequest.newBuilder(request, (name, value) -> true)
-                .header("Authorization", "Bearer " + IdentityBootstrap.LOCAL_TOKEN)
+                .header("Authorization", "Bearer " + LOCAL_TOKEN)
                 .build();
     }
 }

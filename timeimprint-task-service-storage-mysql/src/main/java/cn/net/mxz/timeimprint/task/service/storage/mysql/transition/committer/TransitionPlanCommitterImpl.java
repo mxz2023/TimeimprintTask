@@ -31,6 +31,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
@@ -127,23 +128,64 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
                     .filter(b -> b.getBindingKey().equals(tbc.bindingKey()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("Binding not found: " + tbc.bindingKey()));
-            LocalDateTime nextFireAt = tbc.nextFireAtEpochSecond() != null
-                    ? LocalDateTime.ofEpochSecond(tbc.nextFireAtEpochSecond(), 0, ZoneOffset.UTC)
-                    : null;
-            boolean exhausted = Boolean.TRUE.equals(tbc.exhausted());
-            String cursorJson = support.toJson(tbc.configPayload());
-            int updated = triggerMapper.updateCursor(
-                    binding.getTriggerBindingId(),
-                    binding.getRevision(),
-                    binding.getRevision() + 1,
-                    nextFireAt,
-                    cursorJson,
-                    exhausted,
-                    now);
-            if (updated == 0) {
-                throw new IllegalStateException("CAS failed for binding " + binding.getTriggerBindingId());
+            if (tbc.configPayload() instanceof JsonPayload json
+                    && json.fields().get("bindingConfig") instanceof Map<?, ?> bindingConfig) {
+                String configJson = writeJson(bindingConfig);
+                long generation = binding.getScheduleGeneration() == null ? 1L : binding.getScheduleGeneration();
+                int updated = triggerMapper.updateConfigAndSchedule(
+                        binding.getTriggerBindingId(),
+                        binding.getRevision(),
+                        binding.getRevision() + 1,
+                        configJson,
+                        Sha256.digestUtf8(configJson),
+                        generation + 1,
+                        null,
+                        "{}",
+                        false,
+                        now);
+                if (updated == 0) {
+                    throw new IllegalStateException("CAS failed for binding " + binding.getTriggerBindingId());
+                }
+                affectedRows += updated;
+                if (json.fields().get("scenarioConfig") instanceof Map<?, ?> scenarioConfig) {
+                    String scenarioJson = writeJson(scenarioConfig);
+                    int content = definitionMapper.updateContent(
+                            request.definitionId(),
+                            defRow.getRevision(),
+                            defRow.getRevision() + 1,
+                            defRow.getScenarioSchemaVersion(),
+                            defRow.getTitle(),
+                            defRow.getDescription(),
+                            scenarioJson,
+                            Sha256.digestUtf8(scenarioJson),
+                            "SYSTEM",
+                            now);
+                    if (content == 0) {
+                        throw new IllegalStateException("CAS failed for definition config " + request.definitionId());
+                    }
+                    defRow.setRevision(defRow.getRevision() + 1);
+                    defRow.setScenarioConfigJson(scenarioJson);
+                    affectedRows += content;
+                }
+            } else {
+                LocalDateTime nextFireAt = tbc.nextFireAtEpochSecond() != null
+                        ? LocalDateTime.ofEpochSecond(tbc.nextFireAtEpochSecond(), 0, ZoneOffset.UTC)
+                        : null;
+                boolean exhausted = Boolean.TRUE.equals(tbc.exhausted());
+                String cursorJson = support.toJson(tbc.configPayload());
+                int updated = triggerMapper.updateCursor(
+                        binding.getTriggerBindingId(),
+                        binding.getRevision(),
+                        binding.getRevision() + 1,
+                        nextFireAt,
+                        cursorJson,
+                        exhausted,
+                        now);
+                if (updated == 0) {
+                    throw new IllegalStateException("CAS failed for binding " + binding.getTriggerBindingId());
+                }
+                affectedRows += updated;
             }
-            affectedRows += updated;
         }
 
         for (ParticipantChange pc : plan.participantChanges()) {
@@ -258,5 +300,13 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
                 toRevision,
                 affectedRows,
                 true);
+    }
+
+    private String writeJson(Map<?, ?> value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception ex) {
+            throw new IllegalStateException("binding config serialization failed");
+        }
     }
 }

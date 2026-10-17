@@ -66,7 +66,7 @@ class A02A23CreatePauseMysqlIT {
         registry.add(
                 "spring.datasource.url",
                 () ->
-                        "jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC");
+                        "jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC");
         registry.add("spring.datasource.username", () -> "tit");
         registry.add("spring.datasource.password", () -> "tit_local");
         registry.add("timeimprint.local.tenant-id", () -> "local-tenant");

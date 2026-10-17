@@ -69,9 +69,9 @@ occurrenceAt由本地日期时间按zoneId转换为UTC整秒，occurrenceKey固�
 
 ### 3.1.1 Calendar schemaVersion 2
 
-[P09](phases/P09/README.md) 增加 `schemaVersion=2`。它接受上一节七种类型，并增加 `YEARLY` 与 `ANCHOR_OFFSETS`，字段与语义见 [CAP01](capabilities/CAP01-calendar.md) 的 P09 正式范围。`schemaVersion=1` 传入这两种类型必须拒绝，且不得改变已有规则的下一次发生。S03 使用 `YEARLY` 且 `offsetDays=[-1,0]`。S04 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=false`。S05 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=true`。三个场景仍然每个定义只有一个 `primary` / `calendar` 绑定。
+[P09](phases/P09/README.md) 增加 `schemaVersion=2`。它接受上一节七种类型，并增加 `YEARLY` 与 `ANCHOR_OFFSETS`，字段与语义见 [CAP01](capabilities/CAP01-calendar.md) 的 P09 正式范围。`schemaVersion=1` 传入这两种类型必须拒绝，且不得改变已有规则的下一次发生。S03 使用 `YEARLY` 且 `offsetDays=[-1,0]`。S04 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=false`。S05 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=true`。[S14](scenarios/S14-maintenance-follow-up.md) 使用 `ANCHOR_OFFSETS`、`offsetDays=[0]` 且 `dailyAfterAnchor=false`。这些场景仍然每个定义只有一个 `primary` / `calendar` 绑定。
 
-E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenarioConfig, after, limit`，不含requestId；limit为1—100，after为UTC整秒。PreviewResult精确返回`scenarioKey, scenarioSchemaVersion, normalizedTriggerBindings, normalizedScenarioConfig, occurrences`；每个occurrence含`occurrenceKey, occurrenceAt, dueAt`。S01 与 S03 的 dueAt 为 null。S02、S04、S05 的 dueAt 等于 occurrenceAt。预览不返回definitionId或写入任何幂等记录。
+E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenarioConfig, after, limit`，不含requestId；limit为1—100，after为UTC整秒。PreviewResult精确返回`scenarioKey, scenarioSchemaVersion, normalizedTriggerBindings, normalizedScenarioConfig, occurrences`；每个occurrence含`occurrenceKey, occurrenceAt, dueAt`。S01 与 S03 的 dueAt 为 null。S02、S04、S05、S14 的 dueAt 等于 occurrenceAt。预览不返回definitionId或写入任何幂等记录。
 
 ### 3.2 创建任务定义
 
@@ -192,9 +192,11 @@ E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01�
 
 E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。E30 是同一收件模型上的只读事件流，不新增收件字段，也不代替 E10—E13。
 
-### 4.1 账号端点（P06）
+### 4.1 账号端点
 
-账号端点使用同一响应信封。成功 `code` 为 `OK`。密码、验证码、授权字符串、令牌摘要和微信原始报文不得出现在错误响应中。登录令牌只在签发成功的 `data.token` 返回一次；库中保存其 SHA-256。
+E14—E29 由 TimeImprintUser 提供，Task 不再注册这些路径。Task 收到 `Authorization: Bearer` 后只请求用户服务核对令牌，不查询任务库中的会话表。账号端点的字段、错误码和微信规则以 TimeImprintUser 的 `docs/04-API.md` 为准。
+
+历史契约仍使用同一响应信封。成功 `code` 为 `OK`。密码、验证码、授权字符串、令牌摘要和微信原始报文不得出现在错误响应中。登录令牌只在签发成功的 `data.token` 返回一次；库中保存其 SHA-256。
 
 | 编号 | 方法与路径 | 请求重点 | 返回 |
 | --- | --- | --- | --- |

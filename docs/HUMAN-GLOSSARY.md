@@ -221,9 +221,9 @@
 | timeimprint-task-service-capability-calendar | 日历规则能力 |
 | timeimprint-task-service-capability-notification | 通知意图、站内信及可配置 IM 渠道适配（P05 起依赖 adapter 使用飞书） |
 | timeimprint-task-adapter | 第三方 SDK 通用宿主（飞书消息、短信与微信 OAuth；网页扫码在 live 模式访问微信，飞书扫码登录不实现） |
-| timeimprint-task-identity | 账号、验证码、会话和社交绑定；不解释任务状态 |
+| timeimprint-task-identity | 任务接口的会话解析；账号注册在 TimeImprintUser |
 | timeimprint-task-service-scenario-basic | 一期reminder与recurring_todo场景 |
-| timeimprint-task-service-scenario-deadline | P09 的 anniversary、deadline、payment 场景 |
+| timeimprint-task-service-scenario-deadline | P09 的 anniversary、deadline、payment，以及 P10 的 maintenance 场景 |
 | timeimprint-task-gateway | 接入编排：ActorContext、DTO/错误转换；不含 Controller |
 | timeimprint-task-web | HTTP Controller和统一Web错误处理 |
 | timeimprint-task-boot-loader | 启动、配置、装配、迁移加载和集成测试入口 |

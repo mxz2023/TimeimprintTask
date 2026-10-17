@@ -54,7 +54,7 @@ class A04A20DualProcessIT {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final String JDBC =
-            "jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC";
+            "jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC";
     private static final String DB_USER = "tit";
     private static final String DB_PASS = "tit_local";
 

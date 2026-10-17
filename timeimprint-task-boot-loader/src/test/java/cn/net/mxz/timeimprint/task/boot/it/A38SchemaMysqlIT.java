@@ -73,7 +73,7 @@ class A38SchemaMysqlIT {
         r.add(
                 "spring.datasource.url",
                 () ->
-                        "jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC");
+                        "jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC");
         r.add("spring.datasource.username", () -> "tit");
         r.add("spring.datasource.password", () -> "tit_local");
         r.add("timeimprint.local.tenant-id", () -> "local-tenant");
@@ -85,6 +85,11 @@ class A38SchemaMysqlIT {
         try (Connection c = dataSource.getConnection()) {
             String schema = c.getCatalog();
             FlywaySchemaInformationSchemaTest.assertRequiredPlatformTablesPresent(c, schema);
+            Integer identityTables = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME LIKE 'tt\\_identity\\_%'",
+                    Integer.class,
+                    schema);
+            assertEquals(0, identityTables);
         }
     }
 

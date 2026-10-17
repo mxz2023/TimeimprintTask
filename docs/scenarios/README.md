@@ -25,12 +25,12 @@
 | S11 | 事件跟进 | 未确定 | automation / `scenario-automation` | BACKLOG | OUTLINE | NOT_STARTED | trigger、integration、notification | [S11](S11-event-follow-up.md) |
 | S12 | 条件监控 | 未确定 | automation / `scenario-automation` | BACKLOG | OUTLINE | NOT_STARTED | trigger、aggregation、integration、notification | [S12](S12-condition-monitoring.md) |
 | S13 | 汇总提醒 | 未确定 | automation / `scenario-automation` | BACKLOG | OUTLINE | NOT_STARTED | aggregation、notification | [S13](S13-digest-reminder.md) |
-| S14 | 保养与复查 | 未确定 | deadline / `scenario-deadline` | NEXT_REVIEW | OUTLINE | NOT_STARTED | calendar、notification；可能需要trigger | [S14](S14-maintenance-follow-up.md) |
+| S14 | 保养与复查 | `maintenance` | deadline / `scenario-deadline` | P10 | READY_FOR_IMPLEMENTATION | VERIFIED | calendar、notification | [S14](S14-maintenance-follow-up.md) |
 | S15 | 资源预约 | 未确定 | collaboration / `scenario-collaboration` | BACKLOG | OUTLINE | NOT_STARTED | calendar、collaboration、integration、notification | [S15](S15-resource-reservation.md) |
 | S16 | 外部日历同步 | 未确定 | automation / `scenario-automation` | BACKLOG | OUTLINE | NOT_STARTED | integration、trigger、calendar | [S16](S16-external-calendar-sync.md) |
 | S17 | 智能创建入口 | 不适用；默认不注册场景 | 不新增场景模块 | BACKLOG | OUTLINE | NOT_STARTED | intelligence及目标场景能力 | [S17](S17-intelligent-creation.md) |
 
-S01/S02 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。[S03](S03-anniversary.md)、[S04](S04-deadline-management.md)、[S05](S05-payment-management.md) 已由 [P09 DELIVERY](../phases/P09/DELIVERY.md) 验收为 VERIFIED。阶段已随标签 `v20261014-P09` 发布。S14 仍是 NEXT_REVIEW，不是本期许可。其余场景在进入 CURRENT 阶段并获授权前不得编码。
+S01/S02 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。[S03](S03-anniversary.md)、[S04](S04-deadline-management.md)、[S05](S05-payment-management.md) 已由 [P09 DELIVERY](../phases/P09/DELIVERY.md) 验收为 VERIFIED。阶段已随标签 `v20261014-P09` 发布。[S14](S14-maintenance-follow-up.md) 已由 [P10 DELIVERY](../phases/P10/DELIVERY.md) 验收为 VERIFIED。阶段已随标签 `v20261014-P10` 发布。其余场景在进入 CURRENT 阶段并获授权前不得编码。
 
 READY或RELEASED场景的`Sxx-<scenario-key>.md`是其业务含义、默认配置和行为边界的唯一正式来源。OUTLINE文件是长期规划入口，明确保存已知内容与未知问题，但不是可编码契约。各文件中的「具体事例」只帮助理解用途；与正文冲突时以正文为准，事例不单独构成可编码规则。跨场景公共规则写入01—03，通用能力规则写入[capabilities](../capabilities/README.md)，HTTP线协议写入04，数据与运行实现规则写入05—06，可执行证据写入07。
 

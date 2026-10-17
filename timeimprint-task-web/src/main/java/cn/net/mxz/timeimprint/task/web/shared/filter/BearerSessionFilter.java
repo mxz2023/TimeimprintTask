@@ -1,8 +1,5 @@
 package cn.net.mxz.timeimprint.task.web.shared.filter;
 
-import cn.net.mxz.timeimprint.task.identity.account.service.IdentityException;
-import cn.net.mxz.timeimprint.task.identity.account.service.IdentityService;
-import cn.net.mxz.timeimprint.task.identity.account.service.IdentityUser;
 import cn.net.mxz.timeimprint.task.service.application.access.model.ActorContext;
 import cn.net.mxz.timeimprint.task.service.application.access.model.TestActorContextHolder;
 import jakarta.servlet.FilterChain;
@@ -18,20 +15,23 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** 从 Authorization Bearer 解析账号。公开任务接口没有令牌时直接 401。调试头无效。 */
+/**
+ * 从 Authorization Bearer 向用户服务核对任务调用身份。公开任务接口没有令牌时直接 401。
+ * 用户服务返回的 actor_key 仍是 wx-、u- 或预置 local-actor。
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BearerSessionFilter extends OncePerRequestFilter {
 
-    private final IdentityService identity;
+    private final UserSessionLookup userSessions;
     private final String localTenantId;
     private final String localActorId;
 
     public BearerSessionFilter(
-            IdentityService identity,
+            UserSessionLookup userSessions,
             @Value("${timeimprint.local.tenant-id:local-tenant}") String localTenantId,
             @Value("${timeimprint.local.actor-id:local-actor}") String localActorId) {
-        this.identity = identity;
+        this.userSessions = userSessions;
         this.localTenantId = localTenantId;
         this.localActorId = localActorId;
     }
@@ -59,15 +59,29 @@ public class BearerSessionFilter extends OncePerRequestFilter {
             return;
         }
         try {
-            IdentityUser user = identity.requireSession(token);
-            TestActorContextHolder.set(new ActorContext("USER", user.actorKey(), user.tenantId()));
-            try {
-                chain.doFilter(request, response);
-            } finally {
-                TestActorContextHolder.clear();
+            var session = userSessions.find(token);
+            if (session.isEmpty()) {
+                writeUnauthenticated(response);
+                return;
             }
-        } catch (IdentityException ex) {
-            writeUnauthenticated(response);
+            proceed(session.get().actorKey(), session.get().tenantId(), request, response, chain);
+        } catch (UserSessionLookup.UserDirectoryUnavailable ex) {
+            writeUnavailable(response);
+        }
+    }
+
+    private void proceed(
+            String actorKey,
+            String tenantId,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
+        TestActorContextHolder.set(new ActorContext("USER", actorKey, tenantId));
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            TestActorContextHolder.clear();
         }
     }
 
@@ -76,15 +90,7 @@ public class BearerSessionFilter extends OncePerRequestFilter {
         if (path == null || !path.startsWith("/api/v1/")) {
             return false;
         }
-        if (path.startsWith("/api/v1/users/sms")) {
-            return false;
-        }
-        return !(path.equals("/api/v1/users/register")
-                || path.equals("/api/v1/users/login")
-                || path.equals("/api/v1/users/login-authorization")
-                || path.equals("/api/v1/users/password-reset")
-                || path.startsWith("/api/v1/users/wechat/config")
-                || path.equals("/api/v1/users/wechat/callback"));
+        return true;
     }
 
     /** 内部诊断与飞书回调不走用户令牌，仍用本机配置的账号执行。 */
@@ -108,5 +114,13 @@ public class BearerSessionFilter extends OncePerRequestFilter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.getWriter()
                 .write("{\"code\":\"UNAUTHENTICATED\",\"message\":\"没有可信调用身份\",\"traceId\":\"none\",\"data\":null}");
+    }
+
+    private static void writeUnavailable(HttpServletResponse response) throws IOException {
+        response.setStatus(503);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter()
+                .write("{\"code\":\"SERVICE_UNAVAILABLE\",\"message\":\"用户服务暂时不可用\",\"traceId\":\"none\",\"data\":null}");
     }
 }

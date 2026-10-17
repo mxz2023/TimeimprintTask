@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** 会话过滤器：任务接口必须带令牌，注册登录除外。 */
+/** 会话过滤器：任务接口必须带令牌。账号接口不由本服务匿名放行。 */
 class BearerSessionFilterTest {
 
     @Test
@@ -17,7 +17,7 @@ class BearerSessionFilterTest {
         MockHttpServletRequest register = new MockHttpServletRequest("POST", "/api/v1/users/register");
         MockHttpServletRequest internal = new MockHttpServletRequest("GET", "/internal/v1/action-jobs/1");
         assertTrue(BearerSessionFilter.requiresToken(task));
-        assertFalse(BearerSessionFilter.requiresToken(register));
+        assertTrue(BearerSessionFilter.requiresToken(register));
         assertFalse(BearerSessionFilter.requiresToken(internal));
         MockHttpServletRequest callback = new MockHttpServletRequest("POST", "/callbacks/v1/feishu/card-action");
         assertTrue(BearerSessionFilter.usesProcessAccount(internal));

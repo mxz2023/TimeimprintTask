@@ -26,7 +26,7 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 
 ## 2. 当前批准模块
 
-P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）。[P06](phases/P06/README.md) 起批准第 15 个模块`timeimprint-task-identity`（账号、验证码、会话和社交绑定）；实施前文档 READY，代码在授权后创建。
+P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）。[P06](phases/P06/README.md) 起批准第 15 个模块`timeimprint-task-identity`。账号、验证码、会话和社交绑定已改由用户服务保存；本模块只保留删除历史表的迁移和 `actor_key` 形状。
 
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
@@ -41,9 +41,9 @@ P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md
 | `timeimprint-task-service-capability-notification` | 通知动作、投递、尝试、收件箱、通知策略和渠道 Handler | extension-api、kernel、common、**adapter（P05）** |
 | `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 为 `feishu` 包；P06 增加短信与微信 OAuth 客户端；飞书扫码登录只留扩展、本期不实现；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application/identity） |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
-| `timeimprint-task-service-scenario-deadline` | 公历纪念日、到期对象和人工缴费 | extension-api、kernel、calendar、common |
-| `timeimprint-task-identity` | 账号、短信验证码记录、会话、社交绑定和注册登录事务；专有表；不解释任务状态 | adapter、common（禁止依赖 kernel/scenario/application） |
-| `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、identity、common |
+| `timeimprint-task-service-scenario-deadline` | 公历纪念日、到期对象、人工缴费、保养与复查 | extension-api、kernel、calendar、common |
+| `timeimprint-task-identity` | 只保留删除历史账号表的迁移，以及 `actor_key` 的 `wx-`、`u-`、`local-actor` 形状。不保存账号，不核对令牌 | common（禁止依赖 kernel/scenario/application） |
+| `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、common |
 | `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理；P05 起可调用 adapter 做飞书回调验签 | domain、gateway、common、**adapter（P05，仅回调验签）** |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 
@@ -105,7 +105,7 @@ timeimprint-task
 | 模块 | 聚合的场景 |
 | --- | --- |
 | `scenario-basic` | 单次提醒、周期提醒、个人待办、周期待办 |
-| `scenario-deadline` | 到期、缴费、续约、保养、复查和逾期处理 |
+| `scenario-deadline` | 到期、缴费、续约、保养、复查和逾期处理；保养与复查自 P10 起由 `maintenance` 包实现 |
 | `scenario-collaboration` | 团队任务、会议协作、轮值、交接和资源参与 |
 | `scenario-workflow` | 审批、会签、复核、退回和升级 |
 | `scenario-automation` | 外部事件、条件监控、依赖联动和自动完成 |
@@ -154,7 +154,7 @@ boot-loader ────────────→ 选择并装配全部运行�
 | `timeimprint-task-service-capability-notification` | `notification`、`inapp`、`feishu`（业务 Handler，P05） | `handler`、`adapter`、`mapper`、`row`、`port` |
 | `timeimprint-task-adapter` | `feishu`（P05）；预留 `wechat`/`dingtalk`/`telegram` | `client`、`auth`、`callback`、`configuration` |
 | `timeimprint-task-service-scenario-basic` | `reminder`、`recurringtodo` | `extension`、`command`、`projection` |
-| `timeimprint-task-service-scenario-deadline` | `anniversary`、`deadline`、`payment` | `extension`、`command`、`materialization` |
+| `timeimprint-task-service-scenario-deadline` | `anniversary`、`deadline`、`payment`、`maintenance` | `extension`、`command`、`materialization` |
 | `timeimprint-task-gateway` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`shared` | `gateway`、`mapper` |
 | `timeimprint-task-web` | `definition`、`instance`、`signal`、`inbox`、`diagnostic`、`callback`（P05 飞书）、`shared` | `controller`、`filter`、`error`、`configuration` |
 

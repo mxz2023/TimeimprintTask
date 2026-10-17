@@ -41,16 +41,9 @@
 
 外部飞书、京ME、邮件投递仍由`tt_action_job/tt_action_attempt`记录技术执行，不为每个渠道创建平台公共表。渠道确有专有回执数据时，只能在notification能力自己的迁移中增加专有表。
 
-### 2.3 身份表：timeimprint-task-identity所有
+### 2.3 账号
 
-这些表不是平台公共表。kernel 与任务仓储不得读写它们。
-
-| 表 | 稳定职责 |
-| --- | --- |
-| `tt_identity_user` | 账号、密码摘要、昵称、停用状态、管理员标记和授权时间 |
-| `tt_identity_verification_code` | 短信验证码及创建时间；不进入 HTTP 响应 |
-| `tt_identity_session` | 会话令牌摘要；不保存明文令牌 |
-| `tt_identity_social_account` | 第三方身份；本期仅微信写入，飞书等 provider 预留 |
+账号、验证码、会话、微信绑定和登录令牌在用户服务的 `tu_*`。Task 不建这些表。历史上的 `tt_identity_*` 由 identity 迁移删除，不复制数据。任务上的 `actor_key`（操作者键）仍是字符串。
 
 ## 3. 权威字段定义
 
@@ -302,76 +295,6 @@ target_type与target_id必须同时为空或同时非空；一期IN_APP通知Act
 唯一键`uk_inbox_action(action_job_id)`保证一次IN_APP动作最多一条收件；唯一键`uk_inbox_notification_recipient(notification_id,recipient_type,recipient_id)`防止同通知向同接收人重复入箱。全部收件分页使用`ix_inbox_recipient(tenant_id,recipient_type,recipient_id,created_at,inbox_id)`，未读查询和计数使用`ix_inbox_unread(tenant_id,recipient_type,recipient_id,read_at,created_at,inbox_id)`，实例投递汇总使用`ix_inbox_instance(instance_id,created_at,inbox_id)`。
 
 IN_APP处理器在一个短事务中核对tenant/definition/instance链路，插入inbox、闭合attempt并把action状态改为SUCCEEDED；任一步失败全部回滚。查询收件不自动标记已读；mark-read仅在read_at为空时写入首次时间。
-
-### 3.13 `tt_identity_user`
-
-| 字段 | 类型与约束 | 说明 |
-| --- | --- | --- |
-| `user_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 内部主键 |
-| `actor_key` | VARCHAR(128) NOT NULL | 公开用户标识；ActorContext 与参与人 principalId 使用它，不用手机号 |
-| `tenant_id` | VARCHAR(64) NOT NULL | 单一租户 |
-| `phone_number` | VARCHAR(15) NULL | 大陆 11 位；未绑定微信临时账号可空 |
-| `username` | VARCHAR(150) NOT NULL | 登录名；手机号注册时等于手机号 |
-| `password_hash` | VARCHAR(128) NULL | 密码摘要；不可用密码为空。禁止明文 |
-| `nickname` | VARCHAR(30) NOT NULL | 昵称 |
-| `account_status` | VARCHAR(16) NOT NULL | ACTIVE / DISABLED |
-| `is_admin` | TINYINT(1) NOT NULL | 管理员 |
-| `authorization_verified_at` | DATETIME(0) NULL | 一次性授权通过时间 |
-| `created_at` / `last_login_at` | DATETIME(0) NOT NULL / DATETIME(0) NULL | UTC |
-
-唯一键`uk_identity_user_phone(tenant_id,phone_number)`与`uk_identity_user_username(tenant_id,username)`。手机号为空的多行不受手机号唯一约束互相冲突。
-
-### 3.14 `tt_identity_verification_code`
-
-| 字段 | 类型与约束 | 说明 |
-| --- | --- | --- |
-| `verification_code_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 记录标识 |
-| `phone_number` | VARCHAR(15) NOT NULL | 接收手机号 |
-| `code` | VARCHAR(6) NOT NULL | 六位验证码；只用于校验，不得写入日志或 HTTP 响应 |
-| `created_at` | DATETIME(0) NOT NULL | UTC；超过 10 分钟失效 |
-
-索引`ix_identity_code_phone(phone_number,created_at,verification_code_id)`。只有短信通道确认成功后才插入。
-
-### 3.15 `tt_identity_session`
-
-| 字段 | 类型与约束 | 说明 |
-| --- | --- | --- |
-| `session_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 会话标识 |
-| `user_id` | BIGINT UNSIGNED NOT NULL FK | 所属用户 |
-| `token_hash` | BINARY(32) NOT NULL | 令牌的 SHA-256 |
-| `created_at` | DATETIME(0) NOT NULL | UTC |
-
-唯一键`uk_identity_session_token(token_hash)`。退出登录或进入新的授权挑战时删除该用户会话。同一用户可复用尚未删除的令牌。
-
-### 3.16 `tt_identity_social_account`
-
-| 字段 | 类型与约束 | 说明 |
-| --- | --- | --- |
-| `social_account_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 绑定标识 |
-| `user_id` | BIGINT UNSIGNED NOT NULL FK | 所属用户 |
-| `provider` | VARCHAR(32) NOT NULL | 本期写入 `wechat`；`feishu` 仅预留 |
-| `app_type` | VARCHAR(32) NOT NULL | web / ios / android |
-| `openid` | VARCHAR(128) NOT NULL | 应用内身份 |
-| `unionid` | VARCHAR(128) NULL | 跨应用兜底 |
-| `nickname` | VARCHAR(64) NOT NULL | 第三方昵称 |
-| `avatar_url` | VARCHAR(500) NOT NULL | 头像地址，可空字符串 |
-| `raw_json` | JSON NOT NULL | 不含访问令牌的原始资料 |
-| `created_at` / `updated_at` | DATETIME(0) NOT NULL | UTC |
-
-唯一键`uk_identity_social(provider,app_type,openid)`。索引`ix_identity_social_union(provider,unionid)`。绑定冲突和手机号合并必须在同一事务内完成。
-
-### 3.17 `tt_identity_oauth_state`
-
-| 字段 | 类型与约束 | 说明 |
-| --- | --- | --- |
-| `oauth_state_id` | BIGINT UNSIGNED PK AUTO_INCREMENT | 记录标识 |
-| `state_hash` | BINARY(32) NOT NULL | state 的 SHA-256；不明文落库 |
-| `app_type` | VARCHAR(32) NOT NULL | 本期扫码只写入 `web` |
-| `expires_at` | DATETIME(0) NOT NULL | UTC；签发后 10 分钟 |
-| `consumed_at` | DATETIME(0) NULL | 首次成功校验时间；非空则不可再用 |
-| `created_at` | DATETIME(0) NOT NULL | UTC |
-
-唯一键`uk_identity_oauth_state(state_hash)`。`capture` 模式不写本表。消费必须与登录或绑定处于同一事务：过期、已消费或 appType 不一致时拒绝，且不换取微信身份。
 
 ## 4. 状态与字段组合约束
 

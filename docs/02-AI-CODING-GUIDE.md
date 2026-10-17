@@ -26,7 +26,7 @@ TimeImprintTask 采用“稳定内核 + 可插拔能力”的 Java 模块化单�
 
 ## 2. 当前批准模块
 
-P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）。[P06](phases/P06/README.md) 起批准第 15 个模块`timeimprint-task-identity`（账号、验证码、会话和社交绑定）；实施前文档 READY，代码在授权后创建。
+P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md) 起批准第 14 个模块`timeimprint-task-adapter`（第三方 SDK 宿主）。[P06](phases/P06/README.md) 起批准第 15 个模块`timeimprint-task-identity`。账号、验证码、会话和社交绑定已改由用户服务保存；本模块只保留删除历史表的迁移和 `actor_key` 形状。
 
 | 模块 | 职责 | 允许直接项目依赖 |
 | --- | --- | --- |
@@ -42,8 +42,8 @@ P01—P04 交付基线为 13 个平级 Maven 模块。[P05](phases/P05/README.md
 | `timeimprint-task-adapter` | 第三方 SDK 与底层 HTTP/验签封装；P05 为 `feishu` 包；P06 增加短信与微信 OAuth 客户端；飞书扫码登录只留扩展、本期不实现；不含业务命令与 TransitionPlan | common（禁止依赖 kernel/scenario/application/identity） |
 | `timeimprint-task-service-scenario-basic` | 通用提醒、周期待办及其强类型配置、命令和投影 | extension-api、kernel、calendar、common |
 | `timeimprint-task-service-scenario-deadline` | 公历纪念日、到期对象、人工缴费、保养与复查 | extension-api、kernel、calendar、common |
-| `timeimprint-task-identity` | 预置本机测试账号；登录令牌只向 TimeImprintUser 核对，不在任务库查询；注册、短信和微信不在本模块 | common（禁止依赖 kernel/scenario/application） |
-| `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、identity、common |
+| `timeimprint-task-identity` | 只保留删除历史账号表的迁移，以及 `actor_key` 的 `wx-`、`u-`、`local-actor` 形状。不保存账号，不核对令牌 | common（禁止依赖 kernel/scenario/application） |
+| `timeimprint-task-gateway` | 接入编排：由会话构造 ActorContext、domain DTO 与应用层转换、错误映射；不含 Controller | domain、application、kernel、common |
 | `timeimprint-task-web` | HTTP Controller、过滤器、请求限制和统一异常处理；P05 起可调用 adapter 做飞书回调验签 | domain、gateway、common、**adapter（P05，仅回调验签）** |
 | `timeimprint-task-boot-loader` | 启动、配置、模块装配、迁移加载和集成测试入口 | 选择全部运行时实现 |
 

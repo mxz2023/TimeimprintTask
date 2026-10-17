@@ -150,22 +150,16 @@ Maven Enforcer至少检查Java/Maven版本、依赖收敛、禁止循环和禁�
 
 P01 基线没有京ME、邮件、外部日历、模型服务、AI业务能力或cache配置。[P05](phases/P05/README.md) 起可按 §3.1 **显式启用**飞书消息；默认仍不启用。[P06](phases/P06/README.md) 起账号登录为公开身份的唯一方式。引入Spring AI版本基线不等于启用AI功能；未来某个实现只有在boot-loader明确启用时才校验其专属配置，已启用实现缺少凭据或端点必须启动失败，未启用实现不得要求无关凭据。
 
-### 3.2 账号、短信与微信（P06）
+### 3.2 任务侧会话核对
 
-身份不再按 profile 切换。local 与 test 只区分数据库、端口、监听地址和预置账号。公开任务接口从 `Authorization: Bearer` 解析用户。缺少令牌、令牌摘要不匹配或账号停用时返回 401，不能退回固定身份。
+注册、短信、微信和登录令牌属于 TimeImprintUser。Task 不保存这些配置，也不查询 `tt_identity_*`。公开任务接口从 `Authorization: Bearer` 取令牌，向用户服务 `POST /internal/v1/sessions/introspect`。用户服务返回 401 时任务接口返回 401。用户服务未配置、不可达或拒绝服务令牌时返回 503，不伪装成未登录。
 
 | 配置键 | 默认 / 约束 |
 | --- | --- |
-| `timeimprint.identity.authorization-string` | 必填；一次性登录授权字符串。只从环境读取，不得写入仓库或日志 |
-| `timeimprint.identity.sms.secret-id` / `secret-key` | 正式发短信时必填。环境变量 `TENCENT_SECRET_ID`、`TENCENT_SECRET_KEY`；不得写入仓库或日志 |
-| `timeimprint.identity.sms.sdk-app-id` / `sign-name` / `template-id` | 正式发短信时必填。环境变量 `TENCENT_SMS_SDK_APP_ID`、`TENCENT_SMS_SIGN_NAME`、`TENCENT_SMS_TEMPLATE_ID`；不得写入仓库。模板必须有两个变量，依次填六位验证码和固定值 `1` |
-| `timeimprint.identity.sms.mode` | `tencent` 或 `capture`。自动化测试只用 `capture`，验证码留在测试可读记录，不访问腾讯云 |
-| `timeimprint.identity.wechat.mode` | `capture`、`disabled` 或 `live`。自动化测试只用 `capture`，不访问微信。`live` 面向真实扫码 |
-| `timeimprint.identity.wechat.web.app-id` / `app-secret` / `redirect-uri` | `live` 时必填。只从环境读取，不得写入仓库或日志。扫码地址只使用 `web` |
-| `timeimprint.identity.wechat.<appType>.app-id` / `app-secret` / `redirect-uri` | `appType` 为 `ios`、`android` 时本期不用于扫码，缺少凭据不阻止 `web` 的 `live` 启动 |
-| 飞书扫码登录 | 不配置、不装配 |
-
-测试库由测试夹具创建测试账号，口令只出现在测试代码。本地库不在仓库中写死口令；开发者用短信注册本地开发账号。短信正式模式缺少凭据，或已启用的微信应用缺少凭据时，对应登录方式启动失败。`capture` 模式不得出现在面向真实用户的部署。
+| `timeimprint.user.base-url` | 用户服务根地址。环境变量 `USER_INTERNAL_BASE_URL`。生产必填 |
+| `timeimprint.user.service-token` | 调用用户服务的服务令牌。环境变量 `USER_SERVICE_TOKEN`。生产必填，不得写入仓库 |
+| `timeimprint.user.read-timeout-ms` | 核对超时，默认 2000 |
+| `timeimprint.user.fixture-tokens` | 默认关闭。只有自动化测试可打开，用来识别既有测试令牌。生产配置不得出现这个键 |
 
 ### 3.3 站内信事件流（P08）
 
@@ -186,7 +180,7 @@ timeimprint-task-service-scenario-*/src/main/resources/db/migration/scenario/<sc
 timeimprint-task-identity/src/main/resources/db/migration/identity/
 ```
 
-平台公共表迁移只属于storage-mysql。通知收件、投递等专有表属于capability-notification；账号、验证码、会话和社交绑定属于 identity；审批、缴费等专有表属于对应scenario模块。模块没有专有数据时不创建空迁移目录或空表。
+平台公共表迁移只属于storage-mysql。通知收件、投递等专有表属于capability-notification。账号、验证码、会话和社交绑定属于用户服务，不在 Task 建表。identity 目录只保留已经执行过的历史迁移，以及删除 `tt_identity_*` 的新版本。审批、缴费等专有表属于对应scenario模块。模块没有专有数据时不创建空迁移目录或空表。
 
 所有已启用模块的迁移版本在整个应用内唯一，文件名固定为`VyyyyMMddHHmmss__<owner>_<description>.sql`，时间部分使用UTC且同一秒只能分配一个版本；owner使用platform、capability key、scenario key或identity。boot-loader显式汇总locations。已执行迁移不得原地修改，升级只能新增版本。Flyway失败时应用不就绪；禁止clean；多进程并发启动必须验证Flyway协调，不能重复初始化或重置业务数据。
 

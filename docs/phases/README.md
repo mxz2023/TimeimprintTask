@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 下一动作 |
-| --- | --- | --- |
-| [P11 账号数据迁到用户服务](P11/README.md) | DRAFT | 只记录目标。用户确认范围和必要人工步骤前不得编码 |
+没有 CURRENT 阶段。下一阶段须用户另选范围。
 
 ## 已发布阶段
 
@@ -22,10 +20,11 @@
 | [P08 站内信实时提示](P08/README.md) | RELEASED | [DELIVERY](P08/DELIVERY.md)；Git 标签 `v20261014-P08`；人工验收 2026-10-13 |
 | [P09 生日、到期与缴费](P09/README.md) | RELEASED | [DELIVERY](P09/DELIVERY.md)；Git 标签 `v20261014-P09`；用户于 2026-10-14 确认可以发布 |
 | [P10 保养与复查](P10/README.md) | RELEASED | [DELIVERY](P10/DELIVERY.md)；Git 标签 `v20261014-P10`；用户于 2026-10-14 确认可以发布 |
+| [P11 去掉 Task 冗余账号表](P11/README.md) | RELEASED | [DELIVERY](P11/DELIVERY.md)；Git 标签 `v20261017-P11`；用户于 2026-10-17 确认两步人工结果 |
 
 ## 未来阶段
 
-C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已记入 P11，状态仍是 DRAFT，不是实施许可。
+C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。标签 `v20261017-P11`。
 
 ## 更新规则
 

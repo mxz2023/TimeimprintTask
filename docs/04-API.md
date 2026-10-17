@@ -194,7 +194,7 @@ E01—E13 是任务公开接口，不另建第二套任务状态。未来若增�
 
 ### 4.1 账号端点
 
-E14—E29 由 TimeImprintUser 提供，Task 不再注册这些路径。Task 只根据 `Authorization: Bearer` 在既有会话表中解析调用身份，供任务接口使用。账号端点的字段、错误码和微信规则以 TimeImprintUser 的 `docs/04-API.md` 为准。
+E14—E29 由 TimeImprintUser 提供，Task 不再注册这些路径。Task 收到 `Authorization: Bearer` 后只请求用户服务核对令牌，不查询任务库中的会话表。账号端点的字段、错误码和微信规则以 TimeImprintUser 的 `docs/04-API.md` 为准。
 
 历史契约仍使用同一响应信封。成功 `code` 为 `OK`。密码、验证码、授权字符串、令牌摘要和微信原始报文不得出现在错误响应中。登录令牌只在签发成功的 `data.token` 返回一次；库中保存其 SHA-256。
 

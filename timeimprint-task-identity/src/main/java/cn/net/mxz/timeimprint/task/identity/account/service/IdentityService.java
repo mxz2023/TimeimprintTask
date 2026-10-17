@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 任务接口仍用既有会话表解析令牌，并预置本机测试账号。
- * 既有会话的 actor_key 仍是 wx-、u- 或预置 local-actor。
+ * 预置本机测试账号。登录令牌只由 TimeImprintUser 保存，任务请求不在本库查询。
+ * 既有账号的 actor_key 仍是 wx-、u- 或预置 local-actor。
  * 注册、短信和微信登录已由 TimeImprintUser 提供，这里不再实现。
  */
 @Service
@@ -20,15 +20,6 @@ public class IdentityService {
 
     public IdentityService(IdentityStore store) {
         this.store = store;
-    }
-
-    public IdentityUser requireSession(String rawToken) {
-        if (rawToken == null || rawToken.isBlank()) {
-            throw new IdentityException("UNAUTHENTICATED", "没有可信调用身份");
-        }
-        return store.findByTokenHash(sha256(rawToken))
-                .filter(IdentityUser::active)
-                .orElseThrow(() -> new IdentityException("UNAUTHENTICATED", "登录已失效，请重新登录"));
     }
 
     /** 测试与本地预置账号。已授权，并写入已知令牌。 */

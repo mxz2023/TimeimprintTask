@@ -40,18 +40,6 @@ public class IdentityStore {
         return one("SELECT * FROM tt_identity_user WHERE user_id = ?", userId);
     }
 
-    public Optional<IdentityUser> findByTokenHash(byte[] tokenHash) {
-        List<IdentityUser> rows = jdbc.query(
-                """
-                SELECT u.* FROM tt_identity_user u
-                JOIN tt_identity_session s ON s.user_id = u.user_id
-                WHERE s.token_hash = ?
-                """,
-                (rs, i) -> map(rs),
-                tokenHash);
-        return rows.stream().findFirst();
-    }
-
     public long insertUser(IdentityUser draft, LocalDateTime now) {
         jdbc.update(
                 """

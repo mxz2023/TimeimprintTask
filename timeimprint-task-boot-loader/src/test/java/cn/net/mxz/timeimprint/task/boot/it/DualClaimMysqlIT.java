@@ -40,7 +40,7 @@ class DualClaimMysqlIT {
                 () -> System.getenv()
                         .getOrDefault(
                                 "DB_JDBC_URL",
-                                "jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC"));
+                                "jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC"));
         r.add("spring.datasource.username", () -> System.getenv().getOrDefault("DB_USERNAME", "tit"));
         r.add("spring.datasource.password", () -> System.getenv().getOrDefault("DB_PASSWORD", "tit_local"));
         r.add("LOCAL_TENANT_ID", () -> "local-tenant");

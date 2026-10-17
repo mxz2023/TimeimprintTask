@@ -6,7 +6,7 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: ${SHUTDOWN_GRACE_SECONDS:40}s
   datasource:
-    url: ${DB_JDBC_URL:jdbc:mysql://127.0.0.1:13306/timeimprint_task_local?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC}
+    url: ${DB_JDBC_URL:jdbc:mysql://127.0.0.1:13306/db_timeimprint_task?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC}
     username: ${DB_USERNAME:tit}
     password: ${DB_PASSWORD:tit_local}
     driver-class-name: com.mysql.cj.jdbc.Driver

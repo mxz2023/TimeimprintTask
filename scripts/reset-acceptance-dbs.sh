@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # 清空本地验收 MySQL 上的功能库与性能库业务数据，保留 Flyway 历史与表结构。
-# 仅用于同一次手工联调。整轮自动化前改用 MyStudio 的
-# Deploy/scripts/06-recreate-task-acceptance-mysql.sh 重建空实例，不保留数据。
+# 仅用于同一次手工联调。整轮自动化前改用
+# scripts/recreate-acceptance-mysql.sh 重建空实例，不保留数据。
 # 不要对共享/生产库执行。
 set -euo pipefail
 
 CONTAINER="${TIT_MYSQL_CONTAINER:-tit-mysql-t01}"
 DB_USER="${DB_USERNAME:-tit}"
 DB_PASS="${DB_PASSWORD:-tit_local}"
-FUNCTIONAL_DB="${TIT_FUNCTIONAL_DB:-timeimprint_task_local}"
-PERF_DB="${TIT_PERF_DB:-timeimprint_task_perf}"
+FUNCTIONAL_DB="${TIT_FUNCTIONAL_DB:-db_timeimprint_task}"
+PERF_DB="${TIT_PERF_DB:-db_timeimprint_task_perf}"
 ASSUME_YES=0
 
 usage() {
@@ -22,8 +22,8 @@ usage() {
   TIT_MYSQL_CONTAINER   默认 tit-mysql-t01
   DB_USERNAME           默认 tit
   DB_PASSWORD           默认 tit_local
-  TIT_FUNCTIONAL_DB     默认 timeimprint_task_local
-  TIT_PERF_DB           默认 timeimprint_task_perf
+  TIT_FUNCTIONAL_DB     默认 db_timeimprint_task
+  TIT_PERF_DB           默认 db_timeimprint_task_perf
 
 示例:
   scripts/reset-acceptance-dbs.sh

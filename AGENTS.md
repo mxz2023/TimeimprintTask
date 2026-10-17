@@ -13,7 +13,7 @@
 
 修改文件前必须说明当前阶段、阶段状态、当前任务、允许范围、禁止范围、适用的`INV-*`及验证方式。找不到CURRENT阶段、存在多个CURRENT阶段、状态不允许当前操作或文档互相冲突时，必须停止实现并先修正文档或请求决策，不能自行猜测。
 
-没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。这条规则同样适用于 TimeImprintUser、TimeImprintWebsite 和以后新建的子项目。当前 P12 是 VERIFYING。自动证据已通过，发布前不得再改实现。
+没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。这条规则同样适用于 TimeImprintUser、TimeImprintWebsite 和以后新建的子项目。P12 已于 2026-10-18 RELEASED。没有 CURRENT 阶段时，不得修改代码、测试、配置或部署脚本。
 
 改`actor_key`形状、`timeimprint.*`配置键或 Compose 已绑定的环境变量时，阶段允许范围必须先列入 MyStudio 的`Deploy/docker/timeimprint-task/entrypoint.sh`、`docker-compose.yml`、`docker-compose.local.yml`、`.env.example`、`.env.local.example`和`Wiki/Deploy/environment.md`，并在同一轮修改它们。`scripts/run-task-acceptance.sh`须静态对照当前`actor_key`前缀与入口映射，不能只靠预置账号`local-actor`的测试。接收人或对外投递变化时，必要人工步骤必须是真实登录账号在飞书收到消息；微信扫码登录成功不能代替。不要等用户提醒。
 

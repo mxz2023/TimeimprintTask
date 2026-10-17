@@ -19,10 +19,10 @@
 | 已发布P09 | [S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md) | CAL-09 与 CAL-06 的公历 YEARLY 子集 | [P09](phases/P09/README.md) RELEASED（标签 `v20261014-P09`）。农历、真实支付和 CAL-13 不在本期 |
 | 已发布P10 | [S14](scenarios/S14-maintenance-follow-up.md) | 复用已有日历锚点偏移与通知 | [P10](phases/P10/README.md) RELEASED（标签 `v20261014-P10`）。外部完成回传不在本期 |
 | 已发布P11 | 不新增场景 | 不新增能力 | [P11](phases/P11/README.md) RELEASED（标签 `v20261017-P11`）：删除与用户服务重复的 `tt_identity_*` |
-| 当前P12 | 不新增场景 | 不新增能力 | [P12](phases/P12/README.md) VERIFYING：验收库改名为 `db_timeimprint_task`，验收脚本放进本仓库 |
+| 已发布P12 | 不新增场景 | 不新增能力 | [P12](phases/P12/README.md) RELEASED（标签 `v20261018-P12`）：验收库改名为 `db_timeimprint_task`，验收脚本放进本仓库 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。[P10](phases/P10/README.md)（保养与复查）已 RELEASED（标签 `v20261014-P10`）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`）。当前阶段是 [P12](phases/P12/README.md)（验收库名与验收脚本），状态 VERIFYING。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。[P10](phases/P10/README.md)（保养与复查）已 RELEASED（标签 `v20261014-P10`）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`）。[P12](phases/P12/README.md)（验收库名与验收脚本）已于 2026-10-18 RELEASED（Git 标签 `v20261018-P12`）。没有新的 CURRENT 阶段。
 
 ## 2. S01—S17总览
 
@@ -112,7 +112,7 @@ S17保留S编号用于需求追踪，但默认不是独立业务状态机，不�
 | X04 | 工程结构与测试镜像 | 业务功能优先、技术职责次级的包结构；测试包镜像与每个顶层生产类型的所有者测试 | P02 / READY_FOR_IMPLEMENTATION / VERIFIED |
 | X05 | Jackson 3原生迁移 | 在P02黄金契约基础上迁移到Boot 4 BOM管理的Jackson 3.1.5；保持HTTP、持久化JSON、幂等与哈希兼容 | P03 / READY_FOR_IMPLEMENTATION / VERIFIED |
 | X06 | 去掉 Task 冗余账号表 | 线上尚未部署，不复制 `tt_identity_*`。删除与 `tu_*` 重复的五张表。Task 已经向用户服务确认会话。不改任务公开接口和场景语义 | P11 / OUTLINE / VERIFIED |
-| X07 | 验收库名与验收脚本 | 功能库 `db_timeimprint_task`，性能库 `db_timeimprint_task_perf`。重建空库和全量验证改由本仓库脚本执行。不改业务行为 | P12 / OUTLINE / IN_PROGRESS |
+| X07 | 验收库名与验收脚本 | 功能库 `db_timeimprint_task`，性能库 `db_timeimprint_task_perf`。重建空库和全量验证改由本仓库脚本执行。不改业务行为 | P12 / OUTLINE / VERIFIED |
 
 现有MySQL持久化队列不等于MQ；稳定扩展注册不等于动态加载；存在workflow能力域不等于已经选择流程引擎。
 
@@ -182,6 +182,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-17 | P12、X07 | 用户确认本期无人工步骤 | 阶段 READY。尚未授权实施 |
 | 2026-10-17 | P12、X07 | 用户授权实施 | 阶段 IMPLEMENTING。baselineGitRef=`8240ee977d08c57a9e544d9398e693912173e0e9` |
 | 2026-10-17 | P12、X07、K01、K02 | 全量真库回归通过 | 阶段 VERIFYING。见 [DELIVERY](phases/P12/DELIVERY.md) |
+| 2026-10-18 | P12、X07 | 用户确认可以发布 | 阶段 RELEASED。标签 `v20261018-P12` |
 
 ## 8. 下一场景进入实施的检查
 

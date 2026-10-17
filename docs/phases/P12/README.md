@@ -2,22 +2,22 @@
 
 本阶段把真库验收用的数据库名改成 `db_timeimprint_task` 与 `db_timeimprint_task_perf`，并把重建空库和全量验证的脚本放进本仓库。不改任务业务、公开接口、公共表或 `actor_key`（操作者键）。
 
-用户于 2026-10-17 授权实施。自动证据已通过，阶段现为 VERIFYING（验证中）。证据见 [DELIVERY](DELIVERY.md)。
+用户于 2026-10-18 确认可以发布。阶段已 RELEASED（已发布）。证据见 [DELIVERY](DELIVERY.md)。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 1. 阶段身份
 
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P12 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P11；Git 标签 `v20261017-P11` |
 | baselineGitRef | `8240ee977d08c57a9e544d9398e693912173e0e9` |
-| 工程状态 | 自动证据已通过 |
-| Git发布标签 | 无 |
-| 人工验收 | 2026-10-17 用户确认本期无此类步骤 |
-| 下一动作 | 用户确认可以发布后转 RELEASED |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261018-P12`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-17 用户确认本期无此类步骤。2026-10-18 确认可以发布 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
 | 交付证据 | [DELIVERY](DELIVERY.md)：K01、K02 均为 PASS |
 

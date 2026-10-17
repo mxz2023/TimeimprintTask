@@ -15,7 +15,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** 从 Authorization Bearer 向用户服务核对任务调用身份。公开任务接口没有令牌时直接 401。 */
+/**
+ * 从 Authorization Bearer 向用户服务核对任务调用身份。公开任务接口没有令牌时直接 401。
+ * 用户服务返回的 actor_key 仍是 wx-、u- 或预置 local-actor。
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BearerSessionFilter extends OncePerRequestFilter {

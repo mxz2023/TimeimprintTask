@@ -19,19 +19,25 @@ public class UserSessionLookup {
     private final String serviceToken;
     private final Duration timeout;
     private final HttpClient http;
+    private final boolean fixtureTokens;
 
     public UserSessionLookup(
             @Value("${timeimprint.user.base-url:}") String baseUrl,
             @Value("${timeimprint.user.service-token:}") String serviceToken,
-            @Value("${timeimprint.user.read-timeout-ms:2000}") long readTimeoutMs) {
+            @Value("${timeimprint.user.read-timeout-ms:2000}") long readTimeoutMs,
+            @Value("${timeimprint.user.fixture-tokens:false}") boolean fixtureTokens) {
         this.baseUrl = baseUrl == null ? "" : baseUrl.trim();
         this.serviceToken = serviceToken == null ? "" : serviceToken;
         long bounded = readTimeoutMs < 1 ? 2000 : readTimeoutMs;
         this.timeout = Duration.ofMillis(bounded);
         this.http = HttpClient.newBuilder().connectTimeout(this.timeout).build();
+        this.fixtureTokens = fixtureTokens;
     }
 
     public Optional<RemoteSession> find(String rawToken) {
+        if (fixtureTokens) {
+            return fixtureSession(rawToken);
+        }
         if (baseUrl.isBlank() || serviceToken.isBlank()) {
             throw new UserDirectoryUnavailable("未配置用户服务地址");
         }
@@ -68,6 +74,17 @@ public class UserSessionLookup {
             throw new UserDirectoryUnavailable("用户服务会话核对失败");
         }
         return Optional.of(new RemoteSession(tenant, actor));
+    }
+
+    /** 只在测试打开。生产配置不得打开，固定测试令牌不能绕过用户服务。 */
+    static Optional<RemoteSession> fixtureSession(String rawToken) {
+        return switch (rawToken) {
+            case "it-token-local-actor" -> Optional.of(new RemoteSession("local-tenant", "local-actor"));
+            case "it-token-test-actor" -> Optional.of(new RemoteSession("test-tenant", "test-actor"));
+            case "it-token-actor-a" -> Optional.of(new RemoteSession("test-tenant", "actor-a"));
+            case "it-token-actor-b" -> Optional.of(new RemoteSession("test-tenant", "actor-b"));
+            default -> Optional.empty();
+        };
     }
 
     static boolean ok(String json) {

@@ -85,6 +85,11 @@ class A38SchemaMysqlIT {
         try (Connection c = dataSource.getConnection()) {
             String schema = c.getCatalog();
             FlywaySchemaInformationSchemaTest.assertRequiredPlatformTablesPresent(c, schema);
+            Integer identityTables = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME LIKE 'tt\\_identity\\_%'",
+                    Integer.class,
+                    schema);
+            assertEquals(0, identityTables);
         }
     }
 

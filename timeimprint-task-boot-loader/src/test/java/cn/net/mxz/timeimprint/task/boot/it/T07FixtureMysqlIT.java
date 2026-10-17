@@ -57,8 +57,11 @@ class T07FixtureMysqlIT {
         registry.add("timeimprint.local.tenant-id", () -> "local-tenant");
         registry.add("timeimprint.local.actor-id", () -> "local-actor");
         // Include test-fixture Flyway location so tt_test_approval_data is created
-        registry.add("spring.flyway.locations",
-                () -> "classpath:db/migration/platform,classpath:db/migration/capability/notification,classpath:db/migration/identity,classpath:db/migration/test-fixture");
+        registry.add("spring.flyway.out-of-order", () -> "true");
+        registry.add(
+                "spring.flyway.locations",
+                () ->
+                        "classpath:db/migration/platform,classpath:db/migration/capability/notification,classpath:db/migration/identity,classpath:db/migration/scenario/anniversary,classpath:db/migration/scenario/deadline,classpath:db/migration/scenario/payment,classpath:db/migration/scenario/maintenance,classpath:db/migration/test-fixture");
     }
 
     @Test

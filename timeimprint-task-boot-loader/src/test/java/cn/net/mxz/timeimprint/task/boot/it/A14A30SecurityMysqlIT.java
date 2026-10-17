@@ -2,7 +2,6 @@ package cn.net.mxz.timeimprint.task.boot.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import cn.net.mxz.timeimprint.task.boot.bootstrap.TimeImprintTaskApplication;
-import cn.net.mxz.timeimprint.task.identity.account.service.IdentityBootstrap;
 import cn.net.mxz.timeimprint.task.service.application.signal.service.SignalProcessingService;
 import cn.net.mxz.timeimprint.task.service.runtime.action.worker.ActionWorker;
 import tools.jackson.databind.JsonNode;
@@ -210,10 +209,10 @@ class A14A30SecurityMysqlIT {
 
     private static String tokenFor(String actor) {
         return switch (actor) {
-            case "actor-a" -> IdentityBootstrap.ACTOR_A_TOKEN;
-            case "actor-b" -> IdentityBootstrap.ACTOR_B_TOKEN;
-            case "test-actor" -> IdentityBootstrap.TEST_TOKEN;
-            default -> IdentityBootstrap.LOCAL_TOKEN;
+            case "actor-a" -> ItHttpFixture.ACTOR_A_TOKEN;
+            case "actor-b" -> ItHttpFixture.ACTOR_B_TOKEN;
+            case "test-actor" -> ItHttpFixture.TEST_TOKEN;
+            default -> ItHttpFixture.LOCAL_TOKEN;
         };
     }
 

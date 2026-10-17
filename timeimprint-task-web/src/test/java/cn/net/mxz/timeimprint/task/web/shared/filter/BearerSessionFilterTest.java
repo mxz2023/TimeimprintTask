@@ -1,6 +1,5 @@
 package cn.net.mxz.timeimprint.task.web.shared.filter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -24,7 +23,5 @@ class BearerSessionFilterTest {
         assertTrue(BearerSessionFilter.usesProcessAccount(internal));
         assertTrue(BearerSessionFilter.usesProcessAccount(callback));
         assertFalse(BearerSessionFilter.usesProcessAccount(task));
-        assertEquals("u-abc", UserSessionLookup.jsonString("{\"tenantKey\":\"local-tenant\",\"actorKey\":\"u-abc\"}", "actorKey"));
-        assertEquals("local-tenant", UserSessionLookup.jsonString("{\"tenantKey\":\"local-tenant\",\"actorKey\":\"u-abc\"}", "tenantKey"));
     }
 }

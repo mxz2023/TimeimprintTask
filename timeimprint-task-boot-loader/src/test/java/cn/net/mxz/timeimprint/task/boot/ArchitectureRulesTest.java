@@ -96,7 +96,7 @@ class ArchitectureRulesTest {
 
     @Test
     void onlyNotificationGatewayWebAndBootMayDependOnAdapter() {
-        // 允许的消费者见 02 模块表：notification、gateway、web、identity、boot-loader。identity 不在下方禁止名单中。
+        // 允许的消费者见 02 模块表：notification、gateway、web、boot-loader。identity 不在下方禁止名单中。
         noClasses()
                 .that()
                 .resideInAnyPackage(
@@ -139,10 +139,10 @@ class ArchitectureRulesTest {
 
     @Test
     void feishuSdkAndOutboundHttpStayInsideAdapter() {
-        // 飞书官方 SDK 坐标当前不存在；一旦引入也只能出现在 adapter。JDK HttpClient 同样只属于 adapter 的出站/取令牌实现。
+        // 飞书官方 SDK 只属于 adapter。出站 HTTP 也只属于 adapter，任务向用户服务核对会话是 web 过滤器里的唯一例外。
         noClasses()
                 .that()
-                .resideOutsideOfPackage(ADAPTER)
+                .resideOutsideOfPackages(ADAPTER, "cn.net.mxz.timeimprint.task.web.shared.filter..")
                 .should()
                 .dependOnClassesThat()
                 .resideInAnyPackage(

@@ -2,7 +2,7 @@
 
 > 阅读入口与阶段状态见[00开发导航](00-READING-ORDER.md)。本文是实现完成标准、测试环境和证据要求的正式来源；文档评审不等于代码或测试通过。
 
-版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，[P08](phases/P08/README.md) 已 RELEASED（标签 `v20261014-P08`，R01—R04 为 PASS，见[阶段索引](phases/README.md)）。[P09](phases/P09/README.md) 已 RELEASED（标签 `v20261014-P09`，D01—D05 为 PASS，D06 由全量回归覆盖）。[P10](phases/P10/README.md) 已 RELEASED（标签 `v20261014-P10`，N01—N03 为 PASS，见[阶段索引](phases/README.md)）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`），验收沿用全量回归，不新增编号。没有新的 CURRENT 阶段。[P07](phases/P07/README.md) 已 RELEASED（标签 `v20261011-P07`）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）；P07的W01—W04与H01—H04已在[P07 DELIVERY](phases/P07/DELIVERY.md)记为PASS并RELEASED（标签`v20261011-P07`）。
+版本2.3；前：[运行协议](06-SCHEDULING.md)，后：[实施治理](08-AI-IMPLEMENTATION-TASKS.md)，[P08](phases/P08/README.md) 已 RELEASED（标签 `v20261014-P08`，R01—R04 为 PASS，见[阶段索引](phases/README.md)）。[P09](phases/P09/README.md) 已 RELEASED（标签 `v20261014-P09`，D01—D05 为 PASS，D06 由全量回归覆盖）。[P10](phases/P10/README.md) 已 RELEASED（标签 `v20261014-P10`，N01—N03 为 PASS，见[阶段索引](phases/README.md)）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`），验收沿用全量回归，不新增编号。当前阶段是 [P12](phases/P12/README.md)（验收库名与验收脚本），状态 VERIFYING。K01、K02 见第 6.7 节，证据见 [P12 DELIVERY](phases/P12/DELIVERY.md)。[P07](phases/P07/README.md) 已 RELEASED（标签 `v20261011-P07`）。P01结果已冻结在[P01 DELIVERY](phases/P01/DELIVERY.md)；P02结果已冻结在[P02 DELIVERY](phases/P02/DELIVERY.md)；P03的J01—J10已在[P03 DELIVERY](phases/P03/DELIVERY.md)记为PASS并RELEASED；P04结果已冻结在[P04 DELIVERY](phases/P04/DELIVERY.md)（标签`v20261003-P04`）；P05的F01—F10已在[P05 DELIVERY](phases/P05/DELIVERY.md)记为PASS并RELEASED（标签`v20261007-P05`）；P06的U01—U10已在[P06 DELIVERY](phases/P06/DELIVERY.md)记为PASS并RELEASED（标签`v20261010-P06`）；P07的W01—W04与H01—H04已在[P07 DELIVERY](phases/P07/DELIVERY.md)记为PASS并RELEASED（标签`v20261011-P07`）。
 
 ## 1. 验收分层与环境
 
@@ -15,9 +15,9 @@
 | Dual-process IT | 两节点竞争、崩溃、旧token和公平性 | 同一制品、同一数据库、两个Java进程 |
 | Performance | 到期处理、收件可查、积压恢复 | 真时钟、真MySQL、两进程 |
 
-集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。使用容器 `tit-mysql-t01` 的全量验证，在修改代码后由代理用 MyStudio 的 `Deploy/scripts/07-run-task-acceptance.sh` 自动执行，先 `mysql-it`，通过后再 `dual-process-it`。单次不得超过 20 分钟；超时终止本次验证并删除该容器。单元测试不受此限。
+集成测试使用`*IT`命名，`mysql-it`绑定Failsafe的integration-test与verify阶段，`dual-process-it`在其上启动两进程。两个profile在配置缺失、测试数为0、子进程未就绪或证据未生成时必须失败，不得静默跳过。使用容器 `tit-mysql-t01` 的全量验证，在修改代码后由代理用 `scripts/run-task-acceptance.sh` 自动执行，先 `mysql-it`，通过后再 `dual-process-it`。单次不得超过 20 分钟；超时终止本次验证并删除该容器。单元测试不受此限。
 
-真库测试允许的数据库只有：功能验收库`timeimprint_task_local`，以及性能门槛专用库`timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
+真库测试允许的数据库只有：功能验收库`db_timeimprint_task`，以及性能门槛专用库`db_timeimprint_task_perf`。两者都在同一 MySQL 实例上，由测试配置写死 JDBC；性能库用于避免功能验收积压干扰 07 §6 清空计时。测试不得执行CREATE DATABASE、DROP DATABASE、TRUNCATE或Flyway clean。每次生成唯一runId，只删除或推迟由该runId/suite记录的根资源及子表数据，不得无条件或模糊删除。
 
 受控交错、故障注入和可推进Clock只能存在于测试源集/配置，不得暴露为生产HTTP端点或装入生产制品。所有报告和日志必须脱敏。
 
@@ -252,6 +252,15 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | N01 | 创建 | 创建保养定义后存在一行 `tt_maintenance_subject`，并有一个 `PLANNED` 等待实例。锚点等于 `nextDueDate` |
 | N02 | 完成 | `complete` 后完成日是北京时间当天，下一次到期日等于完成日加 `intervalDays`，并留下一行完成历史。同一实例再次 `complete` 不新增历史 |
 | N03 | 提醒 | 到期日信号处理后，该实例生命周期仍是 `WAITING`，场景状态为 `REMINDED` |
+
+## 6.7 P12 验收项（K01—K02）
+
+[P12](phases/P12/README.md) 不改变业务行为。证据写入 P12 DELIVERY 之前不得预填 PASS。本期没有真实外部系统或界面步骤。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| K01 | 库名 | 功能验收库是 `db_timeimprint_task`，性能门槛库是 `db_timeimprint_task_perf`。默认 JDBC 与集成测试地址使用这两个名字 |
+| K02 | 脚本与回归 | `scripts/run-task-acceptance.sh` 先重建空库，再按顺序跑 `mysql-it` 与 `dual-process-it`，退出码均为 0，且没有超过 20 分钟 |
 
 ## 7. 交付证据与总判定
 

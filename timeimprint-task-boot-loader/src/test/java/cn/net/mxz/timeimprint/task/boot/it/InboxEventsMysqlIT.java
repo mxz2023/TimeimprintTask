@@ -71,7 +71,8 @@ class InboxEventsMysqlIT {
         Integer unread = jdbc.queryForObject(
                 """
                 SELECT COUNT(*) FROM tt_inbox
-                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ? AND read_at IS NULL
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                  AND read_at IS NULL AND deleted_at IS NULL
                 """,
                 Integer.class,
                 "local-tenant",
@@ -125,7 +126,8 @@ class InboxEventsMysqlIT {
         Integer unread = jdbc.queryForObject(
                 """
                 SELECT COUNT(*) FROM tt_inbox
-                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ? AND read_at IS NULL
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                  AND read_at IS NULL AND deleted_at IS NULL
                 """,
                 Integer.class,
                 "local-tenant",

@@ -2,24 +2,24 @@
 
 本阶段为收件箱增加软删除：单条删除与清空已读。列表、未读计数与 SSE 变化帧排除已删行；实例投递汇总的 `inboxCount` 仍计入已删行。不硬删，不改 notification / Action。网页确认与按钮由 Website 同期阶段负责。
 
-MyStudio 于 2026-10-18 代老板确认草案并授权实施：DRAFT → READY → IMPLEMENTING。任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+老板于 2026-10-18 确认人工功能与（经 Website）确认弹窗/成功提示交互后可以发布。阶段已 RELEASED（已发布）。证据见 [DELIVERY](DELIVERY.md)。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 1. 阶段身份
 
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P13 |
-| 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P12；Git 标签 `v20261018-P12` |
 | baselineGitRef | `e0b16fb12aa3554a05ae30a43a091429384ccdae`（授权实施前的 HEAD） |
-| 工程状态 | IMPLEMENTING |
-| Git发布标签 | （发布时填写） |
-| 人工验收 | 未开始 |
-| 下一动作 | 完成 T01 契约写入后实现 E31/E32 与迁移；可联调时回报 |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261018-P13`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-18 功能三步 PASS；同日确认弹窗与成功提示自动消失符合要求 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 实施中按任务写入 [DELIVERY](DELIVERY.md) |
+| 交付证据 | [DELIVERY](DELIVERY.md)：B01—B04 与人工步骤均为 PASS |
 
 P01—P12 已冻结，本阶段不得改写它们。
 
@@ -65,7 +65,9 @@ P01—P12 已冻结，本阶段不得改写它们。
 
 本阶段不改变 [INV-01](../../02-AI-CODING-GUIDE.md)—[INV-09](../../02-AI-CODING-GUIDE.md)。站内信仍在 Action 结果事务中写入；软删只改接收人可见性，不撤销投递事实。
 
-## 6. 验收编号（草案，转 READY 前写入 07）
+## 6. 验收编号
+
+正式通过标准见 [07 第 6.8 节](../../07-ACCEPTANCE.md)。下表与第 2 节同一口径。
 
 | 编号 | 要求 |
 | --- | --- |

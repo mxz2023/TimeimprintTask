@@ -11,6 +11,8 @@ import cn.net.mxz.timeimprint.task.domain.shared.request.TriggerBindingInput;
 import cn.net.mxz.timeimprint.task.domain.diagnostic.view.ActionJobDiagnosticView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.CommandMetadataView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.CommandResultView;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxClearReadView;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxDeleteView;
 import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.OccurrenceView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.Page;
@@ -304,6 +306,17 @@ public class TaskGateway {
 
     public InboxView markRead(long inboxId, MarkReadRequest req) {
         return views.toInbox(inboxService.markRead(inboxId));
+    }
+
+    /** E31：软删一条收件。 */
+    public InboxDeleteView deleteInbox(long inboxId, MarkReadRequest req) {
+        var deleted = inboxService.delete(inboxId, req.requestId());
+        return new InboxDeleteView(String.valueOf(deleted.inboxId()), deleted.deletedAt().toString());
+    }
+
+    /** E32：清空当前接收人的已读收件。 */
+    public InboxClearReadView clearReadInbox(MarkReadRequest req) {
+        return new InboxClearReadView(inboxService.clearRead(req.requestId()).clearedCount());
     }
 
     public SignalAcceptedView acceptSignal(String providerKey, InternalSignalRequest req) {

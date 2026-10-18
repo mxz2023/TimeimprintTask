@@ -2,6 +2,7 @@ package cn.net.mxz.timeimprint.task.service.storage.mysql.inbox.adapter;
 
 import cn.net.mxz.timeimprint.task.service.application.inbox.model.InboxRecord;
 import cn.net.mxz.timeimprint.task.service.application.inbox.port.InboxRepository;
+import cn.net.mxz.timeimprint.task.service.application.inbox.port.InboxRepository.SoftDeleteOutcome;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -49,7 +50,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 WHERE i.tenant_id = ? AND i.recipient_type = ? AND i.recipient_id = ?
                 """
                         + (unreadOnly ? " AND i.read_at IS NULL" : "")
-                        + " ORDER BY i.created_at DESC, i.inbox_id DESC LIMIT ?";
+                        + " AND i.deleted_at IS NULL ORDER BY i.created_at DESC, i.inbox_id DESC LIMIT ?";
         return jdbc.query(sql, RM, tenantId, recipientType, recipientId, limit);
     }
 
@@ -63,7 +64,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 FROM tt_inbox i
                 JOIN tt_notification n ON n.notification_id = i.notification_id
                 JOIN tt_task_definition d ON d.definition_id = i.definition_id
-                WHERE i.inbox_id = ?
+                WHERE i.inbox_id = ? AND i.deleted_at IS NULL
                 """,
                 RM,
                 inboxId);
@@ -84,7 +85,8 @@ public class InboxRepositoryImpl implements InboxRepository {
         Integer c = jdbc.queryForObject(
                 """
                 SELECT COUNT(*) FROM tt_inbox
-                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ? AND read_at IS NULL
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                  AND read_at IS NULL AND deleted_at IS NULL
                 """,
                 Integer.class,
                 tenantId,
@@ -98,7 +100,7 @@ public class InboxRepositoryImpl implements InboxRepository {
         return jdbc.queryForObject(
                 """
                 SELECT MAX(inbox_id) FROM tt_inbox
-                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ? AND deleted_at IS NULL
                 """,
                 Long.class,
                 tenantId,
@@ -109,9 +111,70 @@ public class InboxRepositoryImpl implements InboxRepository {
     @Override
     public boolean markReadIfUnread(long inboxId, Instant readAt) {
         int n = jdbc.update(
-                "UPDATE tt_inbox SET read_at = ? WHERE inbox_id = ? AND read_at IS NULL",
+                "UPDATE tt_inbox SET read_at = ? WHERE inbox_id = ? AND read_at IS NULL AND deleted_at IS NULL",
                 Timestamp.from(readAt),
                 inboxId);
         return n == 1;
+    }
+
+    @Override
+    public Optional<SoftDeleteOutcome> softDelete(
+            long inboxId, String tenantId, String recipientType, String recipientId, Instant deletedAt) {
+        int updated = jdbc.update(
+                """
+                UPDATE tt_inbox SET deleted_at = ?
+                WHERE inbox_id = ? AND tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                  AND deleted_at IS NULL
+                """,
+                Timestamp.from(deletedAt),
+                inboxId,
+                tenantId,
+                recipientType,
+                recipientId);
+        if (updated == 1) {
+            return Optional.of(new SoftDeleteOutcome(deletedAt, true));
+        }
+        List<Instant> existing = jdbc.query(
+                """
+                SELECT deleted_at FROM tt_inbox
+                WHERE inbox_id = ? AND tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                """,
+                (rs, row) -> rs.getTimestamp("deleted_at") == null
+                        ? null
+                        : rs.getTimestamp("deleted_at").toInstant(),
+                inboxId,
+                tenantId,
+                recipientType,
+                recipientId);
+        if (existing.isEmpty() || existing.getFirst() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new SoftDeleteOutcome(existing.getFirst(), false));
+    }
+
+    @Override
+    public int clearRead(String tenantId, String recipientType, String recipientId, Instant deletedAt) {
+        return jdbc.update(
+                """
+                UPDATE tt_inbox SET deleted_at = ?
+                WHERE tenant_id = ? AND recipient_type = ? AND recipient_id = ?
+                  AND read_at IS NOT NULL AND deleted_at IS NULL
+                """,
+                Timestamp.from(deletedAt),
+                tenantId,
+                recipientType,
+                recipientId);
+    }
+
+    @Override
+    public int countUnreadByInstance(long instanceId) {
+        Integer count = jdbc.queryForObject(
+                """
+                SELECT COUNT(*) FROM tt_inbox
+                WHERE instance_id = ? AND read_at IS NULL AND deleted_at IS NULL
+                """,
+                Integer.class,
+                instanceId);
+        return count == null ? 0 : count;
     }
 }

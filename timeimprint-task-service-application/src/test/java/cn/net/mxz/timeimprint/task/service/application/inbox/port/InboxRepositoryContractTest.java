@@ -20,11 +20,14 @@ class InboxRepositoryContractTest {
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());
-        assertEquals(List.of("countUnread/3",
+        assertEquals(List.of("clearRead/4",
+                "countUnread/3",
+                "countUnreadByInstance/1",
                 "findById/1",
                 "findByIdForRecipient/4",
                 "listForRecipient/5",
                 "markReadIfUnread/2",
-                "maxInboxId/3"), actual);
+                "maxInboxId/3",
+                "softDelete/5"), actual);
     }
 }

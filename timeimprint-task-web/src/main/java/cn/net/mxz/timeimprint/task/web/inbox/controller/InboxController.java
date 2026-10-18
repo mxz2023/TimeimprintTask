@@ -3,6 +3,8 @@ package cn.net.mxz.timeimprint.task.web.inbox.controller;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponse;
 import cn.net.mxz.timeimprint.task.domain.shared.response.ApiResponses;
 import cn.net.mxz.timeimprint.task.domain.shared.request.MarkReadRequest;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxClearReadView;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxDeleteView;
 import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.Page;
 import cn.net.mxz.timeimprint.task.domain.shared.view.UnreadCountView;
@@ -22,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 站内收件箱相关公开 HTTP 接口（契约 E10 / E11 / E12 / E13）。
+ * 站内收件箱相关公开 HTTP 接口（契约 E10 / E11 / E12 / E13 / E31 / E32）。
  *
  * <p>路径前缀 {@code /api/v1}。收件在 Action（如 IN_APP 通知）成功后写入；
  * 查询范围受当前 ActorContext 身份约束。字段语义以 {@code docs/04-API.md} 为准。
@@ -89,5 +91,19 @@ public class InboxController {
                         + "，readAt="
                         + view.readAt(),
                 view);
+    }
+
+    @PostMapping("/inbox/{inboxId}/commands/delete")
+    public ApiResponse<InboxDeleteView> delete(
+            @PathVariable long inboxId, @Valid @RequestBody MarkReadRequest request) {
+        InboxDeleteView view = gateway.deleteInbox(inboxId, request);
+        return ApiResponses.ok(
+                "已软删除收件，inboxId=" + view.inboxId() + "，deletedAt=" + view.deletedAt(), view);
+    }
+
+    @PostMapping("/inbox/commands/clear-read")
+    public ApiResponse<InboxClearReadView> clearRead(@Valid @RequestBody MarkReadRequest request) {
+        InboxClearReadView view = gateway.clearReadInbox(request);
+        return ApiResponses.ok("已清空已读收件，clearedCount=" + view.clearedCount(), view);
     }
 }

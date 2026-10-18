@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 下一动作 |
-| --- | --- | --- |
-| [P13 站内信软删除](P13/README.md) | IMPLEMENTING（CURRENT） | 实现 E31/E32 与 `deleted_at`；可联调时回报 |
+没有 CURRENT 阶段。下一阶段须用户另选范围。
 
 ## 已发布阶段
 
@@ -24,10 +22,11 @@
 | [P10 保养与复查](P10/README.md) | RELEASED | [DELIVERY](P10/DELIVERY.md)；Git 标签 `v20261014-P10`；用户于 2026-10-14 确认可以发布 |
 | [P11 去掉 Task 冗余账号表](P11/README.md) | RELEASED | [DELIVERY](P11/DELIVERY.md)；Git 标签 `v20261017-P11`；用户于 2026-10-17 确认两步人工结果 |
 | [P12 验收库名与验收脚本](P12/README.md) | RELEASED | [DELIVERY](P12/DELIVERY.md)；Git 标签 `v20261018-P12`；用户于 2026-10-18 确认可以发布 |
+| [P13 站内信软删除](P13/README.md) | RELEASED | [DELIVERY](P13/DELIVERY.md)；Git 标签 `v20261018-P13`；用户于 2026-10-18 确认可以发布 |
 
 ## 未来阶段
 
-C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。标签 `v20261018-P12`。
+C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。站内信软删除已随 [P13](P13/README.md) 发布。标签 `v20261018-P13`。
 
 ## 更新规则
 

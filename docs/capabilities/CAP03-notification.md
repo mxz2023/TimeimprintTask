@@ -90,14 +90,28 @@ Action key必须稳定、定长且不泄露接收人；重试只增加Attempt，
 
 > 契约状态：`RELEASED`；实现状态：`VERIFIED`。[P08](../phases/P08/README.md) 已发布（标签 `v20261014-P08`）。字段与时序以 [04 第 4.2 节](../04-API.md) 和 [R01](../07-ACCEPTANCE.md)—[R04](../07-ACCEPTANCE.md) 为准。[DELIVERY](../phases/P08/DELIVERY.md) 里 R01—R04 为 PASS。
 
-已登录客户端用 `GET /api/v1/inbox/events` 保持一条响应。收件插入或首次已读提交之后，服务端向该接收人已打开的连接追加 `inbox-changed`。帧只含未读数、最新 `inboxId` 和生成时间。E10—E13 与 `tt_inbox` 的写入语义不变。没有连接时不排队。另一进程的变化靠 5 秒水位核对补发。
+已登录客户端用 `GET /api/v1/inbox/events` 保持一条响应。收件插入、首次已读或软删提交之后，服务端向该接收人已打开的连接追加 `inbox-changed`。帧只含未读数、最新可见 `inboxId` 和生成时间。未读数和最新编号都排除已软删行。没有连接时不排队。另一进程的变化靠 5 秒水位核对补发。推送失败不回滚收件。
+
+## P13 站内信软删除
+
+> 规则以本文、[04 第 4.3 节](../04-API.md)、[05 `tt_inbox`](../05-DATABASE.md) 和 [B01](../07-ACCEPTANCE.md)—[B04](../07-ACCEPTANCE.md) 为准。阶段范围见 [P13](../phases/P13/README.md)。人工步骤完成前，本阶段不得标为 RELEASED。NOT-07 的保留期限与合规清理仍是 OUTLINE。
+
+接收人可以软删自己的站内信。`tt_inbox` 增加可空的 `deleted_at`（DATETIME(0)，UTC 整秒）。首次删除写入该时间；已经软删的行再次删除成功，并保留第一次的时间。
+
+- [E31](../04-API.md)：`POST /api/v1/inbox/{inboxId}/commands/delete`，请求体只有 `requestId`，持久化幂等与 E13 相同。
+- [E32](../04-API.md)：`POST /api/v1/inbox/commands/clear-read`，只软删当前登录接收人中已读且尚未删除的行。未读行保留。
+- [E10](../04-API.md) 不返回已删行。[E11](../04-API.md) 对已删或无权的 `inboxId` 返回 404，与不存在相同。
+- [E12](../04-API.md) 的 `unreadCount` 排除已删行。
+- 软删提交成功后，向该接收人当前进程已打开的连接推 `inbox-changed`。推送失败不回滚删除。
+- `DeliverySummary.inboxCount` 不因软删减少。`unreadInboxCount` 排除已删行。
+- 不物理删除收件行，不改 `tt_notification`、Action、Attempt、Transition，也不改 IN_APP 写入路径。
 
 ## 其他未来规划边界
 
 - C09必须区分业务提醒节制与技术重试，并定义免打扰、允许时段、频控、汇总及渠道降级顺序。
 - C12 在 P05 只落地飞书子集（含入站命令桥）；其余 IM 仍按上表预留键接入，不得用空 Bean 或假回执宣称完成。
 - C16的委托授权和“谁有权完成”主要归collaboration；notification只负责接收人投影与投递，不能从收到通知推导办理权限；飞书入站必须先完成身份映射再走 Policy。
-- C18必须定义保留期限、用户主动删除、合规清理、审计痕迹和删除后的未读计数；P01“不随业务操作自动删除”不等于永久保留。
+- C18仍须定义保留期限、合规清理和审计痕迹。接收人软删站内信与删除后的未读计数已由上文 P13 规定；这不等于完成合规清理。P01“不随业务操作自动删除”仍然成立。
 
 OUTLINE 能力项不能创建空渠道Bean、假回执或真实外部凭据配置。
 

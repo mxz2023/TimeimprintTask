@@ -115,6 +115,13 @@
 | Asia/Shanghai | 一期业务时区，即北京时间 |
 | occurrenceAt / occurrence_at | 规则名义发生时间 |
 | occurrenceKey / occurrence_key | 一次发生的稳定去重标识 |
+| timeWindow | 日历发生时间段。schemaVersion 3 必填；null 表示不限时段（P14） |
+| ALLOW / DENY | 只在这些时间段提醒 / 这些时间段不提醒 |
+| workdaySegments / nonWorkdaySegments | 工作日时间段 / 非工作日时间段；每套 0—8 段 |
+| CAL-07 / CAL-17 | 工作日与节假日日历（本期仅中国大陆法定子集）/ 发生时间段过滤 |
+| cn-mainland-workday | calendar 模块内置的中国大陆法定工作日年度 JSON 资源；本期为 2026 年 |
+| TW_FIELD / TW_MODE / TW_TIME_FORMAT / TW_ZERO_LENGTH / TW_TOO_MANY / TW_ORDER / TW_OVERLAP / TW_ALLOW_EMPTY / TW_DENY_EMPTY / TW_NO_OCCURRENCE / TW_DOWNGRADE | 时间段校验失败时，写在 INVALID_REQUEST 的 message 开头的原因键（P14） |
+| L01—L09 | P14 提醒时间段验收项，见 [07 §6.9](07-ACCEPTANCE.md) |
 | dueAt / due_at | 待办实例截止时间 |
 | chaseOffsetsMinutes | S02各次催办相对dueAt的分钟偏移列表；首版默认60、240、720 |
 | notificationExpireAfterMinutes | S02提醒从dueAt起可执行的分钟数；首版默认1440 |

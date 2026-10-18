@@ -57,6 +57,8 @@ E02预览只运行配置解码、场景校验和calendar算法，不写数据库
 
 后台Trigger Planner先无锁扫描到期trigger binding主键，再逐个开启短事务，按definition→trigger binding锁序重新校验状态、调用纯calendar算法、按唯一键插入窗口数据并推进cursor。Planner不能先锁trigger再补锁definition。每绑定每轮最多100次，仍有窗口空间时把next_fire_at设置为下一候选；规则耗尽设置exhausted。
 
+[P14](phases/P14/README.md) 的 calendar `schemaVersion=3` 且 `timeWindow` 非 null 时，预览、创建、修改、恢复与 Planner 先按原规则得到候选，再按时间段过滤，过滤先于 100 次计数：7 天视野内同步最多写入保留下来的 100 次。一次计算最多向前搜索 400 天。小时与分钟规则必须跳到下一段起点再对齐锚点，不得逐分钟枚举；单次计算须在 50 毫秒内完成。原规则耗尽才把绑定标为 `exhausted`。仅因 400 天内没有允许的发生时不标耗尽，`next_fire_at` 设为该次搜索终点，到时再算。段外发生不物化。停机追赶仍是 `ALL_MISSED`，但段外历史发生同样不物化。节假日资源更新不重算已经物化的 7 天窗口。`schemaVersion=1/2`，以及 `schemaVersion=3` 且 `timeWindow` 为 null，发生结果与无时间段时相同。S02 已经保留下来的实例上，催办与稍后提醒不再按时间段过滤。
+
 修改时间规则增加scheduleGeneration，锁内结清旧批次：已发生历史不变；旧批次未来Signal转IGNORED，旧批次已存在的未终结Action转CANCELLED；旧WAITING/PLANNED实例迁移为TERMINAL/CANCELLED；新批次同步重建7天窗口。任何冲突或生成失败使整个修改回滚。
 
 服务停机不是定义暂停。首期固定使用`ALL_MISSED`，不开放配置：恢复后Planner从已提交cursor按occurrenceAt、occurrenceKey升序追赶，不跳过历史发生；每绑定每轮仍最多100个occurrence，并在定义之间公平轮转。追赶时已经超过业务expiresAt的Action直接落为EXPIRED且不发送陈旧通知；S02每个历史发生仍建立独立PENDING实例，S01每个历史发生仍建立TERMINAL/TRIGGERED历史实例。一次停机无论多长都不能改用“只取最新”或“直接跳过”；变更此产品取舍必须先修改对应场景契约、01、04、06和07。

@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 下一动作 |
 | --- | --- | --- |
-| [P13 站内信软删除](P13/README.md) | IMPLEMENTING（CURRENT） | 实现 E31/E32 与 `deleted_at`；可联调时回报 |
+| [P13 站内信软删除](P13/README.md) | VERIFYING（CURRENT） | 自动证据已通过；待人工两步后 RELEASED |
 
 ## 已发布阶段
 

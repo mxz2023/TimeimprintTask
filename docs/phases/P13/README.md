@@ -10,16 +10,16 @@ MyStudio 于 2026-10-18 代老板确认草案并授权实施：DRAFT → READY �
 | --- | --- |
 | 阶段 | P13 |
 | 排期身份 | CURRENT |
-| 总体状态 | IMPLEMENTING |
+| 总体状态 | VERIFYING |
 | 文档基线 | 2.3 |
 | 基础发布 | P12；Git 标签 `v20261018-P12` |
 | baselineGitRef | `e0b16fb12aa3554a05ae30a43a091429384ccdae`（授权实施前的 HEAD） |
-| 工程状态 | IMPLEMENTING |
+| 工程状态 | VERIFYING |
 | Git发布标签 | （发布时填写） |
 | 人工验收 | 未开始 |
-| 下一动作 | 在带 MyStudio Deploy 的环境重跑 `scripts/run-task-acceptance.sh`；通过前不得标 RELEASED。Website 可按 E31/E32 契约开始对接 |
+| 下一动作 | 本机部署后完成人工两步；通过前不得标 RELEASED |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 实施中按任务写入 [DELIVERY](DELIVERY.md) |
+| 交付证据 | 自动证据见 [DELIVERY](DELIVERY.md)；人工步骤待老板页面确认 |
 
 P01—P12 已冻结，本阶段不得改写它们。
 

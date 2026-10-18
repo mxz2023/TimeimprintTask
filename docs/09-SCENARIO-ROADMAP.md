@@ -21,10 +21,10 @@
 | 已发布P11 | 不新增场景 | 不新增能力 | [P11](phases/P11/README.md) RELEASED（标签 `v20261017-P11`）：删除与用户服务重复的 `tt_identity_*` |
 | 已发布P12 | 不新增场景 | 不新增能力 | [P12](phases/P12/README.md) RELEASED（标签 `v20261018-P12`）：验收库改名为 `db_timeimprint_task`，验收脚本放进本仓库 |
 | 已发布P13 | 不新增场景 | 不新增能力 | [P13](phases/P13/README.md) RELEASED（标签 `v20261018-P13`）：收件箱软删除 |
-| 当前 P14 | 不新增场景 | calendar 的 CAL-07 中国大陆法定子集、CAL-17 | [P14](phases/P14/README.md) CURRENT / READY：提醒与待办的发生时间段。尚未授权实施 |
+| 当前 P14 | 不新增场景 | calendar 的 CAL-07 中国大陆法定子集、CAL-17 | [P14](phases/P14/README.md) CURRENT / IMPLEMENTING：提醒与待办的发生时间段。已授权，从 T02 编码 |
 | BACKLOG | S06—S13、S15—S17 | 其余OUTLINE能力项、C/X候选 | 已规划并保留，尚未进入近期细化 |
 
-P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。[P10](phases/P10/README.md)（保养与复查）已 RELEASED（标签 `v20261014-P10`）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`）。[P12](phases/P12/README.md)（验收库名与验收脚本）已于 2026-10-18 RELEASED（Git 标签 `v20261018-P12`）。[P13](phases/P13/README.md)（站内信软删除）已于 2026-10-18 RELEASED（Git 标签 `v20261018-P13`）。当前 CURRENT 为 [P14](phases/P14/README.md)（提醒时间段），状态 READY。尚未授权实施。
+P01已完成稳定内核、S01/S02、五种基础日历、IN_APP通知、恢复和双进程验证并RELEASED。P02已完成工程结构与测试镜像并RELEASED（标签`v20260917-P02`）。P03已完成Jackson 3原生迁移并RELEASED（标签`v20260917-P03`）。P04已完成S02站内信标题和实例命令锁序并RELEASED（标签`v20261003-P04`）。P05已完成飞书整体接入（出站卡片 + 入站命令）并RELEASED（标签`v20261007-P05`）；微信/钉钉/Telegram 等仍属 C12 后续。P06已完成多用户账号并RELEASED（标签`v20261010-P06`）。P07已完成网页微信扫码与小时、分钟间隔并RELEASED（标签`v20261011-P07`）。[P08](phases/P08/README.md)（站内信实时提示）已 RELEASED（标签 `v20261014-P08`）。[P09](phases/P09/README.md)（生日、到期与缴费）已 RELEASED（标签 `v20261014-P09`）。[P10](phases/P10/README.md)（保养与复查）已 RELEASED（标签 `v20261014-P10`）。[P11](phases/P11/README.md) 已 RELEASED（标签 `v20261017-P11`）。[P12](phases/P12/README.md)（验收库名与验收脚本）已于 2026-10-18 RELEASED（Git 标签 `v20261018-P12`）。[P13](phases/P13/README.md)（站内信软删除）已于 2026-10-18 RELEASED（Git 标签 `v20261018-P13`）。当前 CURRENT 为 [P14](phases/P14/README.md)（提醒时间段），状态 IMPLEMENTING。baselineGitRef=`06c3d1089a539aa72ad89402c6dc24fc2e7177da`。
 
 ## 2. S01—S17总览
 
@@ -187,6 +187,7 @@ S/C/X编号永久保留，不删除、不复用、不因重新排期丢失。取
 | 2026-10-18 | P12、X07 | 用户确认可以发布 | 阶段 RELEASED。标签 `v20261018-P12` |
 | 2026-10-18 | P13 | 用户确认可以发布 | 阶段 RELEASED。标签 `v20261018-P13` |
 | 2026-10-19 | P14、CAL-07、CAL-17 | 老板锁定 Q0–Q7；阶段 READY | S01 与 S02 可用时间段；催办与稍后不受限；内置 2026 节假日文件；缺年按周一至周五；跳过不记用户可见记录；S03、S04、S05、S14 不加；已物化 7 天不重算。未授权编码 |
+| 2026-10-19 | P14 | MyStudio 授权实施；阶段 IMPLEMENTING | baselineGitRef=`06c3d1089a539aa72ad89402c6dc24fc2e7177da`。从 T02 编码；该提交不含业务代码 |
 
 ## 8. 下一场景进入实施的检查
 

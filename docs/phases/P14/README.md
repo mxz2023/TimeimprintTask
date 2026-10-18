@@ -2,7 +2,7 @@
 
 本阶段为提醒增加「时间段」：一条提醒可以选「只在这些时间段提醒」或「这些时间段不提醒」，工作日与非工作日各设一套多段时间，支持跨午夜。工作日按中国大陆法定节假日与调休判定。落在允许范围外的那次发生直接跳过，不补发。九种日历规则全部适用。网页表单由 Website 同期阶段负责，接口以本文第 3 节为草案。
 
-老板于 2026-10-19 确认需求，并经 MyStudio 锁定第 8 节 Q0–Q7，同时确认第 6 节必要人工步骤作为发布前必须由人完成的检查。本阶段为 READY：范围、验收与正式契约已写明。仍不改代码、测试、配置、迁移或部署脚本。转 IMPLEMENTING 须另行授权。
+老板于 2026-10-19 确认需求，并经 MyStudio 锁定第 8 节 Q0–Q7。同日 MyStudio 授权进入 IMPLEMENTING。范围、验收与正式契约已写明。第 6 节必要人工步骤仍须在发布前由人完成。本提交只改文档，不含业务代码。
 
 ## 1. 阶段身份
 
@@ -10,17 +10,17 @@
 | --- | --- |
 | 阶段 | P14 |
 | 排期身份 | CURRENT |
-| 总体状态 | READY |
+| 总体状态 | IMPLEMENTING |
 | 文档基线 | 2.3 |
 | 基础发布 | P13；Git 标签 `v20261018-P13` |
-| baselineGitRef | `06c3d1089a539aa72ad89402c6dc24fc2e7177da`（开立本阶段时的 develop HEAD；转 IMPLEMENTING 时若 develop 已前进，须在写代码前重记） |
+| baselineGitRef | `06c3d1089a539aa72ad89402c6dc24fc2e7177da`（2026-10-19 授权实施时的 develop HEAD；与开立时相同，develop 未前进） |
 | 变化分类 | 兼容能力扩展（[08](../../08-AI-IMPLEMENTATION-TASKS.md) 第 5 节）：新增 calendar `schemaVersion=3` 与能力项，不改 kernel 业务语义、公共表或稳定 SPI |
 | 目标场景 | [S01](../../scenarios/S01-reminder.md) `reminder`、[S02](../../scenarios/S02-recurring-todo.md) `recurring_todo` |
 | 目标能力项 | [CAP01](../../capabilities/CAP01-calendar.md) 的 CAL-07（工作日与节假日日历，C02 子集：仅中国大陆法定日历）与新增 CAL-17（发生时间段过滤） |
-| 工程状态 | NOT_STARTED |
-| 下一动作 | 等用户授权实施。正式契约已写入 [01](../../01-MVP-SPEC.md)、[03](../../03-INTEGRATION-CONTRACTS.md)、[04](../../04-API.md)、[06](../../06-SCHEDULING.md)、[07](../../07-ACCEPTANCE.md)、[09](../../09-SCENARIO-ROADMAP.md)、[CAP01](../../capabilities/CAP01-calendar.md)、[能力索引](../../capabilities/README.md)、[S01](../../scenarios/S01-reminder.md)、[S02](../../scenarios/S02-recurring-todo.md) 与 [HUMAN-GLOSSARY](../../HUMAN-GLOSSARY.md) |
+| 工程状态 | IMPLEMENTING |
+| 下一动作 | 从 [T02](IMPLEMENTATION.md) 开始编码。正式契约已在 READY 提交写入 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 尚无。开始实施前不创建 DELIVERY |
+| 交付证据 | 尚无。进入 VERIFYING 前不创建 DELIVERY |
 
 P01—P13 已冻结，本阶段不得改写它们。
 

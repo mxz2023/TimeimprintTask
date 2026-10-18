@@ -17,7 +17,7 @@
 | API / DTO | 应用接口 / 请求响应传输对象 |
 | G01 | T02开始业务实现前的编码契约冻结门槛，不是独立实施阶段 |
 | P01 / P02 / P03 | 第一期 / 第二期 / 第三期阶段编号；编号递增且不复用 |
-| CURRENT / DRAFT / IMPLEMENTING / VERIFYING / RELEASED | 当前唯一开发阶段 / 规则编写中 / 实施中 / 全量验证中 / 已形成发布基线 |
+| CURRENT / DRAFT / READY / IMPLEMENTING / BLOCKED / VERIFYING / RELEASED | 当前唯一开发阶段 / 正在明确范围，禁止编码 / 范围和人工步骤已明确，仍需用户授权才能编码 / 已授权，正在按任务实施 / 环境、契约或外部条件阻止继续 / 自动验收进行中，或仍等待人工步骤 / 自动证据和人工步骤都已完成并冻结 |
 | READY_FOR_IMPLEMENTATION | 场景契约已经具备实施条件，但不表示场景代码已完成 |
 | planningPosition | 排期位置；回答条目属于当前阶段、下一批评审还是长期规划 |
 | contractStatus | 契约成熟度；回答规则只是提纲、正在细化、可编码还是已经发布 |

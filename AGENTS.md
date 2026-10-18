@@ -13,7 +13,9 @@
 
 修改文件前必须说明当前阶段、阶段状态、当前任务、允许范围、禁止范围、适用的`INV-*`及验证方式。找不到CURRENT阶段、存在多个CURRENT阶段、状态不允许当前操作或文档互相冲突时，必须停止实现并先修正文档或请求决策，不能自行猜测。
 
-没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。这条规则同样适用于 TimeImprintUser、TimeImprintWebsite 和以后新建的子项目。P12 已于 2026-10-18 RELEASED。没有 CURRENT 阶段时，不得修改代码、测试、配置或部署脚本。
+没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。P12 已于 2026-10-18 RELEASED。没有 CURRENT 阶段时，不得修改代码、测试、配置或部署脚本。
+
+阶段门禁以`docs/08-AI-IMPLEMENTATION-TASKS.md`的「阶段规则」为准。没有 CURRENT，或 CURRENT 为 DRAFT、READY、BLOCKED 时，不得修改代码、测试、配置、迁移和部署脚本。IMPLEMENTING 和 VERIFYING 只能修改该阶段 README 写明允许的文件。
 
 改`actor_key`形状、`timeimprint.*`配置键或 Compose 已绑定的环境变量时，阶段允许范围必须先列入 MyStudio 的`Deploy/docker/timeimprint-task/entrypoint.sh`、`docker-compose.yml`、`docker-compose.local.yml`、`.env.example`、`.env.local.example`和`Wiki/Deploy/environment.md`，并在同一轮修改它们。`scripts/run-task-acceptance.sh`须静态对照当前`actor_key`前缀与入口映射，不能只靠预置账号`local-actor`的测试。接收人或对外投递变化时，必要人工步骤必须是真实登录账号在飞书收到消息；微信扫码登录成功不能代替。不要等用户提醒。
 
@@ -48,4 +50,4 @@
 
 ## 完成纪律
 
-执行与受影响契约相匹配的检查。文档修改至少验证Markdown链接、稳定编号、命名、CURRENT阶段唯一性和`git diff --check`。实现任务必须执行当前阶段规定的真实测试和证据命令；跳过或无法执行的验证保持NOT_RUN或BLOCKED。新阶段 README 必须写明必要人工步骤；用户未实际做完并说明结果前，不得把该阶段标为 RELEASED。该要求见`docs/08-AI-IMPLEMENTATION-TASKS.md`第 4 节，创建阶段时不得省略。
+执行与受影响契约相匹配的检查。文档修改至少验证Markdown链接、稳定编号、命名、CURRENT阶段唯一性和`git diff --check`。实现任务必须执行当前阶段规定的真实测试和证据命令；跳过或无法执行的验证保持NOT_RUN或BLOCKED。新阶段 README 必须写明必要人工步骤；用户未实际做完并说明结果前，不得把该阶段标为 RELEASED。该要求见`docs/08-AI-IMPLEMENTATION-TASKS.md`的「阶段规则」，创建阶段时不得省略。

@@ -29,7 +29,10 @@ C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S0
 
 ## 更新规则
 
-- 阶段变为RELEASED时，把它移入“已发布阶段”，补充DELIVERY和Git标签链接。
-- 创建下一阶段时，只增加一行CURRENT记录，不复制上一阶段任务或状态。新阶段 README 必须按 [08](../08-AI-IMPLEMENTATION-TASKS.md) 第 4 节写明本期必要人工步骤；未写不得转为 READY，用户未实际做完不得转为 RELEASED。
-- 阶段详细状态以其README为准，任务状态以其IMPLEMENTATION为准，交付事实以其DELIVERY为准。
-- 若本索引与阶段README不一致，立即停止实施并修正，不允许智能体自行选择。
+- 同一时刻只有一个 CURRENT。
+- 阶段状态只允许 DRAFT、READY、IMPLEMENTING、BLOCKED、VERIFYING、RELEASED。扭转以 docs/08-AI-IMPLEMENTATION-TASKS.md 的「阶段规则」为准。
+- 新阶段 README 必须写明目标、允许范围、禁止范围和必要人工步骤。未写不得转为 READY。没有外部步骤时写「本期无此类步骤」，转 READY 前由用户确认。
+- DRAFT 和 READY 不得改代码。IMPLEMENTING 须用户另行授权。
+- 自动证据通过但人工步骤未做完时保持 VERIFYING。用户未实际做完不得标 RELEASED。
+- 发布后把该阶段移入「已发布阶段」，停止改写 README、IMPLEMENTATION、DELIVERY。
+- 阶段详细状态以该阶段 README 为准，任务状态以 IMPLEMENTATION 为准，证据以 DELIVERY 为准。索引与阶段 README 不一致时停止实施并修正。

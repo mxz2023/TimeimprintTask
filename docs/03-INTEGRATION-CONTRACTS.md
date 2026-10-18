@@ -198,6 +198,8 @@ timeimprint-task-identity/src/main/resources/db/migration/identity/
 
 boot-loader引入Spring Boot Actuator，仅在回环地址提供`/actuator/health/liveness`与`/actuator/health/readiness`，不开放env、beans、heapdump等管理端点。readiness至少汇总数据库可连接、Flyway已完成、扩展注册完整、未终结schema可读和Worker初始化结果；运行中数据库失联时readiness转REFUSING_TRAFFIC，liveness保持UP以便外部决定是否重启。
 
+[P14](phases/P14/README.md) 的中国大陆工作日数据是 calendar 模块只读资源 `calendar/cn-mainland-workday/{yyyy}.json`，不入库、不新增 `timeimprint.*` 配置键，也不改 Compose 环境变量。启动时校验已随制品发布的文件：年份一致、日期都在该年、`holidays` 与 `workdays` 不相交且无重复、`workdays` 只能是周六或周日。任一文件不合法则 readiness 不就绪。缺某年不阻止就绪：该年日期按周一至周五回退，健康详情与日志标出缺失年份；每年 12 月 1 日起若次年文件仍缺，健康详情告警但不置为不就绪。本期只要求 2026 年文件。存量非终结绑定若使用 calendar `schemaVersion=3`，必须有兼容读取器，否则 readiness 不就绪（[A35](07-ACCEPTANCE.md)）。回退到不含该读取器的制品前，须先把这些定义改回更低版本或退役，否则进程不接受流量。已物化的 7 天窗口不因替换资源文件而重算。
+
 ## 5. 双进程与恢复边界
 
 双进程使用同一制品、同一数据库和相同扩展集合，只允许端口及INSTANCE_ID不同。两个进程都启用Worker时，Signal和Action Job通过数据库租约竞争；正确性不能依赖INSTANCE_ID绝对唯一、线程中断或本机锁。

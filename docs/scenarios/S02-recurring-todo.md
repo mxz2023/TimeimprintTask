@@ -26,6 +26,7 @@
 - 从今天起每7天备份一次手机。
 - 从今天 9 点起每 2 小时巡检一次：可以完成或跳过，不能稍后。
 - 每 15 分钟核对一次队列：可以完成或跳过，不能稍后。
+- 只在工作日白天产生待办：夜间那一次不会出现待办。已经产生的待办，催办和稍后提醒不再看时间段。
 - 今晚的待办先向后推迟再通知；可以推迟的次数有上限，也不能推迟到通知失效之后。
 - 到期后仍未办理，会按设定间隔再催几次，直到完成、跳过或通知失效。
 - 暂停一周：暂停期间不再出新的待办；暂停前已经到期的那份仍可完成或跳过，但不能再往后推迟。
@@ -36,7 +37,9 @@
 
 S02用于按日历周期产生彼此独立、需要用户结清的待办实例。一个实例未完成不阻止下一个occurrence产生。P01不区分提前激活时间与截止时间：`occurrenceAt = dueAt`，时间Signal到达时实例进入待办理状态并视为已经到期。未来“提前创建、稍后截止”属于C04扩展，不得通过隐藏字段加入schemaVersion 1。
 
-S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义只允许一个calendar触发绑定。
+S02使用[01](../01-MVP-SPEC.md)定义的共享日历规则，且每个定义只允许一个calendar触发绑定。
+
+[P14](../phases/P14/README.md) 起，该绑定的 calendar `schemaVersion` 可以是 1、2 或 3。版本 3 的 `timeWindow` 只决定某一次发生是否生成整个实例。`null` 表示不限时段。段外不生成实例、Signal、Action 或收件，也不补发，用户看不到「已跳过」记录。已经保留下来的实例上，CHASE 催办与稍后提醒不受时间段限制，仍按本节原规则执行。日类型、缺年回退与 7 天窗口不重算同 [S01](S01-reminder.md)。字段与原因键见 [04 §3.1.2](../04-API.md)。本段尚未验收，既有无时段行为仍以已发布 DELIVERY 为准。
 
 ## 2. 配置schemaVersion 1
 
@@ -108,7 +111,7 @@ S02使用[01](../01-MVP-SPEC.md)定义的P01共享日历规则，且每个定义
 
 ## 7. 停机、重试与幂等结果
 
-正常或故障停机采用平台固定的`ALL_MISSED`策略：每个遗漏occurrence仍生成一个独立实例并推进到`ACTIVE/PENDING`。已经超过expiresAt的通知Action直接落为EXPIRED，但实例仍然PENDING并可complete或skip；不能只保留最新一次或由Worker静默合并历史。
+正常或故障停机采用平台固定的`ALL_MISSED`策略：每个遗漏occurrence仍生成一个独立实例并推进到`ACTIVE/PENDING`。已经超过expiresAt的通知Action直接落为EXPIRED，但实例仍然PENDING并可complete或skip；不能只保留最新一次或由Worker静默合并历史。带时间段时，段外时刻不是 occurrence，追赶也不会补出实例；段内遗漏仍按本段处理。催办与稍后提醒不因时间段被取消。
 
 相同providerKey与signalKey只处理一次，相同occurrenceKey不得生成第二个实例，相同Action key不得生成第二份同接收人同渠道效果。技术重试只增加Action Attempt，不增加INITIAL/CHASE槽位或snooze次数。外部执行结果UNKNOWN、DEAD和受控重驱遵循平台公共协议。
 
@@ -118,7 +121,7 @@ S02 schemaVersion 1不需要专有业务表，状态与快照使用公共定义�
 
 - HTTP创建、更新、控制、complete、skip、snooze和查询形状以[04 API契约](../04-API.md)的E01—E13为准。
 - 锁序、Action批次、通知键、暂停和追赶执行以[06运行协议](../06-SCHEDULING.md)为准。
-- 最低业务验收为[07](../07-ACCEPTANCE.md)中的M06—M10，以及与S02相关的A05、A06、A12、A16、A21—A24、A30、A31、A36、A37、A41、A42。
+- 最低业务验收为[07](../07-ACCEPTANCE.md)中的M06—M10，以及与S02相关的A05、A06、A12、A16、A21—A24、A30、A31、A36、A37、A41、A42。时间段另见 [L01](../07-ACCEPTANCE.md)—[L09](../07-ACCEPTANCE.md)。
 - P01实现顺序和门槛以[P01 IMPLEMENTATION](../phases/P01/IMPLEMENTATION.md)的T06为准。
 
 ## 9. 变更规则

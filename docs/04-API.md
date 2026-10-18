@@ -51,7 +51,7 @@ JSON库、Mapper类型和HTTP消息转换器属于实现细节，从Jackson 2迁
 
 ### 3.1 Calendar schemaVersion 1
 
-S01/S02必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`、`schemaVersion=1`的trigger binding。config是以下七种互斥对象之一，表中字段全部必填且不允许额外字段。后两种由 [P07](phases/P07/README.md) 增加，不改变前五种的发生结果：
+S01/S02必须且只能传一个`bindingKey="primary"`、`providerKey="calendar"`的trigger binding。`schemaVersion=1`的config是以下七种互斥对象之一，表中字段全部必填且不允许额外字段。后两种由 [P07](phases/P07/README.md) 增加，不改变前五种的发生结果：
 
 | 类型 | 配置精确字段 | 语义 |
 | --- | --- | --- |
@@ -72,6 +72,38 @@ occurrenceAt由本地日期时间按zoneId转换为UTC整秒，occurrenceKey固�
 [P09](phases/P09/README.md) 增加 `schemaVersion=2`。它接受上一节七种类型，并增加 `YEARLY` 与 `ANCHOR_OFFSETS`，字段与语义见 [CAP01](capabilities/CAP01-calendar.md) 的 P09 正式范围。`schemaVersion=1` 传入这两种类型必须拒绝，且不得改变已有规则的下一次发生。S03 使用 `YEARLY` 且 `offsetDays=[-1,0]`。S04 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=false`。S05 使用 `ANCHOR_OFFSETS` 且 `dailyAfterAnchor=true`。[S14](scenarios/S14-maintenance-follow-up.md) 使用 `ANCHOR_OFFSETS`、`offsetDays=[0]` 且 `dailyAfterAnchor=false`。这些场景仍然每个定义只有一个 `primary` / `calendar` 绑定。
 
 E02请求精确为`scenarioKey, scenarioSchemaVersion, triggerBindings, scenarioConfig, after, limit`，不含requestId；limit为1—100，after为UTC整秒。PreviewResult精确返回`scenarioKey, scenarioSchemaVersion, normalizedTriggerBindings, normalizedScenarioConfig, occurrences`；每个occurrence含`occurrenceKey, occurrenceAt, dueAt`。S01 与 S03 的 dueAt 为 null。S02、S04、S05、S14 的 dueAt 等于 occurrenceAt。预览不返回definitionId或写入任何幂等记录。
+
+### 3.1.2 Calendar schemaVersion 3
+
+[P14](phases/P14/README.md) 增加 `schemaVersion=3`。它等于 `schemaVersion=2` 的九种类型及其原字段，再加必填字段 `timeWindow`。不新增端点。[S01](scenarios/S01-reminder.md) 与 [S02](scenarios/S02-recurring-todo.md) 接受 calendar `schemaVersion` 1、2、3。[S03](scenarios/S03-anniversary.md)、[S04](scenarios/S04-deadline-management.md)、[S05](scenarios/S05-payment-management.md)、[S14](scenarios/S14-maintenance-follow-up.md) 不接受 3，返回既有 `UNSUPPORTED_SCHEMA_VERSION`。`schemaVersion=1/2` 的解码与发生结果不变。
+
+`timeWindow` 必须出现。`null` 表示不限时段，发生结果与同字段的 `schemaVersion=2` 相同。对象恰好三个字段：
+
+| 字段 | 约束 |
+| --- | --- |
+| `mode` | `ALLOW` 或 `DENY`，大小写精确匹配 |
+| `workdaySegments` | 工作日时间段，0—8 段 |
+| `nonWorkdaySegments` | 非工作日时间段，0—8 段 |
+
+段对象精确为 `start, end`。`start` 为 `HH:mm`，范围 `00:00`—`23:59`。`end` 为 `HH:mm`，范围 `00:01`—`23:59`，或 `24:00`。`end` 早于 `start` 表示跨午夜。不接受 `end=00:00`、`start=24:00` 或 `start=end`。段数组须按 `start` 严格升序。同一数组内两段在 24 小时环上重叠则拒绝，首尾相接允许。日类型、覆盖判定与过滤见 [CAP01](capabilities/CAP01-calendar.md) 的 P14 正式范围。
+
+校验失败时 HTTP 400、`code=INVALID_REQUEST`、`data=null`。`message` 以原因键加全角冒号开头，后接中文说明。冒号后的文字不作为契约。
+
+| 原因键 | 条件 |
+| --- | --- |
+| `TW_FIELD` | `timeWindow` 缺失、不是对象或 null、字段多或少、段对象字段不对 |
+| `TW_MODE` | `mode` 不是 `ALLOW`/`DENY` |
+| `TW_TIME_FORMAT` | `start`/`end` 不是合法 `HH:mm`，或 `end=00:00`，或 `start=24:00` |
+| `TW_ZERO_LENGTH` | `start = end` |
+| `TW_TOO_MANY` | 单个数组超过 8 段 |
+| `TW_ORDER` | 数组未按 `start` 严格升序 |
+| `TW_OVERLAP` | 同一数组内两段在 24 小时环上重叠 |
+| `TW_ALLOW_EMPTY` | `ALLOW` 且两个数组都为空 |
+| `TW_DENY_EMPTY` | `DENY` 且两个数组都为空 |
+| `TW_NO_OCCURRENCE` | E03/E06：从事务时间起 400 天内没有任何一次允许的发生 |
+| `TW_DOWNGRADE` | E06 把已是 3 的绑定改回 1 或 2 |
+
+E02 执行同样的字段校验，但 `TW_NO_OCCURRENCE` 不报错，只返回空的 `occurrences`。E03 创建与 E06 `update` 在 `TW_NO_OCCURRENCE` 时拒绝且不写数据。E06 允许绑定从 1 或 2 升到 3。升到 3 且 `timeWindow=null`、其余日历字段与原绑定相同时视为 NoChange：库中保持原 `schemaVersion`，不增加 revision 或 `scheduleGeneration`。修改 `timeWindow` 属于日历配置变化。E04/E05/E06 回显中，`schemaVersion` 为 3 时 `config.timeWindow` 原样回显，`nextFireAt` 为下一次允许的发生。E07/E08 不新增字段。被跳过的发生不进入 `DeliverySummary`。
 
 ### 3.2 创建任务定义
 

@@ -25,8 +25,9 @@
 | CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-15 | EVERY_N_HOURS固定锚点每N小时 | P07 | RELEASED | VERIFIED | S01、S02 |
 | CAL-16 | EVERY_N_MINUTES固定锚点每N分钟 | P07 | RELEASED | VERIFIED | S01、S02 |
+| CAL-17 | 发生时间段过滤：按工作日与非工作日两套时间段删减候选发生 | P14 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
 | CAL-06 | 扩展周期：公历每年已进入 P09；季度、每N时间单位的其余部分、月末仍未做 | P09（仅 YEARLY）/ BACKLOG（其余） | READY_FOR_IMPLEMENTATION（仅 YEARLY）/ OUTLINE（其余） | VERIFIED（仅 YEARLY） | C01、S03 |
-| CAL-07 | 工作日与节假日日历 | BACKLOG | OUTLINE | NOT_STARTED | C02 |
+| CAL-07 | 工作日与节假日日历：中国大陆法定子集已进入 P14；企业日历仍未做 | P14（仅中国大陆法定日历）/ BACKLOG（企业日历） | READY_FOR_IMPLEMENTATION（仅中国大陆法定子集）/ OUTLINE（企业日历） | NOT_STARTED | C02 |
 | CAL-08 | 业务时间计时 | BACKLOG | OUTLINE | NOT_STARTED | C03、S09 |
 | CAL-09 | 相对锚点日的天数偏移；可选在锚点之后按自然日继续 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | C04、S04、S05 |
 | CAL-10 | 农历与周年换算 | NEXT_REVIEW | OUTLINE | NOT_STARTED | S03 |
@@ -58,10 +59,26 @@ calendar `schemaVersion=2` 在 schemaVersion 1 的七种类型之外增加两种
 
 [CAL-13](CAP01-calendar.md) 本期不实现。
 
+## P14 正式范围
+
+[CAL-17](CAP01-calendar.md) 与 [CAL-07](CAP01-calendar.md) 的中国大陆法定子集进入 [P14](../phases/P14/README.md)。契约状态为 READY_FOR_IMPLEMENTATION，实现证据尚未写入 DELIVERY，因此实现状态仍是 NOT_STARTED。不新增表，不新增 `timeimprint.*` 配置键。
+
+`schemaVersion=3` 在 schemaVersion 2 的九种类型上增加必填 `timeWindow`。HTTP 字段、原因键与升级规则以 [04 §3.1.2](../04-API.md) 为准。`timeWindow=null` 时发生结果与同字段的 schemaVersion 2 相同。`schemaVersion=1/2` 的发生结果不变。
+
+日类型 `type(x)`：日期 `x` 在该年数据的 `holidays` 中为非工作日；在 `workdays`（调休上班）中为工作日；否则周一至周五为工作日，周六、周日为非工作日。该年没有数据时按周一至周五回退。工作日取 `workdaySegments`，非工作日取 `nonWorkdaySegments`。
+
+段覆盖为左闭右开 `[start, end)`。候选时刻 `τ` 落在日期 `d` 上被覆盖，当且仅当：当天不跨午夜的段满足 `start ≤ τ < end`；当天跨午夜段满足 `τ ≥ start`；或前一天的跨午夜段满足 `τ < end`。跨午夜段整段归属开始那一天的日类型。`ALLOW` 保留被覆盖的发生，`DENY` 丢弃被覆盖的发生。某一套为空时：`ALLOW` 下该日类型一律不提醒，`DENY` 下该日类型不受限制。
+
+时间段只删减候选，不移动、不合并、不补发。`occurrenceKey`、`occurrenceAt` 与 signalKey 规则不变。小时与分钟规则的锚点不因跳过而漂移。被丢弃的发生不产生实例、计划 Signal、Action 或收件，也不进入计数。S02 已保留实例上的催办与稍后提醒不再看时间段。
+
+节假日数据是模块资源 `calendar/cn-mainland-workday/{yyyy}.json`，字段为 `region=CN_MAINLAND`、`year`、`source`、`holidays`、`workdays`。本期只发布 2026 年文件。启动校验与缺年行为见 [03](../03-INTEGRATION-CONTRACTS.md)。已物化的 7 天窗口不因替换该文件而重算。搜索、`next_fire_at` 与 `exhausted` 见 [06](../06-SCHEDULING.md)。验收为 [L01](../07-ACCEPTANCE.md)—[L09](../07-ACCEPTANCE.md)。
+
+企业日历、临时导入接口和「数据更新后重建已物化窗口」不在本期。
+
 ## 未来规划边界
 
 - C01：每年不能用每365天替代；2月29日、季度与月末必须先确定规则。
-- C02：必须区分周一至周五、法定调休和企业日历，并定义日历来源、年份和缺失数据行为。
+- C02：中国大陆法定日历与缺年回退已由 P14 写明。企业日历仍须另定来源与缺失行为后才能编码。
 - C03：必须定义营业时段、午休、跨日和外部日历不可用时的计时结果。
 - C04：到期前后多个时间点必须覆盖最早计划窗口，并定义业务时间变化后的整体重算和取消。
 - S03农历：必须决定闰月、无对应日期和公历转换版本；当前不属于C01已支持范围。
@@ -74,6 +91,6 @@ calendar `schemaVersion=2` 在 schemaVersion 1 的七种类型之外增加两种
 
 ## 数据、失败与演进
 
-calendar拥有触发配置解码和纯时间计算，不拥有场景专有状态。持久化绑定、Signal和游标使用公共平台表；除非未来出现真正能力专有数据，不得提前创建节假日、农历或例外表。
+calendar拥有触发配置解码和纯时间计算，不拥有场景专有状态。持久化绑定、Signal和游标使用公共平台表；除非未来出现真正能力专有数据，不得提前创建节假日、农历或例外表。P14 的法定工作日数据是只读资源文件，不是表。
 
 新增时间规则优先增加兼容schemaVersion和能力项。改变P01 schemaVersion 1已有发生结果属于不兼容变化，必须保留旧版本读取与规划能力或提供正式迁移，不能原地改算法。

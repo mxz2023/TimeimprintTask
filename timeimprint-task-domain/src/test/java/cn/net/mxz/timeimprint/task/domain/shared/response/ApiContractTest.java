@@ -18,6 +18,8 @@ import cn.net.mxz.timeimprint.task.domain.shared.view.AttemptSummary;
 import cn.net.mxz.timeimprint.task.domain.shared.view.CommandMetadataView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.CommandResultView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.DeliverySummary;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxClearReadView;
+import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxDeleteView;
 import cn.net.mxz.timeimprint.task.domain.inbox.view.InboxView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.OccurrenceView;
 import cn.net.mxz.timeimprint.task.domain.shared.view.Page;
@@ -184,6 +186,8 @@ class ApiContractTest {
                 "body",
                 "readAt",
                 "createdAt");
+        assertRecordFields(InboxDeleteView.class, "inboxId", "deletedAt");
+        assertRecordFields(InboxClearReadView.class, "clearedCount");
         assertRecordFields(
                 PreviewResult.class,
                 "scenarioKey",

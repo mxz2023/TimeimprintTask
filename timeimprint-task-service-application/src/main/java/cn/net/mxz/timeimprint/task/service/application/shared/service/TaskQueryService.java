@@ -93,15 +93,16 @@ public class TaskQueryService {
             throw new ApplicationException("RESOURCE_NOT_FOUND", "instance");
         }
         var actions = actionJobExecutionPort.listByInstance(instanceId);
-        // inbox counts for this instance across recipients — approximate via actions succeeded
+        // inboxCount stays the pre-P13 succeeded-action count. Soft-delete must not reduce it.
         int inboxCount = (int) actions.stream().filter(a -> "SUCCEEDED".equals(a.status())).count();
+        int unreadInboxCount = inboxRepository.countUnreadByInstance(instanceId);
         return new InstanceDetail(
                 inst,
                 def,
                 participantQuery.listDefinitionLevel(inst.definitionId()),
                 actions,
                 inboxCount,
-                0);
+                unreadInboxCount);
     }
 
     public List<TaskInstanceSnapshot> listInstances(long definitionId) {

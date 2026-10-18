@@ -2,24 +2,24 @@
 
 本阶段为收件箱增加软删除：单条删除与清空已读。列表、未读计数与 SSE 变化帧排除已删行；实例投递汇总的 `inboxCount` 仍计入已删行。不硬删，不改 notification / Action。网页确认与按钮由 Website 同期阶段负责。
 
-MyStudio 于 2026-10-18 代老板确认草案并授权实施：DRAFT → READY → IMPLEMENTING。任务见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+老板于 2026-10-18 确认人工功能与（经 Website）确认弹窗/成功提示交互后可以发布。阶段已 RELEASED（已发布）。证据见 [DELIVERY](DELIVERY.md)。本 README、IMPLEMENTATION、DELIVERY 此后不再改写。
 
 ## 1. 阶段身份
 
 | 项目 | 当前值 |
 | --- | --- |
 | 阶段 | P13 |
-| 排期身份 | CURRENT |
-| 总体状态 | VERIFYING |
+| 排期身份 | RELEASED |
+| 总体状态 | RELEASED |
 | 文档基线 | 2.3 |
 | 基础发布 | P12；Git 标签 `v20261018-P12` |
 | baselineGitRef | `e0b16fb12aa3554a05ae30a43a091429384ccdae`（授权实施前的 HEAD） |
-| 工程状态 | VERIFYING |
-| Git发布标签 | （发布时填写） |
-| 人工验收 | 功能 PASS（确认 UI 待 Website） |
-| 下一动作 | 等 Website 弹窗确认改完并重建；再合并打标签 RELEASED |
+| 工程状态 | RELEASED |
+| Git发布标签 | `v20261018-P13`（打在本 RELEASED 文档冻结提交上） |
+| 人工验收 | 2026-10-18 功能三步 PASS；同日确认弹窗与成功提示自动消失符合要求 |
+| 下一动作 | 无。本阶段冻结；下一阶段须用户另选范围 |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 自动与人工功能证据见 [DELIVERY](DELIVERY.md)；RELEASED 待 Website 弹窗收口 |
+| 交付证据 | [DELIVERY](DELIVERY.md)：B01—B04 与人工步骤均为 PASS |
 
 P01—P12 已冻结，本阶段不得改写它们。
 

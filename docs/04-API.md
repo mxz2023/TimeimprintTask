@@ -8,7 +8,7 @@
 
 公开路径前缀为`/api/v1`，内部可信路径前缀为`/internal/v1`。公开HTTP只通过`timeimprint-task-web → timeimprint-task-gateway → timeimprint-task-service-application`进入平台，不直接暴露Mapper、Action领取、租约、执行令牌或场景内部表。
 
-网关必须通过ActorContextProvider生成ActorContext。公开任务接口（E01—E13）必须携带`Authorization: Bearer`会话令牌。令牌只证明账号已登录，`actorId`等于用户 id，tenant 取配置中的`LOCAL_TENANT_ID`，请求头和请求体都不得改写。`X-Debug-Actor-Id`无效。请求体中的 userId、ownerId 或 tenantId 不能声明当前身份。资源查询和命令授权始终使用ActorContext独立判断。无令牌、坏令牌或停用账号返回401 UNAUTHENTICATED。
+网关必须通过ActorContextProvider生成ActorContext。公开任务接口（E01—E13、E31、E32）必须携带`Authorization: Bearer`会话令牌。令牌只证明账号已登录，`actorId`等于用户 id，tenant 取配置中的`LOCAL_TENANT_ID`，请求头和请求体都不得改写。`X-Debug-Actor-Id`无效。请求体中的 userId、ownerId 或 tenantId 不能声明当前身份。资源查询和命令授权始终使用ActorContext独立判断。无令牌、坏令牌或停用账号返回401 UNAUTHENTICATED。
 
 注册、登录、发短信、校验验证码、忘记密码和微信配置/回调可以不带令牌。其余用户端点必须带令牌；用户列表还要求管理员。
 
@@ -144,6 +144,8 @@ S02 `complete`的payload只允许可选`reason`，长度0—500个Unicode码点�
 | TaskInstanceView | `instanceId, definitionId, scenarioKey, scenarioSchemaVersion, lifecycleCategory, scenarioState, revision, titleSnapshot, descriptionSnapshot, participants, occurrenceAt, dueAt, allowedCommands, scenarioProjection, deliverySummary, createdAt, updatedAt, terminalAt` |
 | CommandResultView | `resourceType, resourceId, resourceRevision, changed, resourceSnapshot, scenarioResult` |
 | InboxView | `inboxId, notificationId, actionJobId, definitionId, instanceId, scenarioKey, purpose, title, body, readAt, createdAt` |
+| InboxDeleteView | `inboxId, deletedAt` |
+| InboxClearReadView | `clearedCount` |
 
 CommandMetadataView精确包含`commandKey, supportedCommandSchemaVersions`；版本数组升序。S01/S02的definitionCommands固定声明update、pause、resume、retire四项及commandSchemaVersion 1，具体某一时刻是否可用由TaskDefinitionView.allowedCommands表达；instanceCommands来自已注册TaskCommandHandler。requiredCapabilities是按capabilityKey字典序排列的字符串数组。
 
@@ -151,7 +153,7 @@ allowedCommands只返回当前Actor在响应生成时、基于当前revision可�
 
 所有响应数组有稳定顺序：participants按roleCode、principalType、principalId升序；triggerBindings按bindingKey升序；allowedCommands按commandKey升序；occurrences按occurrenceAt、occurrenceKey升序；attempts按attemptNo升序。实现不得依赖数据库未声明顺序。
 
-DeliverySummary固定返回`deliveryState, totalCount, readyCount, runningCount, retryWaitCount, succeededCount, deadCount, cancelledCount, expiredCount, unknownCount, inboxCount, unreadInboxCount, updatedAt`。计数覆盖该instance全部Action；控制代次失配但尚未物理清理的READY/RETRY_WAIT或未开始副作用的RUNNING Action等效计入cancelledCount，不再计入原技术状态；已提交effectStartedAt的EXTERNAL RUNNING仍计入runningCount直至按实际结果闭合。deliveryState按以下顺序唯一计算：totalCount=0为`NOT_SCHEDULED`；存在UNKNOWN为`UNKNOWN`；存在READY/RUNNING/RETRY_WAIT为`IN_PROGRESS`；全部SUCCEEDED为`DELIVERED`；有SUCCEEDED且同时有DEAD/CANCELLED/EXPIRED为`PARTIALLY_DELIVERED`；无SUCCEEDED且有DEAD为`FAILED`；其余只要有EXPIRED为`EXPIRED`；最后为`CANCELLED`。updatedAt取相关Action.updatedAt、Inbox.createdAt和Inbox.readAt中的最大非null值；totalCount=0时为null。这里的DELIVERED仅表示Handler成功，站内信可由inboxCount证明，外部渠道最终送达仍以未来渠道回执为准；用户是否阅读只由unreadInboxCount/readAt表达。
+DeliverySummary固定返回`deliveryState, totalCount, readyCount, runningCount, retryWaitCount, succeededCount, deadCount, cancelledCount, expiredCount, unknownCount, inboxCount, unreadInboxCount, updatedAt`。计数覆盖该instance全部Action；控制代次失配但尚未物理清理的READY/RETRY_WAIT或未开始副作用的RUNNING Action等效计入cancelledCount，不再计入原技术状态；已提交effectStartedAt的EXTERNAL RUNNING仍计入runningCount直至按实际结果闭合。deliveryState按以下顺序唯一计算：totalCount=0为`NOT_SCHEDULED`；存在UNKNOWN为`UNKNOWN`；存在READY/RUNNING/RETRY_WAIT为`IN_PROGRESS`；全部SUCCEEDED为`DELIVERED`；有SUCCEEDED且同时有DEAD/CANCELLED/EXPIRED为`PARTIALLY_DELIVERED`；无SUCCEEDED且有DEAD为`FAILED`；其余只要有EXPIRED为`EXPIRED`；最后为`CANCELLED`。updatedAt取相关Action.updatedAt、Inbox.createdAt和Inbox.readAt中的最大非null值；totalCount=0时为null。这里的DELIVERED仅表示Handler成功，站内信可由inboxCount证明，外部渠道最终送达仍以未来渠道回执为准；用户是否阅读只由unreadInboxCount/readAt表达。`inboxCount`继续按软删引入前的规则计算：该实例上状态为SUCCEEDED的Action数量，不读取、不扣减`tt_inbox.deleted_at`。软删不得使`inboxCount`变小；已软删的收件行仍留在`tt_inbox`，投递事实不撤销。`unreadInboxCount`只计该实例上`read_at`为空且`deleted_at`为空的收件行。
 
 I01的SignalAcceptedView固定返回`signalId, duplicated, processStatus, receivedAt`；首次接受duplicated=false，幂等重放为true。I02/I06的SignalDiagnosticView固定返回`signalId, definitionId, instanceId, providerKey, signalKey, schemaVersion, processStatus, attemptCount, maxAttempts, nextAttemptAt, leaseOwner, leaseUntil, resultCode, resultSummary, occurredAt, receivedAt, processedAt, parentSignalId, redriveNo`。I03/I04/I07的ActionJobDiagnosticView固定返回`actionJobId, definitionId, instanceId, transitionId, handlerKey, executionMode, schemaVersion, targetType, storedStatus, effectiveStatus, attemptCount, maxAttempts, availableAt, expiresAt, nextAttemptAt, leaseOwner, leaseUntil, outcomeCode, outcomeSummary, completedAt, parentActionJobId, redriveNo, attempts`；storedStatus是表中原值。控制代次失配时，READY/RETRY_WAIT以及尚未开始副作用的RUNNING返回effectiveStatus=CANCELLED；已经提交effectStartedAt的EXTERNAL RUNNING仍返回RUNNING直至按实际结果闭合；其他情况effectiveStatus等于storedStatus。Attempt摘要只含`attemptNo, startedAt, finishedAt, effectStarted, outcome, errorClass, errorCode, providerReference, safeSummary`。I05的TransitionDiagnosticView固定返回`transitionId, definitionId, instanceId, sourceType, sourceKey, commandKey, fromControlState, toControlState, fromLifecycle, toLifecycle, fromScenarioState, toScenarioState, fromRevision, toRevision, actorType, actorId, traceId, createdAt`，不返回summaryJson原文。I03的`status`过滤参数匹配storedStatus，I03/I05使用3.6的Page结构。所有内部视图都不返回payload、hash、executionToken或通知正文。
 
@@ -185,12 +187,16 @@ I01的SignalAcceptedView固定返回`signalId, duplicated, processStatus, receiv
 | E12 | GET `/api/v1/inbox-unread-count` | 无 | unreadCount、asOf |
 | E13 | POST `/api/v1/inbox/{inboxId}/commands/mark-read` | requestId | InboxView；重复读取保留首次readAt |
 | E30 | GET `/api/v1/inbox/events` | Bearer 令牌；无查询参数 | `text/event-stream`。不是 JSON 信封。见 4.2 |
+| E31 | POST `/api/v1/inbox/{inboxId}/commands/delete` | requestId | InboxDeleteView。见 4.3 |
+| E32 | POST `/api/v1/inbox/commands/clear-read` | requestId | InboxClearReadView。见 4.3 |
 
 E01只返回已装配且允许公开的ScenarioMetadataView，不提供运行时上传代码。E02可在不创建定义的情况下调用，但仍要执行场景和触发配置的完整强类型校验。E05 与 E08 只返回当前登录人作为定义级参与人可见的记录。当前账号没有任务时返回空页，状态码仍是 200，不把「别人的任务」或「空列表」报成 404。
 
 E06的update严格遵守3.3完整替换语义；pause、resume、retire遵循01。定义控制命令不得路由TaskCommandHandler。E09先检查场景是否声明并唯一注册commandKey，再检查ActorContext、生命周期、场景状态和revision。allowedCommands只是界面提示，服务端每次仍重新鉴权和校验。
 
-E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。E30 是同一收件模型上的只读事件流，不新增收件字段，也不代替 E10—E13。
+E01—E13 是任务公开接口，不另建第二套任务状态。未来若增加提醒友好入口，只能在gateway转换成上述通用命令。E30 是同一收件模型上的只读事件流，不新增收件字段，也不代替 E10—E13。E31 与 E32 只改变当前接收人能否在 E10—E12 与 E30 中看到收件，不删除行，也不代替 E10—E13。
+
+E10 不返回 `deleted_at` 非空的行。E11 对不存在、已软删或当前登录人不是接收人的 `inboxId` 一律返回 404，错误码 `RESOURCE_NOT_FOUND`，不说明是哪一种。E12 的 `unreadCount` 排除已软删行；已删未读不再计入。E13 对已软删或无权的 `inboxId` 同样返回 404，且不得改写该行的 `read_at`。
 
 ### 4.1 账号端点
 
@@ -234,9 +240,25 @@ event: inbox-changed
 data: {"unreadCount":1,"latestInboxId":10,"asOf":"2026-10-12T14:00:00Z"}
 ```
 
-`unreadCount` 是当前登录接收人的未读数，语义与 E12 相同。`latestInboxId` 是该接收人当前最大 `inboxId`；尚无收件时为 null。`asOf` 是本次帧的生成时间。帧里没有标题和正文。客户端需要列表时再调用 E10。重复帧必须可以安全忽略。
+`unreadCount` 是当前登录接收人的未读数，语义与 E12 相同，排除已软删行。`latestInboxId` 是该接收人尚未软删的收件中最大的 `inboxId`；没有可见收件时为 null。`asOf` 是本次帧的生成时间。帧里没有标题和正文。客户端需要列表时再调用 E10。重复帧必须可以安全忽略。
 
-服务端在收件插入或首次写入 `readAt` 的事务提交之后，向该接收人当前进程上的订阅写帧。推送失败不回滚收件，也不改变 E13。没有订阅时不保存待投递帧。另一进程写入的变化，由持有连接的进程至多每 5 秒按该接收人水位核对一次后补发。客户端在重连成功后应先调用 E12。
+服务端在收件插入、首次写入 `readAt`，或软删提交成功之后，向该接收人当前进程上的订阅写帧。推送失败不回滚收件，也不改变 E13、E31 或 E32。没有订阅时不保存待投递帧。另一进程写入的变化，由持有连接的进程至多每 5 秒按该接收人水位核对一次后补发。客户端在重连成功后应先调用 E12。
+
+### 4.3 站内信软删除（P13）
+
+[E31](04-API.md) 与 [E32](04-API.md) 的鉴权与 E10—E13 相同。请求体与 E13 相同，只有 `requestId`（UUID），不允许其他字段。二者都使用第 6 节的持久化幂等：幂等键绑定 tenant、actor、operation 与 `requestId`；请求摘要是不含 `requestId` 的空对象。相同 `requestId` 且摘要相同返回首次结果；摘要不同返回 409 `IDEMPOTENCY_CONFLICT`。因为请求体除 `requestId` 外没有字段，同一路径上的摘要冲突只在摘要被改写时出现。
+
+E31 软删一条收件。operation 为 `POST /api/v1/inbox/{inboxId}/commands/delete`，其中 `{inboxId}` 是路径中的数字。当前登录人是该行接收人时：
+
+- 首次删除把 `deleted_at` 写成 UTC 整秒。成功返回 InboxDeleteView：`inboxId` 为十进制字符串，`deletedAt` 为首次删除时间。
+- 该行已经软删时再次调用仍返回成功，`deletedAt` 保持第一次写入的时间，不改写。
+- 行不存在，或当前登录人不是接收人：404 `RESOURCE_NOT_FOUND`。不写入 `deleted_at`。
+
+E31 成功响应不包含标题和正文。提交成功后按 4.2 推送 `inbox-changed`。幂等重放或未改写 `deleted_at` 的重复删除不再推送。
+
+E32 清空当前登录接收人的已读收件。operation 为 `POST /api/v1/inbox/commands/clear-read`。只更新同时满足 `read_at` 非空且 `deleted_at` 为空的行，把它们的 `deleted_at` 写成同一次调用的 UTC 整秒。未读行、其他接收人的行、已经软删的行都不改。成功返回 InboxClearReadView，`clearedCount` 是本次新软删的行数；没有可清行时为 0，状态码仍是 200。同一 `requestId` 重放返回首次的 `clearedCount`，不再次改写。`clearedCount` 大于 0 的首次提交成功后按 4.2 推送；为 0 或幂等重放不推送。
+
+两条命令都不物理删除 `tt_inbox`，也不修改 `tt_notification`、Action、Attempt 或 Transition。`DeliverySummary.inboxCount` 不因这两条命令减少。
 
 ## 5. 内部端点
 
@@ -256,7 +278,7 @@ I06/I07请求包含requestId、expectedStatus=`DEAD`和1—500码点的reason。
 
 ## 6. 幂等、并发与校验顺序
 
-E03、E06、E09、E13、I01、I06和I07使用持久化幂等。幂等唯一键至少绑定tenant/actor、operation、requestId；Signal另有providerKey + signalKey业务去重。请求摘要包含默认值展开后的规范对象和expectedRevision/expectedStatus，不含requestId；对象键排序，数组保序，时间归一UTC，文本不trim。
+E03、E06、E09、E13、E31、E32、I01、I06和I07使用持久化幂等。幂等唯一键至少绑定tenant/actor、operation、requestId；Signal另有providerKey + signalKey业务去重。请求摘要包含默认值展开后的规范对象和expectedRevision/expectedStatus，不含requestId；对象键排序，数组保序，时间归一UTC，文本不trim。
 
 处理顺序固定为：
 

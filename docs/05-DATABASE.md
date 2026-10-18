@@ -290,11 +290,12 @@ target_type与target_id必须同时为空或同时非空；一期IN_APP通知Act
 | `definition_id` / `instance_id` | BIGINT UNSIGNED NOT NULL FK | 为租户安全分页保留的来源链路 |
 | `recipient_type` / `recipient_id` | VARCHAR(32) / VARCHAR(128) NOT NULL | 接收主体 |
 | `read_at` | DATETIME(0) NULL | 第一次标记已读时间 |
+| `deleted_at` | DATETIME(0) NULL | 首次软删时间，UTC 整秒。空表示接收人仍可见 |
 | `created_at` | DATETIME(0) NOT NULL | UTC |
 
-唯一键`uk_inbox_action(action_job_id)`保证一次IN_APP动作最多一条收件；唯一键`uk_inbox_notification_recipient(notification_id,recipient_type,recipient_id)`防止同通知向同接收人重复入箱。全部收件分页使用`ix_inbox_recipient(tenant_id,recipient_type,recipient_id,created_at,inbox_id)`，未读查询和计数使用`ix_inbox_unread(tenant_id,recipient_type,recipient_id,read_at,created_at,inbox_id)`，实例投递汇总使用`ix_inbox_instance(instance_id,created_at,inbox_id)`。
+唯一键`uk_inbox_action(action_job_id)`保证一次IN_APP动作最多一条收件；唯一键`uk_inbox_notification_recipient(notification_id,recipient_type,recipient_id)`防止同通知向同接收人重复入箱。全部收件分页使用`ix_inbox_recipient(tenant_id,recipient_type,recipient_id,created_at,inbox_id)`，未读查询和计数使用`ix_inbox_unread(tenant_id,recipient_type,recipient_id,read_at,created_at,inbox_id)`，实例投递汇总使用`ix_inbox_instance(instance_id,created_at,inbox_id)`。可见收件列表使用`ix_inbox_visible(tenant_id,recipient_type,recipient_id,deleted_at,created_at,inbox_id)`。
 
-IN_APP处理器在一个短事务中核对tenant/definition/instance链路，插入inbox、闭合attempt并把action状态改为SUCCEEDED；任一步失败全部回滚。查询收件不自动标记已读；mark-read仅在read_at为空时写入首次时间。
+IN_APP处理器在一个短事务中核对tenant/definition/instance链路，插入inbox、闭合attempt并把action状态改为SUCCEEDED；任一步失败全部回滚。查询收件不自动标记已读；mark-read仅在`read_at`为空且`deleted_at`为空时写入首次时间。E10、E11、E12 与 E30 的未读数、`latestInboxId` 都排除 `deleted_at` 非空的行。E31 首次删除写入 `deleted_at`，重复删除不改写该时间。E32 只更新当前接收人 `read_at` 非空且 `deleted_at` 为空的行。平台不得物理删除 `tt_inbox` 行，也不得因软删删除或修改 `tt_notification`、Action、Attempt、Transition。实例投递汇总的 `inboxCount` 不因 `deleted_at` 减少；`unreadInboxCount` 排除已软删行。
 
 ## 4. 状态与字段组合约束
 

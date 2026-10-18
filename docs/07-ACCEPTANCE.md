@@ -262,6 +262,17 @@ E01—E13和I01—I07每个端点都要有独立契约用例，至少覆盖：�
 | K01 | 库名 | 功能验收库是 `db_timeimprint_task`，性能门槛库是 `db_timeimprint_task_perf`。默认 JDBC 与集成测试地址使用这两个名字 |
 | K02 | 脚本与回归 | `scripts/run-task-acceptance.sh` 先重建空库，再按顺序跑 `mysql-it` 与 `dual-process-it`，退出码均为 0，且没有超过 20 分钟 |
 
+## 6.8 P13 验收项（B01—B04）
+
+[P13](phases/P13/README.md) 在获得实施授权并完成后，必须用真实 MySQL 证明下列项。证据写入 P13 DELIVERY 之前不得预填 PASS。网页上的二次确认由该阶段 README 的必要人工步骤覆盖，不能用阅读本文代替。
+
+| 编号 | 内容 | 通过标准 |
+| --- | --- | --- |
+| B01 | 单条软删 | [E31](04-API.md) 成功后 [E10](04-API.md)、[E11](04-API.md)、[E12](04-API.md) 不再暴露该行。已删或无权的 `inboxId` 在 E11 上为 404。同一行再次删除成功，且 `deleted_at` 仍是第一次的时间。行仍在 `tt_inbox` |
+| B02 | 清空已读 | [E32](04-API.md) 只软删当前接收人中 `read_at` 非空且尚未删除的行。未读行和其他接收人的行仍可见 |
+| B03 | 变化帧 | 软删提交后，该接收人已打开的连接收到 `inbox-changed`。帧中的 `unreadCount` 与 `latestInboxId` 排除已删行。推送失败不回滚删除 |
+| B04 | 投递汇总 | 含已删收件的实例上，`DeliverySummary.inboxCount` 与软删前相同。`unreadInboxCount` 排除已删行 |
+
 ## 7. 交付证据与总判定
 
 P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约/任务/用例编号、实现文件、实际命令、退出码、测试数、PASS/FAIL/BLOCKED/NOT_RUN、证据路径、实际JDK/MySQL/驱动/操作系统/进程数与关键配置。重试保留所有尝试，不只显示最后一次成功；后续阶段写入各自目录的DELIVERY，不覆盖P01证据。
@@ -275,6 +286,6 @@ P01进入T08验证时创建`docs/phases/P01/DELIVERY.md`，每项记录：契约
 ./mvnw -Pmysql-it,dual-process-it verify
 ```
 
-P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P08须把[R01](07-ACCEPTANCE.md)—[R04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P09须把[D01](07-ACCEPTANCE.md)—[D06](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
+P02还必须执行其[IMPLEMENTATION](phases/P02/IMPLEMENTATION.md)列出的模块限定真库与双进程命令，并把Q01—Q08逐项记录在P02 DELIVERY。P03须把[J01](07-ACCEPTANCE.md)—[J10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P05须把[F01](07-ACCEPTANCE.md)—[F10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P06须把[U01](07-ACCEPTANCE.md)—[U10](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P08须把[R01](07-ACCEPTANCE.md)—[R04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P09须把[D01](07-ACCEPTANCE.md)—[D06](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。P13须把[B01](07-ACCEPTANCE.md)—[B04](07-ACCEPTANCE.md)逐项记录在其DELIVERY；在真实执行前不得预填PASS。自本条写入后的新阶段，自动证据之外的必要人工步骤按 [08](08-AI-IMPLEMENTATION-TASKS.md) 第 4 节执行：用户实际做完并看到结果之前，不得转 RELEASED。已发布阶段不回写。
 
 交付校验自动核对M01—M10、A01—A42、E01—E13、I01—I07、架构扩展夹具、DDL、性能和恢复证据，不得重复或遗漏。只有所有必交付项均为PASS、证据路径存在且可由所记命令重现，且稳定核心、公共存储、Signal/Action运行时和场景专有数据原子物化均已完成，才能宣布首期实现完成。文档状态REVIEWED/T00 READY仅表示具备实施条件，不能写成实现VERIFIED。

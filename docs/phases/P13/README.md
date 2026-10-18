@@ -16,10 +16,10 @@ MyStudio 于 2026-10-18 代老板确认草案并授权实施：DRAFT → READY �
 | baselineGitRef | `e0b16fb12aa3554a05ae30a43a091429384ccdae`（授权实施前的 HEAD） |
 | 工程状态 | VERIFYING |
 | Git发布标签 | （发布时填写） |
-| 人工验收 | 未开始 |
-| 下一动作 | 本机部署后完成人工两步；通过前不得标 RELEASED |
+| 人工验收 | 功能 PASS（确认 UI 待 Website） |
+| 下一动作 | 等 Website 弹窗确认改完并重建；再合并打标签 RELEASED |
 | 实施任务 | [IMPLEMENTATION](IMPLEMENTATION.md) |
-| 交付证据 | 自动证据见 [DELIVERY](DELIVERY.md)；人工步骤待老板页面确认 |
+| 交付证据 | 自动与人工功能证据见 [DELIVERY](DELIVERY.md)；RELEASED 待 Website 弹窗收口 |
 
 P01—P12 已冻结，本阶段不得改写它们。
 

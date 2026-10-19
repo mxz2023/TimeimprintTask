@@ -1,7 +1,7 @@
 package cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider;
 
 import cn.net.mxz.timeimprint.task.common.time.BusinessClock;
-import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.extension.trigger.context.TriggerEvaluationContext;
 import cn.net.mxz.timeimprint.task.service.extension.trigger.registry.TriggerProviderKey;
@@ -37,7 +37,7 @@ public class CalendarTriggerProvider implements TriggerProvider {
 
     @Override
     public Set<Integer> supportedSchemaVersions() {
-        return Set.of(1, 2);
+        return Set.of(1, 2, 3);
     }
 
     @Override
@@ -45,10 +45,11 @@ public class CalendarTriggerProvider implements TriggerProvider {
         if (!supportedSchemaVersions().contains(context.configSchemaVersion())) {
             throw new IllegalArgumentException("UNSUPPORTED_SCHEMA_VERSION");
         }
-        var rule = CalendarConfigParser.parse(context.bindingConfig(), context.configSchemaVersion());
+        var parsed = CalendarConfigParser.parseBinding(
+                context.bindingConfig(), context.configSchemaVersion(), null);
         Instant after = clock.nowUtcSeconds();
         Instant windowEnd = after.plus(7, ChronoUnit.DAYS);
-        var occurrences = CalendarOccurrenceCalculator.preview(rule, after, 100);
+        var occurrences = CalendarWindowedPreview.preview(parsed.rule(), parsed.timeWindow(), after, 100);
         List<PlannedSignalIntent> out = new ArrayList<>();
         long definitionId = context.definitionSnapshot().definitionId();
         long controlGen = context.definitionSnapshot().controlGeneration();

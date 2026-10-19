@@ -7,8 +7,10 @@ import cn.net.mxz.timeimprint.task.service.application.definition.model.CreatedD
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ParticipantRecord;
 import cn.net.mxz.timeimprint.task.service.application.shared.model.TriggerBindingRecord;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionCreatePort;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.kernel.instance.model.TaskInstanceSnapshot;
@@ -112,26 +114,11 @@ public class DefinitionCreatePortImpl implements DefinitionCreatePort {
             throw new ApplicationException("INVALID_REQUEST", "expected calendar/primary binding");
         }
         Map<String, Object> configMap = parseMap(tb.configJson());
-        final cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Rule rule;
-        try {
-            rule = CalendarConfigParser.parse(configMap, tb.schemaVersion());
-        } catch (IllegalArgumentException ex) {
-            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
-            if (msg.startsWith("INVALID_REQUEST:")) {
-                msg = msg.substring("INVALID_REQUEST:".length()).trim();
-            }
-            throw new ApplicationException("INVALID_REQUEST", msg);
-        }
-        var occurrences = CalendarOccurrenceCalculator.preview(rule, now, 100);
-        List<CalendarOccurrenceCalculator.Occurrence> window = new ArrayList<>();
-        for (var occ : occurrences) {
-            if (!occ.occurrenceAt().isAfter(cmd.windowEnd())) {
-                window.add(occ);
-            }
-        }
-        if (window.isEmpty() && "ONCE".equals(String.valueOf(configMap.get("type")).toUpperCase())) {
-            throw new ApplicationException("INVALID_REQUEST", "ONCE must be strictly after create time");
-        }
+        CreateSchedule schedule = scheduleCreate(
+                configMap, tb.schemaVersion(), cmd.scenarioKey(), now, cmd.windowEnd());
+        List<CalendarOccurrenceCalculator.Occurrence> window = schedule.window();
+        Instant nextFire = schedule.nextFire();
+        boolean exhausted = schedule.exhausted();
 
         TriggerBindingRow binding = new TriggerBindingRow();
         binding.setDefinitionId(definitionId);
@@ -142,23 +129,6 @@ public class DefinitionCreatePortImpl implements DefinitionCreatePort {
         binding.setConfigHash(Sha256.digestUtf8(tb.configJson()));
         binding.setBindingState("ACTIVE");
         binding.setScheduleGeneration(1L);
-        boolean openEnded = CalendarOccurrenceCalculator.openEnded(rule);
-        List<CalendarOccurrenceCalculator.Occurrence> beyond = openEnded
-                ? CalendarOccurrenceCalculator.preview(rule, cmd.windowEnd(), 1)
-                : List.of();
-        Instant nextFire;
-        boolean exhausted;
-        if (openEnded) {
-            exhausted = beyond.isEmpty();
-            if (!beyond.isEmpty()) {
-                nextFire = beyond.get(0).occurrenceAt();
-            } else {
-                nextFire = window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt();
-            }
-        } else {
-            exhausted = window.isEmpty() || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
-            nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
-        }
         binding.setNextFireAt(StorageTime.toUtcLdt(nextFire));
         binding.setCursorJson("{}");
         binding.setExhausted(exhausted);
@@ -288,6 +258,69 @@ public class DefinitionCreatePortImpl implements DefinitionCreatePort {
                 signalCount,
                 false,
                 null);
+    }
+
+    private record CreateSchedule(
+            List<CalendarOccurrenceCalculator.Occurrence> window, Instant nextFire, boolean exhausted) {}
+
+    private CreateSchedule scheduleCreate(
+            Map<String, Object> configMap,
+            int schemaVersion,
+            String scenarioKey,
+            Instant now,
+            Instant windowEnd) {
+        final CalendarConfigParser.ParsedBinding parsed;
+        try {
+            parsed = CalendarConfigParser.parseBinding(configMap, schemaVersion, scenarioKey);
+            if (parsed.timeWindow() != null) {
+                CalendarWindowedPreview.requireWithinHorizon(parsed.rule(), parsed.timeWindow(), now);
+            }
+        } catch (CalendarConfigException ex) {
+            throw new ApplicationException(ex.errorCode(), ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
+            if (msg.startsWith("INVALID_REQUEST:")) {
+                msg = msg.substring("INVALID_REQUEST:".length()).trim();
+            }
+            throw new ApplicationException("INVALID_REQUEST", msg);
+        }
+        if (parsed.timeWindow() == null) {
+            var rule = parsed.rule();
+            var occurrences = CalendarOccurrenceCalculator.preview(rule, now, 100);
+            List<CalendarOccurrenceCalculator.Occurrence> window = new ArrayList<>();
+            for (var occ : occurrences) {
+                if (!occ.occurrenceAt().isAfter(windowEnd)) {
+                    window.add(occ);
+                }
+            }
+            if (window.isEmpty() && "ONCE".equals(String.valueOf(configMap.get("type")).toUpperCase())) {
+                throw new ApplicationException("INVALID_REQUEST", "ONCE must be strictly after create time");
+            }
+            boolean openEnded = CalendarOccurrenceCalculator.openEnded(rule);
+            List<CalendarOccurrenceCalculator.Occurrence> beyond =
+                    openEnded ? CalendarOccurrenceCalculator.preview(rule, windowEnd, 1) : List.of();
+            Instant nextFire;
+            boolean exhausted;
+            if (openEnded) {
+                exhausted = beyond.isEmpty();
+                if (!beyond.isEmpty()) {
+                    nextFire = beyond.get(0).occurrenceAt();
+                } else {
+                    nextFire = window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt();
+                }
+            } else {
+                exhausted = window.isEmpty() || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
+                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+            }
+            return new CreateSchedule(window, nextFire, exhausted);
+        }
+        var plan = CalendarWindowedPreview.planWrite(
+                parsed.rule(),
+                parsed.timeWindow(),
+                now,
+                windowEnd,
+                "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type"))));
+        return new CreateSchedule(plan.inWindow(), plan.nextFireAt(), plan.exhausted());
     }
 
     private Map<String, Object> parseMap(String json) {

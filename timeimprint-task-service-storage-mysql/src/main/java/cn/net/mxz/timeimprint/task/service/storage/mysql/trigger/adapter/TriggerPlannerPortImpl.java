@@ -4,6 +4,8 @@ import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import cn.net.mxz.timeimprint.task.service.application.shared.port.TriggerPlannerPort;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.TimeWindow;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
@@ -117,14 +119,19 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
 
         Map<String, Object> configMap = parseMap(binding.getConfigJson());
         int schemaVersion = binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion();
-        CalendarOccurrenceCalculator.Rule rule = CalendarConfigParser.parse(configMap, schemaVersion);
+        CalendarConfigParser.ParsedBinding parsed =
+                CalendarConfigParser.parseBinding(configMap, schemaVersion, def.getScenarioKey());
+        CalendarOccurrenceCalculator.Rule rule = parsed.rule();
+        TimeWindow timeWindow = parsed.timeWindow();
 
         Instant cursor = binding.getNextFireAt() != null
                 ? StorageTime.toInstant(binding.getNextFireAt()).minus(1, ChronoUnit.SECONDS)
                 : now;
 
         Instant windowEnd = now.plus(7, ChronoUnit.DAYS);
-        var occurrences = CalendarOccurrenceCalculator.preview(rule, cursor, maxPerBinding);
+        var occurrences = timeWindow == null
+                ? CalendarOccurrenceCalculator.preview(rule, cursor, maxPerBinding)
+                : CalendarWindowedPreview.preview(rule, timeWindow, cursor, maxPerBinding);
 
         int generated = 0;
         Instant lastOccurrence = null;
@@ -229,7 +236,19 @@ public class TriggerPlannerPortImpl implements TriggerPlannerPort {
 
         boolean exhausted;
         Instant nextFireAt;
-        if (CalendarOccurrenceCalculator.openEnded(rule)) {
+        if (timeWindow != null) {
+            var plan = CalendarWindowedPreview.planCatchUp(
+                    rule,
+                    timeWindow,
+                    now,
+                    cursor,
+                    lastOccurrence,
+                    generated,
+                    maxPerBinding,
+                    "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type"))));
+            exhausted = plan.exhausted();
+            nextFireAt = plan.nextFireAt();
+        } else if (CalendarOccurrenceCalculator.openEnded(rule)) {
             var beyond = CalendarOccurrenceCalculator.preview(rule, windowEnd, 1);
             exhausted = beyond.isEmpty();
             nextFireAt = beyond.isEmpty() ? lastOccurrence : beyond.get(0).occurrenceAt();

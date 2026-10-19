@@ -3,8 +3,10 @@ package cn.net.mxz.timeimprint.task.service.storage.mysql.definition.adapter;
 import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
@@ -102,19 +104,49 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
                 continue;
             }
             Map<String, Object> configMap = parseMap(binding.getConfigJson());
-            final CalendarOccurrenceCalculator.Rule rule;
+            int schemaVersion = binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion();
+            final CalendarConfigParser.ParsedBinding parsed;
             try {
-                rule = CalendarConfigParser.parse(configMap, binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion());
+                parsed = CalendarConfigParser.parseBinding(configMap, schemaVersion, def.getScenarioKey());
+            } catch (CalendarConfigException ex) {
+                throw new ApplicationException(ex.errorCode(), ex.getMessage());
             } catch (IllegalArgumentException ex) {
                 throw new ApplicationException("INVALID_REQUEST", ex.getMessage());
             }
+            var rule = parsed.rule();
             long schedGen = binding.getScheduleGeneration() == null ? 1L : binding.getScheduleGeneration();
-            var occurrences = CalendarOccurrenceCalculator.preview(rule, now, 100);
-            List<CalendarOccurrenceCalculator.Occurrence> window = new ArrayList<>();
-            for (var occ : occurrences) {
-                if (!occ.occurrenceAt().isAfter(windowEnd)) {
-                    window.add(occ);
+            List<CalendarOccurrenceCalculator.Occurrence> window;
+            Instant nextFire;
+            boolean exhausted;
+            if (parsed.timeWindow() == null) {
+                var occurrences = CalendarOccurrenceCalculator.preview(rule, now, 100);
+                window = new ArrayList<>();
+                for (var occ : occurrences) {
+                    if (!occ.occurrenceAt().isAfter(windowEnd)) {
+                        window.add(occ);
+                    }
                 }
+                if (CalendarOccurrenceCalculator.openEnded(rule)) {
+                    var beyond = CalendarOccurrenceCalculator.preview(rule, windowEnd, 1);
+                    exhausted = beyond.isEmpty();
+                    nextFire = beyond.isEmpty()
+                            ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
+                            : beyond.get(0).occurrenceAt();
+                } else {
+                    exhausted = window.isEmpty()
+                            || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
+                    nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+                }
+            } else {
+                var plan = CalendarWindowedPreview.planWrite(
+                        rule,
+                        parsed.timeWindow(),
+                        now,
+                        windowEnd,
+                        "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type"))));
+                window = plan.inWindow();
+                nextFire = plan.nextFireAt();
+                exhausted = plan.exhausted();
             }
 
             for (var occ : window) {
@@ -133,19 +165,6 @@ public class DefinitionControlPortImpl implements DefinitionControlPort {
                         now);
             }
 
-            Instant nextFire;
-            boolean exhausted;
-            if (CalendarOccurrenceCalculator.openEnded(rule)) {
-                var beyond = CalendarOccurrenceCalculator.preview(rule, windowEnd, 1);
-                exhausted = beyond.isEmpty();
-                nextFire = beyond.isEmpty()
-                        ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
-                        : beyond.get(0).occurrenceAt();
-            } else {
-                exhausted = window.isEmpty()
-                        || "ONCE".equalsIgnoreCase(String.valueOf(configMap.get("type")));
-                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
-            }
             int updated = triggerMapper.updateCursor(
                     binding.getTriggerBindingId(),
                     binding.getRevision(),

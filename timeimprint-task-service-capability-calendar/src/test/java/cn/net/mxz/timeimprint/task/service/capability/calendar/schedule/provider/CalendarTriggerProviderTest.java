@@ -30,5 +30,6 @@ class CalendarTriggerProviderTest {
         CalendarTriggerProvider provider = new CalendarTriggerProvider(() -> java.time.Instant.parse("2026-01-01T00:00:00Z"));
         assertTrue(provider.supportedSchemaVersions().contains(1));
         assertTrue(provider.supportedSchemaVersions().contains(2));
+        assertTrue(provider.supportedSchemaVersions().contains(3));
     }
 }

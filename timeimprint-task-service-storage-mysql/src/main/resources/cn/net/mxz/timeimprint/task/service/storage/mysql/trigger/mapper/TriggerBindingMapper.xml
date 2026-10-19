@@ -56,6 +56,7 @@
         UPDATE tt_trigger_binding SET
             config_json = #{configJson},
             config_hash = #{configHash},
+            schema_version = #{schemaVersion},
             schedule_generation = #{scheduleGeneration},
             next_fire_at = #{nextFireAt},
             cursor_json = #{cursorJson},

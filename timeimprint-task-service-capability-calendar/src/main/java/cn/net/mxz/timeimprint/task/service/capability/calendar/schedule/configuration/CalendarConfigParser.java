@@ -13,6 +13,7 @@ import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculat
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator.Yearly;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.JsonPayload;
 import cn.net.mxz.timeimprint.task.service.kernel.transition.model.ScenarioMutationPayload;
+import java.util.LinkedHashMap;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -25,8 +26,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-/** 将 calendar schemaVersion=1 配置解码为计算器 Rule。 */
+/** 将 calendar 配置解码为计算器 Rule。schemaVersion 3 另带 timeWindow。 */
 public final class CalendarConfigParser {
+
+    /** schemaVersion 3 且 timeWindow 为 null 时，timeWindow 字段为 null，发生与版本 2 相同。 */
+    public record ParsedBinding(Rule rule, TimeWindow timeWindow) {}
 
     private static final DateTimeFormatter LOCAL_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter LOCAL_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -62,7 +66,36 @@ public final class CalendarConfigParser {
         return parse(fields, 1);
     }
 
+    public static ParsedBinding parseBinding(ScenarioMutationPayload payload, int schemaVersion, String scenarioKey) {
+        if (!(payload instanceof JsonPayload json)) {
+            throw new IllegalArgumentException("INVALID_REQUEST: calendar config must be object");
+        }
+        return parseBinding(json.fields(), schemaVersion, scenarioKey);
+    }
+
+    public static ParsedBinding parseBinding(Map<String, Object> fields, int schemaVersion, String scenarioKey) {
+        if (schemaVersion == 3 && scenarioKey != null && !acceptsSchema3(scenarioKey)) {
+            throw CalendarConfigException.unsupportedSchema();
+        }
+        if (schemaVersion == 3) {
+            if (fields == null || !fields.containsKey("timeWindow")) {
+                throw CalendarConfigException.invalid("TW_FIELD", "schemaVersion 3 必须包含 timeWindow");
+            }
+            Map<String, Object> copy = new LinkedHashMap<>(fields);
+            TimeWindow window = TimeWindowParser.parse(copy.remove("timeWindow"));
+            return new ParsedBinding(parse(copy, 2), window);
+        }
+        return new ParsedBinding(parse(fields, schemaVersion), null);
+    }
+
+    public static boolean acceptsSchema3(String scenarioKey) {
+        return "reminder".equals(scenarioKey) || "recurring_todo".equals(scenarioKey);
+    }
+
     public static Rule parse(Map<String, Object> fields, int schemaVersion) {
+        if (schemaVersion == 3) {
+            return parseBinding(fields, 3, null).rule();
+        }
         if (schemaVersion != 1 && schemaVersion != 2) {
             throw new IllegalArgumentException("INVALID_REQUEST: unsupported calendar schemaVersion");
         }

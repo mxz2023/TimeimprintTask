@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 下一动作 |
 | --- | --- | --- |
-| [P14 提醒时间段](P14/README.md) | IMPLEMENTING（CURRENT） | 已授权。从 T02 编码；本合并的文档提交不含业务代码 |
+| [P14 提醒时间段](P14/README.md) | VERIFYING（CURRENT） | 自动证据已写入 [DELIVERY](P14/DELIVERY.md)。第 6 节人工步骤未做，未标 RELEASED |
 
 ## 已发布阶段
 
@@ -28,7 +28,7 @@
 
 ## 未来阶段
 
-C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。站内信软删除已随 [P13](P13/README.md) 发布。标签 `v20261018-P13`。提醒时间段在 [P14](P14/README.md)（IMPLEMENTING）。
+C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。站内信软删除已随 [P13](P13/README.md) 发布。标签 `v20261018-P13`。提醒时间段在 [P14](P14/README.md)（VERIFYING，未标 RELEASED）。
 
 ## 更新规则
 

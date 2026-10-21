@@ -6,12 +6,14 @@ import cn.net.mxz.timeimprint.task.service.application.shared.port.ActorContextP
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.definition.model.CreateDefinitionCommand;
 import cn.net.mxz.timeimprint.task.service.application.shared.port.CommandDedupRepository;
+import cn.net.mxz.timeimprint.task.service.application.shared.port.TriggerBindingQuery;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionUpdatePort;
 import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionCommitRequest;
 import cn.net.mxz.timeimprint.task.service.application.transition.port.TransitionPlanCommitter;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.TaskDefinitionRepository;
 import cn.net.mxz.timeimprint.task.service.application.shared.transaction.TransactionBoundary;
 import cn.net.mxz.timeimprint.task.service.application.shared.validation.ParticipantCreateValidator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.InitialDefinitionContext;
@@ -54,6 +56,7 @@ public class DefinitionUpdateExecutor {
     private final JsonMapper objectMapper;
     private final ParticipantCreateValidator participantCreateValidator;
     private final TransitionPlanCommitter transitionPlanCommitter;
+    private final TriggerBindingQuery triggerBindingQuery;
 
     public DefinitionUpdateExecutor(
             ActorContextProvider actorContextProvider,
@@ -65,7 +68,8 @@ public class DefinitionUpdateExecutor {
             BusinessClock clock,
             JsonMapper objectMapper,
             ParticipantCreateValidator participantCreateValidator,
-            TransitionPlanCommitter transitionPlanCommitter) {
+            TransitionPlanCommitter transitionPlanCommitter,
+            TriggerBindingQuery triggerBindingQuery) {
         this.actorContextProvider = actorContextProvider;
         this.definitionRepository = definitionRepository;
         this.commandDedupRepository = commandDedupRepository;
@@ -76,6 +80,7 @@ public class DefinitionUpdateExecutor {
         this.objectMapper = objectMapper;
         this.participantCreateValidator = participantCreateValidator;
         this.transitionPlanCommitter = transitionPlanCommitter;
+        this.triggerBindingQuery = triggerBindingQuery;
     }
 
     public DefinitionCommandService.CommandResult execute(
@@ -147,7 +152,8 @@ public class DefinitionUpdateExecutor {
                 throw new ApplicationException("INVALID_REQUEST", msg);
             }
             participantCreateValidator.validateParticipants(actor.principalId(), parsed.participants());
-            validateCalendarBinding(parsed.triggerBindings());
+            rejectSchemaDowngrade(definitionId, parsed.triggerBindings());
+            validateCalendarBinding(parsed.triggerBindings(), def.scenarioKey());
 
             var now = clock.nowUtcSeconds();
             var result = definitionUpdatePort.apply(new DefinitionUpdatePort.UpdateCommand(
@@ -308,7 +314,24 @@ public class DefinitionUpdateExecutor {
         return out;
     }
 
-    private void validateCalendarBinding(List<CreateDefinitionCommand.TriggerBindingInput> bindings) {
+    private void rejectSchemaDowngrade(
+            long definitionId, List<CreateDefinitionCommand.TriggerBindingInput> bindings) {
+        if (bindings.size() != 1) {
+            return;
+        }
+        int next = bindings.get(0).schemaVersion();
+        if (next != 1 && next != 2) {
+            return;
+        }
+        for (var existing : triggerBindingQuery.listByDefinition(definitionId)) {
+            if (existing.schemaVersion() == 3 && "calendar".equals(existing.providerKey())) {
+                throw new ApplicationException("INVALID_REQUEST", "TW_DOWNGRADE：不能把 schemaVersion 3 改回更低版本");
+            }
+        }
+    }
+
+    private void validateCalendarBinding(
+            List<CreateDefinitionCommand.TriggerBindingInput> bindings, String scenarioKey) {
         if (bindings.size() != 1) {
             throw new ApplicationException("INVALID_REQUEST", "exactly one trigger binding required");
         }
@@ -323,7 +346,9 @@ public class DefinitionUpdateExecutor {
             throw new ApplicationException("INVALID_REQUEST", "invalid trigger config json");
         }
         try {
-            CalendarConfigParser.parse(config, tb.schemaVersion());
+            CalendarConfigParser.parseBinding(config, tb.schemaVersion(), scenarioKey);
+        } catch (CalendarConfigException ex) {
+            throw new ApplicationException(ex.errorCode(), ex.getMessage());
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {

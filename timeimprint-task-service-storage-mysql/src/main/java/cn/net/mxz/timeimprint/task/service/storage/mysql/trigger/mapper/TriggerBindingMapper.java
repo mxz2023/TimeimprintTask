@@ -30,6 +30,7 @@ public interface TriggerBindingMapper {
                                 @Param("newRevision") long newRevision,
                                 @Param("configJson") String configJson,
                                 @Param("configHash") byte[] configHash,
+                                @Param("schemaVersion") int schemaVersion,
                                 @Param("scheduleGeneration") long scheduleGeneration,
                                 @Param("nextFireAt") LocalDateTime nextFireAt,
                                 @Param("cursorJson") String cursorJson,

@@ -30,10 +30,10 @@ class TriggerBindingMapperMysqlIT {
                 "selectById/1",
                 "selectByIdForUpdate/1",
                 "selectDueTriggerIds/3",
-                "updateConfigAndSchedule/10",
+                "updateConfigAndSchedule/11",
                 "updateCursor/7"), actual);
 
-        String resource = "/mapper/TriggerBindingMapper.xml";
+        String resource = "TriggerBindingMapper.xml";
         try (InputStream in = TriggerBindingMapper.class.getResourceAsStream(resource)) {
             assertNotNull(in, "missing classpath resource " + resource);
             String xml = new String(in.readAllBytes(), StandardCharsets.UTF_8);

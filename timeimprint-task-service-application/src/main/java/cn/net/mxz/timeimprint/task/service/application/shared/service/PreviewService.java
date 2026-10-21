@@ -1,8 +1,9 @@
 package cn.net.mxz.timeimprint.task.service.application.shared.service;
 
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
-import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import cn.net.mxz.timeimprint.task.service.extension.shared.context.DefinitionConfigValidationContext;
 import cn.net.mxz.timeimprint.task.service.extension.shared.registry.ExtensionRegistry;
 import cn.net.mxz.timeimprint.task.service.extension.scenario.registry.ScenarioExtensionKey;
@@ -61,9 +62,11 @@ public class PreviewService {
         @SuppressWarnings("unchecked")
         Map<String, Object> config = (Map<String, Object>) binding.get("config");
         int bindingSchema = binding.get("schemaVersion") instanceof Number n ? n.intValue() : 1;
-        final CalendarOccurrenceCalculator.Rule rule;
+        final CalendarConfigParser.ParsedBinding parsed;
         try {
-            rule = CalendarConfigParser.parse(config, bindingSchema);
+            parsed = CalendarConfigParser.parseBinding(config, bindingSchema, scenarioKey);
+        } catch (CalendarConfigException ex) {
+            throw new ApplicationException(ex.errorCode(), ex.getMessage());
         } catch (IllegalArgumentException ex) {
             String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
             if (msg.startsWith("INVALID_REQUEST:")) {
@@ -71,7 +74,7 @@ public class PreviewService {
             }
             throw new ApplicationException("INVALID_REQUEST", msg);
         }
-        var occs = CalendarOccurrenceCalculator.preview(rule, after, limit).stream()
+        var occs = CalendarWindowedPreview.preview(parsed.rule(), parsed.timeWindow(), after, limit).stream()
                 .map(o -> {
                     // docs/04-API.md: S01 dueAt=null；S02 dueAt=occurrenceAt
                     Instant dueAt = "recurring_todo".equals(scenarioKey)

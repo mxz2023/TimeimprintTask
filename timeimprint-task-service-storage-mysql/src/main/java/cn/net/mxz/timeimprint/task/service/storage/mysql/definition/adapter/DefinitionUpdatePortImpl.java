@@ -4,8 +4,10 @@ import cn.net.mxz.timeimprint.task.common.hashing.Sha256;
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionControlPort;
 import cn.net.mxz.timeimprint.task.service.application.definition.port.DefinitionUpdatePort;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarPlannedInstanceSnapshot;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.provider.CalendarTriggerProvider;
 import cn.net.mxz.timeimprint.task.service.storage.mysql.shared.time.StorageTime;
@@ -94,27 +96,38 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
         if (!"calendar".equals(tb.providerKey()) || !"primary".equals(tb.bindingKey())) {
             throw new ApplicationException("INVALID_REQUEST", "expected calendar/primary binding");
         }
-        if (tb.schemaVersion() != binding.getSchemaVersion()) {
+        int currentSchema = binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion();
+        int nextSchema = tb.schemaVersion();
+        if (currentSchema == 3 && (nextSchema == 1 || nextSchema == 2)) {
+            throw new ApplicationException("INVALID_REQUEST", "TW_DOWNGRADE：不能把 schemaVersion 3 改回更低版本");
+        }
+        boolean upgrade = (currentSchema == 1 || currentSchema == 2) && nextSchema == 3;
+        if (!upgrade && nextSchema != currentSchema) {
             throw new ApplicationException("INVALID_REQUEST", "binding schemaVersion cannot change via update");
         }
 
         Map<String, Object> newConfigMap = parseMap(tb.configJson());
-        final CalendarOccurrenceCalculator.Rule rule;
-        try {
-            rule = CalendarConfigParser.parse(newConfigMap, tb.schemaVersion());
-        } catch (IllegalArgumentException ex) {
-            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
-            if (msg.startsWith("INVALID_REQUEST:")) {
-                msg = msg.substring("INVALID_REQUEST:".length()).trim();
-            }
-            throw new ApplicationException("INVALID_REQUEST", msg);
+        final CalendarConfigParser.ParsedBinding parsed =
+                parseBinding(newConfigMap, nextSchema, def.getScenarioKey());
+        boolean equivalentUpgrade = false;
+        if (upgrade && parsed.timeWindow() == null) {
+            CalendarOccurrenceCalculator.Rule oldRule =
+                    CalendarConfigParser.parse(parseMap(binding.getConfigJson()), currentSchema);
+            equivalentUpgrade = oldRule.equals(parsed.rule());
         }
-
-        boolean calendarChanged = !jsonEquals(binding.getConfigJson(), tb.configJson());
+        boolean calendarChanged = !equivalentUpgrade && !jsonEquals(binding.getConfigJson(), tb.configJson());
         boolean contentChanged = contentChanged(def, cmd);
         boolean participantsChanged = participantsChanged(cmd.definitionId(), cmd.participants());
         if (!calendarChanged && !contentChanged && !participantsChanged) {
             return new UpdateResult(def.getRevision(), false, binding.getScheduleGeneration());
+        }
+
+        if (calendarChanged && parsed.timeWindow() != null) {
+            try {
+                CalendarWindowedPreview.requireWithinHorizon(parsed.rule(), parsed.timeWindow(), now);
+            } catch (CalendarConfigException ex) {
+                throw new ApplicationException(ex.errorCode(), ex.getMessage());
+            }
         }
 
         if (calendarChanged) {
@@ -159,24 +172,39 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
             scheduleGeneration = scheduleGeneration + 1;
             boolean active = "ACTIVE".equals(def.getControlState());
             List<CalendarOccurrenceCalculator.Occurrence> window = List.of();
-            if (active) {
-                window = buildWindow(rule, now, cmd.windowEnd(), newConfigMap);
-            }
             Instant nextFire;
             boolean exhausted;
-            if (!active) {
+            if (parsed.timeWindow() == null) {
+                if (active) {
+                    window = buildWindow(parsed.rule(), now, cmd.windowEnd(), newConfigMap);
+                }
+                if (!active) {
+                    exhausted = true;
+                    nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+                } else if (CalendarOccurrenceCalculator.openEnded(parsed.rule())) {
+                    var beyond = CalendarOccurrenceCalculator.preview(parsed.rule(), cmd.windowEnd(), 1);
+                    exhausted = beyond.isEmpty();
+                    nextFire = beyond.isEmpty()
+                            ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
+                            : beyond.get(0).occurrenceAt();
+                } else {
+                    exhausted = window.isEmpty()
+                            || "ONCE".equalsIgnoreCase(String.valueOf(newConfigMap.get("type")));
+                    nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+                }
+            } else if (!active) {
                 exhausted = true;
-                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
-            } else if (CalendarOccurrenceCalculator.openEnded(rule)) {
-                var beyond = CalendarOccurrenceCalculator.preview(rule, cmd.windowEnd(), 1);
-                exhausted = beyond.isEmpty();
-                nextFire = beyond.isEmpty()
-                        ? (window.isEmpty() ? null : window.get(window.size() - 1).occurrenceAt())
-                        : beyond.get(0).occurrenceAt();
+                nextFire = null;
             } else {
-                exhausted = window.isEmpty()
-                        || "ONCE".equalsIgnoreCase(String.valueOf(newConfigMap.get("type")));
-                nextFire = window.isEmpty() ? null : window.get(0).occurrenceAt();
+                var plan = CalendarWindowedPreview.planWrite(
+                        parsed.rule(),
+                        parsed.timeWindow(),
+                        now,
+                        cmd.windowEnd(),
+                        "ONCE".equalsIgnoreCase(String.valueOf(newConfigMap.get("type"))));
+                window = plan.inWindow();
+                nextFire = plan.nextFireAt();
+                exhausted = plan.exhausted();
             }
             int bindingUpdated = bindingMapper.updateConfigAndSchedule(
                     binding.getTriggerBindingId(),
@@ -184,6 +212,7 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
                     binding.getRevision() + 1,
                     tb.configJson(),
                     Sha256.digestUtf8(tb.configJson()),
+                    nextSchema,
                     scheduleGeneration,
                     StorageTime.toUtcLdt(nextFire),
                     "{}",
@@ -387,6 +416,21 @@ public class DefinitionUpdatePortImpl implements DefinitionUpdatePort {
             return left.equals(right);
         } catch (Exception e) {
             return Objects.equals(leftJson, rightJson);
+        }
+    }
+
+    private CalendarConfigParser.ParsedBinding parseBinding(
+            Map<String, Object> config, int schemaVersion, String scenarioKey) {
+        try {
+            return CalendarConfigParser.parseBinding(config, schemaVersion, scenarioKey);
+        } catch (CalendarConfigException ex) {
+            throw new ApplicationException(ex.errorCode(), ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage() == null ? "invalid calendar config" : ex.getMessage();
+            if (msg.startsWith("INVALID_REQUEST:")) {
+                msg = msg.substring("INVALID_REQUEST:".length()).trim();
+            }
+            throw new ApplicationException("INVALID_REQUEST", msg);
         }
     }
 

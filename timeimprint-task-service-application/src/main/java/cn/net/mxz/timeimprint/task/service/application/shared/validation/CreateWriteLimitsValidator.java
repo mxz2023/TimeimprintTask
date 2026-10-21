@@ -3,8 +3,10 @@ package cn.net.mxz.timeimprint.task.service.application.shared.validation;
 import cn.net.mxz.timeimprint.task.service.application.shared.model.ApplicationException;
 import cn.net.mxz.timeimprint.task.service.application.definition.model.CreateDefinitionCommand;
 import cn.net.mxz.timeimprint.task.service.application.inbox.validation.RecipientRules;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigException;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.configuration.CalendarConfigParser;
 import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarOccurrenceCalculator;
+import cn.net.mxz.timeimprint.task.service.capability.calendar.schedule.calculation.CalendarWindowedPreview;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
@@ -60,14 +62,20 @@ public final class CreateWriteLimitsValidator {
                 continue;
             }
             Map<String, Object> configMap = parseMap(tb.configJson(), objectMapper);
-            CalendarOccurrenceCalculator.Rule rule;
+            CalendarConfigParser.ParsedBinding parsed;
             try {
-                rule = CalendarConfigParser.parse(configMap, tb.schemaVersion());
-            } catch (IllegalArgumentException ex) {
-                return; // scenario-specific validation will surface parse errors
+                parsed = CalendarConfigParser.parseBinding(configMap, tb.schemaVersion(), null);
+            } catch (CalendarConfigException | IllegalArgumentException ex) {
+                continue; // create/update ports surface schema and field errors in scenario order
             }
-            var preview = CalendarOccurrenceCalculator.preview(
-                    rule, now, PlatformLimits.MAX_OCCURRENCES_PER_WRITE_TX);
+            var preview = parsed.timeWindow() == null
+                    ? CalendarOccurrenceCalculator.preview(
+                            parsed.rule(), now, PlatformLimits.MAX_OCCURRENCES_PER_WRITE_TX)
+                    : CalendarWindowedPreview.preview(
+                            parsed.rule(),
+                            parsed.timeWindow(),
+                            now,
+                            PlatformLimits.MAX_OCCURRENCES_PER_WRITE_TX);
             List<CalendarOccurrenceCalculator.Occurrence> window = new ArrayList<>();
             for (var occ : preview) {
                 if (!occ.occurrenceAt().isAfter(windowEnd)) {

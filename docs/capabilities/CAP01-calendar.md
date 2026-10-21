@@ -25,9 +25,9 @@
 | CAL-05 | EVERY_N_DAYS固定锚点每N日 | P01 | RELEASED | VERIFIED | S01、S02 |
 | CAL-15 | EVERY_N_HOURS固定锚点每N小时 | P07 | RELEASED | VERIFIED | S01、S02 |
 | CAL-16 | EVERY_N_MINUTES固定锚点每N分钟 | P07 | RELEASED | VERIFIED | S01、S02 |
-| CAL-17 | 发生时间段过滤：按工作日与非工作日两套时间段删减候选发生 | P14 | READY_FOR_IMPLEMENTATION | NOT_STARTED | S01、S02 |
+| CAL-17 | 发生时间段过滤：按工作日与非工作日两套时间段删减候选发生 | P14 | RELEASED | VERIFIED | S01、S02 |
 | CAL-06 | 扩展周期：公历每年已进入 P09；季度、每N时间单位的其余部分、月末仍未做 | P09（仅 YEARLY）/ BACKLOG（其余） | READY_FOR_IMPLEMENTATION（仅 YEARLY）/ OUTLINE（其余） | VERIFIED（仅 YEARLY） | C01、S03 |
-| CAL-07 | 工作日与节假日日历：中国大陆法定子集已进入 P14；企业日历仍未做 | P14（仅中国大陆法定日历）/ BACKLOG（企业日历） | READY_FOR_IMPLEMENTATION（仅中国大陆法定子集）/ OUTLINE（企业日历） | NOT_STARTED | C02 |
+| CAL-07 | 工作日与节假日日历：中国大陆法定子集已进入 P14；企业日历仍未做 | P14（仅中国大陆法定日历）/ BACKLOG（企业日历） | RELEASED（仅中国大陆法定子集）/ OUTLINE（企业日历） | VERIFIED（仅中国大陆法定子集）/ NOT_STARTED（企业日历） | C02 |
 | CAL-08 | 业务时间计时 | BACKLOG | OUTLINE | NOT_STARTED | C03、S09 |
 | CAL-09 | 相对锚点日的天数偏移；可选在锚点之后按自然日继续 | P09 | READY_FOR_IMPLEMENTATION | VERIFIED | C04、S04、S05 |
 | CAL-10 | 农历与周年换算 | NEXT_REVIEW | OUTLINE | NOT_STARTED | S03 |
@@ -61,7 +61,7 @@ calendar `schemaVersion=2` 在 schemaVersion 1 的七种类型之外增加两种
 
 ## P14 正式范围
 
-[CAL-17](CAP01-calendar.md) 与 [CAL-07](CAP01-calendar.md) 的中国大陆法定子集进入 [P14](../phases/P14/README.md)。契约状态为 READY_FOR_IMPLEMENTATION，实现证据尚未写入 DELIVERY，因此实现状态仍是 NOT_STARTED。不新增表，不新增 `timeimprint.*` 配置键。
+[CAL-17](CAP01-calendar.md) 与 [CAL-07](CAP01-calendar.md) 的中国大陆法定子集已随 [P14](../phases/P14/README.md) 验收为 VERIFIED（标签 `v20261021-P14`）。不新增表，不新增 `timeimprint.*` 配置键。
 
 `schemaVersion=3` 在 schemaVersion 2 的九种类型上增加必填 `timeWindow`。HTTP 字段、原因键与升级规则以 [04 §3.1.2](../04-API.md) 为准。`timeWindow=null` 时发生结果与同字段的 schemaVersion 2 相同。`schemaVersion=1/2` 的发生结果不变。
 

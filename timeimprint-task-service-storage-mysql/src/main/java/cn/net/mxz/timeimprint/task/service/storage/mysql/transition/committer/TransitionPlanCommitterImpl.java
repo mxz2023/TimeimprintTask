@@ -132,12 +132,14 @@ public class TransitionPlanCommitterImpl implements TransitionPlanCommitter {
                     && json.fields().get("bindingConfig") instanceof Map<?, ?> bindingConfig) {
                 String configJson = writeJson(bindingConfig);
                 long generation = binding.getScheduleGeneration() == null ? 1L : binding.getScheduleGeneration();
+                int schemaVersion = binding.getSchemaVersion() == null ? 1 : binding.getSchemaVersion();
                 int updated = triggerMapper.updateConfigAndSchedule(
                         binding.getTriggerBindingId(),
                         binding.getRevision(),
                         binding.getRevision() + 1,
                         configJson,
                         Sha256.digestUtf8(configJson),
+                        schemaVersion,
                         generation + 1,
                         null,
                         "{}",

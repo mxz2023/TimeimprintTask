@@ -4,9 +4,7 @@
 
 ## 当前阶段
 
-| 阶段 | 状态 | 下一动作 |
-| --- | --- | --- |
-| [P14 提醒时间段](P14/README.md) | VERIFYING（CURRENT） | 自动证据已写入 [DELIVERY](P14/DELIVERY.md)。第 6 节人工步骤未做，未标 RELEASED |
+无。下一期在新建阶段 README 并转为 READY 之前，不得修改代码、测试、配置、迁移和部署脚本。
 
 ## 已发布阶段
 
@@ -25,10 +23,11 @@
 | [P11 去掉 Task 冗余账号表](P11/README.md) | RELEASED | [DELIVERY](P11/DELIVERY.md)；Git 标签 `v20261017-P11`；用户于 2026-10-17 确认两步人工结果 |
 | [P12 验收库名与验收脚本](P12/README.md) | RELEASED | [DELIVERY](P12/DELIVERY.md)；Git 标签 `v20261018-P12`；用户于 2026-10-18 确认可以发布 |
 | [P13 站内信软删除](P13/README.md) | RELEASED | [DELIVERY](P13/DELIVERY.md)；Git 标签 `v20261018-P13`；用户于 2026-10-18 确认可以发布 |
+| [P14 提醒时间段](P14/README.md) | RELEASED | [DELIVERY](P14/DELIVERY.md)；Git 标签 `v20261021-P14`；用户于 2026-10-21 确认人工验收通过 |
 
 ## 未来阶段
 
-C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。站内信软删除已随 [P13](P13/README.md) 发布。标签 `v20261018-P13`。提醒时间段在 [P14](P14/README.md)（VERIFYING，未标 RELEASED）。
+C12 中微信/钉钉/Telegram 等非飞书 IM 在 P05 飞书交付后再排。S06—S13、S15—S17 仍是长期保留。S14 已随 P10 发布。X06 已随 P11 发布。X07 已随 [P12](P12/README.md) 发布。站内信软删除已随 [P13](P13/README.md) 发布。提醒时间段已随 [P14](P14/README.md) 发布。标签 `v20261021-P14`。
 
 ## 更新规则
 

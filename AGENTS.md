@@ -13,7 +13,7 @@
 
 修改文件前必须说明当前阶段、阶段状态、当前任务、允许范围、禁止范围、适用的`INV-*`及验证方式。找不到CURRENT阶段、存在多个CURRENT阶段、状态不允许当前操作或文档互相冲突时，必须停止实现并先修正文档或请求决策，不能自行猜测。
 
-没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。P13 已于 2026-10-18 RELEASED（标签 `v20261018-P13`）。当前 CURRENT 为 P14（IMPLEMENTING）。DRAFT/READY/BLOCKED 或没有 CURRENT 时，不得修改代码、测试、配置或部署脚本。
+没有已经开始处理的阶段时，不得修改代码、测试、配置或部署脚本。DRAFT 和 READY 只允许写该阶段的目标文档。先把目标写入阶段 README，用户授权并转为 IMPLEMENTING 之后才能动手。P13 已于 2026-10-18 RELEASED（标签 `v20261018-P13`）。P14 已于 2026-10-21 RELEASED（标签 `v20261021-P14`）。当前没有 CURRENT 阶段。DRAFT/READY/BLOCKED 或没有 CURRENT 时，不得修改代码、测试、配置或部署脚本。
 
 阶段门禁以`docs/08-AI-IMPLEMENTATION-TASKS.md`的「阶段规则」为准。没有 CURRENT，或 CURRENT 为 DRAFT、READY、BLOCKED 时，不得修改代码、测试、配置、迁移和部署脚本。IMPLEMENTING 和 VERIFYING 只能修改该阶段 README 写明允许的文件。
 

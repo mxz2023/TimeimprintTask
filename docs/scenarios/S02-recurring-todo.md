@@ -39,7 +39,7 @@ S02用于按日历周期产生彼此独立、需要用户结清的待办实例�
 
 S02使用[01](../01-MVP-SPEC.md)定义的共享日历规则，且每个定义只允许一个calendar触发绑定。
 
-[P14](../phases/P14/README.md) 起，该绑定的 calendar `schemaVersion` 可以是 1、2 或 3。版本 3 的 `timeWindow` 只决定某一次发生是否生成整个实例。`null` 表示不限时段。段外不生成实例、Signal、Action 或收件，也不补发，用户看不到「已跳过」记录。已经保留下来的实例上，CHASE 催办与稍后提醒不受时间段限制，仍按本节原规则执行。日类型、缺年回退与 7 天窗口不重算同 [S01](S01-reminder.md)。字段与原因键见 [04 §3.1.2](../04-API.md)。本段尚未验收，既有无时段行为仍以已发布 DELIVERY 为准。
+[P14](../phases/P14/README.md) 起，该绑定的 calendar `schemaVersion` 可以是 1、2 或 3。版本 3 的 `timeWindow` 只决定某一次发生是否生成整个实例。`null` 表示不限时段。段外不生成实例、Signal、Action 或收件，也不补发，用户看不到「已跳过」记录。已经保留下来的实例上，CHASE 催办与稍后提醒不受时间段限制，仍按本节原规则执行。日类型、缺年回退与 7 天窗口不重算同 [S01](S01-reminder.md)。字段与原因键见 [04 §3.1.2](../04-API.md)。证据见 [P14 DELIVERY](../phases/P14/DELIVERY.md)，标签 `v20261021-P14`。
 
 ## 2. 配置schemaVersion 1
 

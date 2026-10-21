@@ -16,7 +16,7 @@
 
 | 能力编号 | 能力标识 | 能力域 | 目标模块 | 排期位置 | 契约状态 | 实现状态 | 当前批准范围 | 未来规划 | 正式文档 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CAP01 | `calendar` | 日历与时间 | `timeimprint-task-service-capability-calendar` | P01 / P07 / P14 | RELEASED（已发布项） | VERIFIED（已发布项） | 五种基础公历规则，P07 的每 N 小时、每 N 分钟，以及 P09 的周年与锚点偏移；北京时间、预览与滚动规划。P14 的时间段与中国大陆法定工作日尚未验收 | C01—C04、C08、C10、C11、C17及农历 | [CAP01](CAP01-calendar.md) |
+| CAP01 | `calendar` | 日历与时间 | `timeimprint-task-service-capability-calendar` | P01 / P07 / P14 | RELEASED（已发布项） | VERIFIED（已发布项） | 五种基础公历规则，P07 的每 N 小时、每 N 分钟，P09 的周年与锚点偏移，以及 P14 的发生时间段过滤与中国大陆法定工作日；北京时间、预览与滚动规划 | C01—C04、C08、C10、C11、C17及农历 | [CAP01](CAP01-calendar.md) |
 | CAP02 | `trigger` | 外部/条件/依赖触发 | `timeimprint-task-service-capability-trigger` | BACKLOG | OUTLINE | NOT_STARTED | 无 | C05、C07，服务S05、S11、S12等 | [CAP02](CAP02-trigger.md) |
 | CAP03 | `notification` | 通知与收件 | `timeimprint-task-service-capability-notification` | P01 / P05 / P08 | RELEASED（NOT-01—NOT-03、NOT-05、NOT-08） | VERIFIED（已发布项） | 通知意图、IN_APP、收件、接收人投影、Action执行；P05 起含可配置飞书整体接入（NOT-05）。NOT-08 为站内信实时提示，已随 P08 发布 | C09、C12（飞书子集已随 P05 VERIFIED；其余 IM 仍 OUTLINE）、C18及C16的通知部分 | [CAP03](CAP03-notification.md) |
 | CAP04 | `collaboration` | 协作与主体 | 账号子集为 `timeimprint-task-identity`；其余仍计划为 `timeimprint-task-service-capability-collaboration` | P06（账号子集）/ BACKLOG（其余） | RELEASED（账号子集）/ OUTLINE（其余） | VERIFIED（账号子集）/ NOT_STARTED（其余） | 账号子集见 [P06 DELIVERY](../phases/P06/DELIVERY.md)，标签 `v20261010-P06` | C13、C16，服务S06—S09、S15 | [CAP04](CAP04-collaboration.md) |
@@ -25,14 +25,14 @@
 | CAP07 | `integration` | 外部系统集成 | `timeimprint-task-service-capability-integration` | BACKLOG | OUTLINE | NOT_STARTED | 无 | S11、S15、S16及第三方回调/日历 | [CAP07](CAP07-integration.md) |
 | CAP08 | `intelligence` | 智能理解与建议 | `timeimprint-task-service-capability-intelligence` | BACKLOG | OUTLINE | NOT_STARTED | 无；Spring AI版本基线不等于本能力实现 | S17自然语言解析、解释和建议 | [CAP08](CAP08-intelligence.md) |
 
-CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。CAP03 的 NOT-05（飞书整体接入）已随 [P05 DELIVERY](../phases/P05/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261007-P05`）。CAP01 的 CAL-15、CAL-16 已随 [P07 DELIVERY](../phases/P07/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261011-P07`）。CAP03 的 NOT-08（站内信实时提示）已随 [P08 DELIVERY](../phases/P08/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261014-P08`）。[CAL-07](CAP01-calendar.md) 的中国大陆法定子集与 [CAL-17](CAP01-calendar.md)（发生时间段过滤）已在 [P14](../phases/P14/README.md) 写为 READY_FOR_IMPLEMENTATION，实现状态仍是 NOT_STARTED。能力域状态仅覆盖已经验收的范围；表中其余 OUTLINE 能力项与 C01—C19 规划项仍未实现。
+CAP01 的 CAL-01—CAL-05 与 CAP03 的 NOT-01—NOT-03 已随 [P01 DELIVERY](../phases/P01/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20260915-P01`）。CAP03 的 NOT-05（飞书整体接入）已随 [P05 DELIVERY](../phases/P05/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261007-P05`）。CAP01 的 CAL-15、CAL-16 已随 [P07 DELIVERY](../phases/P07/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261011-P07`）。CAP03 的 NOT-08（站内信实时提示）已随 [P08 DELIVERY](../phases/P08/DELIVERY.md) 验收为 `VERIFIED`（标签 `v20261014-P08`）。[CAL-07](CAP01-calendar.md) 的中国大陆法定子集与 [CAL-17](CAP01-calendar.md)（发生时间段过滤）已随 [P14 DELIVERY](../phases/P14/DELIVERY.md) 验收为 VERIFIED（标签 `v20261021-P14`）。能力域状态仅覆盖已经验收的范围；表中其余 OUTLINE 能力项与 C01—C19 规划项仍未实现。
 
 ## C01—C19主要归属
 
 | 编号 | 名称 | 主要归属 | 排期位置 | 契约状态 | 实现状态 |
 | --- | --- | --- | --- | --- | --- |
 | C01 | 扩展周期 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
-| C02 | 工作日历 | [calendar](CAP01-calendar.md) | P14（仅中国大陆法定日历）/ BACKLOG（企业日历） | READY_FOR_IMPLEMENTATION（仅中国大陆法定子集）/ OUTLINE（企业日历） | NOT_STARTED |
+| C02 | 工作日历 | [calendar](CAP01-calendar.md) | P14（仅中国大陆法定日历）/ BACKLOG（企业日历） | RELEASED（仅中国大陆法定子集）/ OUTLINE（企业日历） | VERIFIED（仅中国大陆法定子集）/ NOT_STARTED（企业日历） |
 | C03 | 业务时间计时 | [calendar](CAP01-calendar.md) | BACKLOG | OUTLINE | NOT_STARTED |
 | C04 | 相对时间与多阶段提醒 | [calendar](CAP01-calendar.md) | P09 | READY_FOR_IMPLEMENTATION | VERIFIED |
 | C05 | 时间与条件组合 | [trigger](CAP02-trigger.md) | BACKLOG | OUTLINE | NOT_STARTED |
